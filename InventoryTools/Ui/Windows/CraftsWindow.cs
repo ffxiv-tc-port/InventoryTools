@@ -2610,9 +2610,11 @@ namespace InventoryTools.Ui
 
                     if (craftTable != null)
                     {
+
                         var totalItems =  itemTable.RenderSearchResults.Count + " items / " + craftTable.GetCraftListCount() + " craft items";
                         var calcTextSize = ImGui.CalcTextSize(totalItems);
                         width -= calcTextSize.X + 15;
+                        ImGui.SameLine();
                         ImGui.SetCursorPosX(width);
                         ImGuiService.VerticalCenter(totalItems);
                     }
