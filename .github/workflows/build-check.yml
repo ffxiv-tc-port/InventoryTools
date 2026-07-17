@@ -1,0 +1,50 @@
+name: Build Check
+
+on:
+  workflow_dispatch:
+  push:
+    tags-ignore:
+      - 'v*'
+
+env:
+  INTERNAL_NAME: InventoryTools
+  CONFIGURATION: Release
+  DOTNET_CLI_TELEMETRY_OPTOUT: true
+
+jobs:
+  gate:
+    runs-on: ubuntu-latest
+    outputs:
+      proceed: ${{ steps.check.outputs.proceed }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - id: check
+        shell: bash
+        run: |
+          PREFIX=$(grep -oPm1 '(?<=<VersionPrefix>)[^<]+' InventoryTools/InventoryTools.csproj)
+          if [ "$PREFIX" != "7.15.0" ]; then
+            echo "proceed=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "proceed=false" >> "$GITHUB_OUTPUT"
+          fi
+
+  build:
+    needs: gate
+    if: needs.gate.outputs.proceed == 'true'
+    runs-on: windows-2022
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+      - name: Setup MSBuild
+        uses: microsoft/setup-msbuild@v1.1.3
+      - name: Download Dalamud
+        run: |
+          Invoke-WebRequest -Uri https://github.com/Lother/dalamud-tc-pin/releases/download/v12.0.2/dalamud-api12-net9.zip -OutFile latest.zip
+          Expand-Archive -Force latest.zip "$env:AppData\XIVLauncher\addon\Hooks\dev\"
+      - name: Restore
+        run: dotnet restore InventoryTools
+      - name: Build
+        run: dotnet build -c ${{ env.CONFIGURATION }} --no-restore ${{ env.INTERNAL_NAME }}
