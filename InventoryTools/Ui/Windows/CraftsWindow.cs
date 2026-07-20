@@ -100,7 +100,7 @@ namespace InventoryTools.Ui
             IClipboardService clipboardService,
             IKeyState keyState,
             ItemSheet itemSheet,
-            IFramework framework) : base(logger, mediator, imGuiService, configuration, "Crafts Window")
+            IFramework framework) : base(logger, mediator, imGuiService, configuration, "製作視窗")
         {
             _tableService = tableService;
             _configuration = configuration;
@@ -2240,7 +2240,6 @@ namespace InventoryTools.Ui
                                 {
                                     actualName += " (*)";
                                 }
-                                // 提示：暫存清單標記，保留原始符號不翻譯
                                 if (ImGui.Selectable(actualName + "###fl" + filterConfiguration.Key,
                                         index == _selectedFilterTab))
                                 {
@@ -2562,7 +2561,7 @@ namespace InventoryTools.Ui
                         ImGui.SameLine();
                         ImGui.Image(ImGuiService.GetIconTexture(Icons.ExclamationIcon).ImGuiHandle,
                             new Vector2(22, 22));
-                        ImGuiUtil.HoverTooltip($"There was an error when contacting Universalis at {_universalis.LastFailure.Value.ToString(CultureInfo.CurrentCulture)}. This likely means Universalis is having issues. Allagan Tools will back off requests for 30 seconds whenever this happens.");
+                        ImGuiUtil.HoverTooltip($"在 {_universalis.LastFailure.Value.ToString(CultureInfo.CurrentCulture)} 與 Universalis 通訊時發生錯誤，這很可能表示 Universalis 目前有問題。每次發生此情況時，Allagan Tools 將會暫停請求 30 秒。");
                     }
 
                     if (_universalis.TooManyRequests)
@@ -2662,7 +2661,7 @@ namespace InventoryTools.Ui
                             {
                                 var base64 = _importExportService.ToBase64(filterConfiguration);
                                 _clipboardService.CopyToClipboard(base64);
-                                _chatUtilities.PrintClipboardMessage("[匯出] ", "Filter Configuration");
+                                _chatUtilities.PrintClipboardMessage("[匯出] ", "篩選設定");
                             }
                         }
                         else
@@ -2875,12 +2874,12 @@ namespace InventoryTools.Ui
                         ImGuiService.CenterElement(24 * ImGui.GetIO().FontGlobalScale);
                         if (_resetButton.Draw(ImGuiService.GetImageTexture("nuke").ImGuiHandle, "bb_reset"))
                         {
-                            ImGui.OpenPopup("Reset the default craft list?##defaultReset");
+                            ImGui.OpenPopup("重設預設製作清單？##defaultReset");
                         }
 
                         ImGuiUtil.HoverTooltip("重設為預設設定。");
 
-                        using (var popup = ImRaii.Popup("Reset the default craft list?##defaultReset"))
+                        using (var popup = ImRaii.Popup("重設預設製作清單？##defaultReset"))
                         {
                             if (popup.Success)
                             {
