@@ -192,6 +192,9 @@
       <Content Include="CHANGELOG.md">
         <CopyToOutputDirectory>Always</CopyToOutputDirectory>
       </Content>
+      <Content Include="LanguageChineseTraditional.ini">
+        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      </Content>
       <Content Include="Images\collectable.png">
         <CopyToOutputDirectory>Always</CopyToOutputDirectory>
       </Content>

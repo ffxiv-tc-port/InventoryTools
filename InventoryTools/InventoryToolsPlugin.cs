@@ -96,6 +96,15 @@ namespace InventoryTools
             Stopwatch loadConfigStopwatch = new Stopwatch();
             loadConfigStopwatch.Start();
             pluginLog.Verbose("Starting Allagan Tools.");
+            Localization.Init(pluginInterface.AssemblyLocation.DirectoryName);
+            if (Localization.LoadError != null)
+            {
+                pluginLog.Warning("Localization: " + Localization.LoadError);
+            }
+            else
+            {
+                pluginLog.Information($"Localization: loaded {Localization.EntryCount} entries.");
+            }
             _pluginLog = pluginLog;
             _framework = framework;
             PluginInterface = pluginInterface;
