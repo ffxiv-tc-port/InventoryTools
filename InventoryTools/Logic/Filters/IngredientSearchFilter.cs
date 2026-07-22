@@ -71,7 +71,7 @@ public class IngredientSearchFilter : UintMultipleChoiceFilter
     {
         base.DrawSearchBox(configuration);
         ImGui.SameLine();
-        if (ImGui.Button("Add all from filter"))
+        if (ImGui.Button("Add all from filter".Loc()))
         {
             ImGui.OpenPopup("AddAllFilterSelect");
         }

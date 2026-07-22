@@ -21,9 +21,9 @@ public class ItemAquariumUseRenderer : ItemInfoRenderer<ItemAquariumSource>
 
     public override RendererType RendererType => RendererType.Use;
     public override ItemInfoType Type => ItemInfoType.Aquarium;
-    public override string SingularName => "Aquarium";
-    public override string PluralName => "Aquariums";
-    public override string HelpText => "Can the item be placed in aquariums?";
+    public override string SingularName => "Aquarium".Loc();
+    public override string PluralName => "Aquariums".Loc();
+    public override string HelpText => "Can the item be placed in aquariums?".Loc();
     public override bool ShouldGroup => false;
 
     public override Action<ItemSource> DrawTooltip => source =>
@@ -53,6 +53,6 @@ public class ItemAquariumUseRenderer : ItemInfoRenderer<ItemAquariumSource>
     public override Func<ItemSource, string> GetDescription => source =>
     {
         var asSource = AsSource(source);
-        return $"Can be placed in {asSource.AquariumFish.Size} aquariums with {asSource.AquariumFish.Base.AquariumWater.Value.Name}";
+        return "Can be placed in ?? aquariums with ??".Loc(asSource.AquariumFish.Size, asSource.AquariumFish.Base.AquariumWater.Value.Name);
     };
 }

@@ -24,7 +24,7 @@ public class ItemQuestUseRenderer : ItemQuestSourceRenderer
     {
     }
 
-    public override string HelpText { get; } = "Is this item required for a quest?";
+    public override string HelpText { get; } = "Is this item required for a quest?".Loc();
 
     public override RendererType RendererType { get; } = RendererType.Use;
 }
@@ -36,8 +36,8 @@ public class ItemQuestSourceRenderer : ItemInfoRenderer<ItemQuestSource>
     private readonly Dictionary<uint,string> _festivalNames;
     public override RendererType RendererType { get; } = RendererType.Source;
     public override ItemInfoType Type { get; } = ItemInfoType.Quest;
-    public override string SingularName { get; } = "Quest";
-    public override string HelpText { get; } = "Does this item come from a quest?";
+    public override string SingularName { get; } = "Quest".Loc();
+    public override string HelpText { get; } = "Does this item come from a quest?".Loc();
     public override bool ShouldGroup { get; } = true;
 
     public ItemQuestSourceRenderer(ITextureProvider textureProvider, ItemSheet itemSheet, MapSheet mapSheet,

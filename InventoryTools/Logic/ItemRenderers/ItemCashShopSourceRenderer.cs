@@ -21,19 +21,19 @@ public class ItemCashShopSourceRenderer : ItemInfoRenderer<ItemCashShopSource>
 
     public override RendererType RendererType => RendererType.Source;
     public override ItemInfoType Type => ItemInfoType.CashShop;
-    public override string SingularName => "Bought on SQ Store(real money)";
+    public override string SingularName => "Bought on SQ Store(real money)".Loc();
     public override bool ShouldGroup => true;
-    public override string HelpText => "Can the item be purchased through the mogstation?";
+    public override string HelpText => "Can the item be purchased through the mogstation?".Loc();
 
     public override Action<ItemSource> DrawTooltip => source =>
     {
         var asSource = AsSource(source);
         var priceUsd = asSource.PriceUsd.ToString("C2", CultureInfo.GetCultureInfo("en-US"));
-        ImGui.TextUnformatted($"Price(USD): {priceUsd}");
+        ImGui.TextUnformatted("Price(USD): ??".Loc(priceUsd));
         if (asSource.FittingShopItemSetRow?.Items.Count > 1)
         {
-            ImGui.TextUnformatted($"Set: {asSource.FittingShopItemSetRow.Base.Unknown6.ExtractText()}");
-            ImGui.TextUnformatted($"Contains:");
+            ImGui.TextUnformatted("Set: ??".Loc(asSource.FittingShopItemSetRow.Base.Unknown6.ExtractText()));
+            ImGui.TextUnformatted("Contains:".Loc());
             using (ImRaii.PushIndent())
             {
                 foreach (var item in asSource.FittingShopItemSetRow.Items)
@@ -56,10 +56,10 @@ public class ItemCashShopSourceRenderer : ItemInfoRenderer<ItemCashShopSource>
     {
         var asSource = AsSource(source);
         var priceUsd = asSource.PriceUsd.ToString("C2", CultureInfo.GetCultureInfo("en-US"));
-        var description = $"Price(USD): {priceUsd}";
+        var description = "Price(USD): ??".Loc(priceUsd);
         if (asSource.FittingShopItemSetRow != null)
         {
-            description += $" (Part of {asSource.FittingShopItemSetRow.Base.Unknown6.ExtractText()} set)";
+            description += " (Part of ?? set)".Loc(asSource.FittingShopItemSetRow.Base.Unknown6.ExtractText());
             description += $" (Contains {String.Join(", ", asSource.FittingShopItemSetRow.Items.Select(c => c.NameString))}";
         }
         return description;

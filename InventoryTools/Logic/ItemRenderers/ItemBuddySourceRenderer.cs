@@ -19,9 +19,9 @@ public class ItemBuddySourceRenderer : ItemInfoRenderer<ItemBuddySource>
 
     public override RendererType RendererType => RendererType.Use;
     public override ItemInfoType Type => ItemInfoType.BuddyItem;
-    public override string SingularName => "Used on Chocobo Companion";
+    public override string SingularName => "Used on Chocobo Companion".Loc();
     public override bool ShouldGroup => false;
-    public override string HelpText => "Can the item be used on your chocobo companion?";
+    public override string HelpText => "Can the item be used on your chocobo companion?".Loc();
 
     public override Action<ItemSource> DrawTooltip => source =>
     {
@@ -32,17 +32,17 @@ public class ItemBuddySourceRenderer : ItemInfoRenderer<ItemBuddySource>
 
         if (usedField)
         {
-            ImGui.Text("Battle: Increases EXP earned by your chocobo companion.");
+            ImGui.Text("Battle: Increases EXP earned by your chocobo companion.".Loc());
         }
 
         if (usedTraining)
         {
-            ImGui.Text("Stable: Training food for a stabled Chocobo companion.");
+            ImGui.Text("Stable: Training food for a stabled Chocobo companion.".Loc());
         }
 
         if (usedDyeing)
         {
-            ImGui.Text("Dying: Used in Chocobo Dyeing.");
+            ImGui.Text("Dying: Used in Chocobo Dyeing.".Loc());
         }
     };
     public override Func<ItemSource, string> GetName => source =>

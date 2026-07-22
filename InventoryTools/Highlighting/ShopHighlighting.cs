@@ -95,14 +95,14 @@ public class ShopHighlighting : IDisposable
                     }
                     itemIdString = itemId.ToString();
                 }
-                if (ImGui.Button("Add Item"))
+                if (ImGui.Button("Add Item".Loc()))
                 {
                     if (uint.TryParse(itemIdString, out itemId))
                     {
                         highlightedItems.Add(itemId);
                     }
                 }
-                if (ImGui.Button("Remove Item"))
+                if (ImGui.Button("Remove Item".Loc()))
                 {
                     if (uint.TryParse(itemIdString, out itemId))
                     {

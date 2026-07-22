@@ -69,7 +69,7 @@ public abstract class ItemInfoRenderer<T> : IItemInfoRenderer where T : ItemSour
                     ImGui.SameLine();
                     if (itemInfo.Min == itemInfo.Max)
                     {
-                        ImGui.Text("(Drops 1)");
+                        ImGui.Text("(Drops 1)".Loc());
                     }
                     else
                     {
@@ -93,7 +93,7 @@ public abstract class ItemInfoRenderer<T> : IItemInfoRenderer where T : ItemSour
 
         if (maps.Count != 0)
         {
-            ImGui.Text("Maps:");
+            ImGui.Text("Maps:".Loc());
             using (ImRaii.PushIndent())
             {
                 foreach (var map in maps)
@@ -115,7 +115,7 @@ public abstract class ItemInfoRenderer<T> : IItemInfoRenderer where T : ItemSour
 
         if (maps.Count != 0)
         {
-            ImGui.Text("Maps:");
+            ImGui.Text("Maps:".Loc());
             using (ImRaii.PushIndent())
             {
                 foreach (var map in maps)

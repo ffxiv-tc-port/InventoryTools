@@ -141,7 +141,7 @@ public class CraftIngredientPreferenceFilter : SortedListFilter<(IngredientPrefe
         {
             if (combo.Success)
             {
-                if (ImGui.Selectable("None", false))
+                if (ImGui.Selectable("None".Loc(), false))
                 {
                 }
                 foreach (var preferenceType in _preferenceTypes.Where(c => !currentValue.ContainsKey((c, null))))
@@ -172,7 +172,7 @@ public class CraftIngredientPreferenceFilter : SortedListFilter<(IngredientPrefe
                 ImGui.Separator();
                 if (_searchString == "")
                 {
-                    ImGui.TextUnformatted("Start typing to search...");
+                    ImGui.TextUnformatted("Start typing to search...".Loc());
                 }
                 foreach (var item in SearchItems.Where(c => !currentValue.ContainsKey((IngredientPreferenceType.Item, c.RowId))))
                 {

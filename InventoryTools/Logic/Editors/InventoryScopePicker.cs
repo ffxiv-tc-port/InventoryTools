@@ -265,7 +265,7 @@ public class InventoryScopePicker
         {
             if (combo)
             {
-                ImGui.Text("Inventory Scope Editor");
+                ImGui.Text("Inventory Scope Editor".Loc());
                 using(var child = ImRaii.Child("selected", new Vector2(200, 0) * ImGui.GetIO().FontGlobalScale , true, ImGuiWindowFlags.NoScrollbar))
                 {
                     if (child)
@@ -276,7 +276,7 @@ public class InventoryScopePicker
                             {
                                 if (searchScopes.Count == 0)
                                 {
-                                    ImGui.TextWrapped("No scopes defined yet. Press add to start.");
+                                    ImGui.TextWrapped("No scopes defined yet. Press add to start.".Loc());
                                 }
 
                                 for (var index = 0; index < searchScopes.Count; index++)
@@ -318,14 +318,14 @@ public class InventoryScopePicker
                         {
                             if (commandBar)
                             {
-                                if (ImGui.Button("Add"))
+                                if (ImGui.Button("Add".Loc()))
                                 {
                                     _selectedScope = new InventorySearchScope();
                                     searchScopes.Add(_selectedScope);
                                     changed = true;
                                 }
                                 ImGui.SameLine();
-                                if (ImGui.Button("Save"))
+                                if (ImGui.Button("Save".Loc()))
                                 {
                                     ImGui.CloseCurrentPopup();
                                 }
@@ -339,9 +339,9 @@ public class InventoryScopePicker
                 {
                     if (_selectedScope == null)
                     {
-                        ImGui.TextWrapped("The inventory scope editor allows you define which inventories you want to search across.");
-                        ImGui.TextWrapped("By default, every inventory Allagan Tools knows about is searched.");
-                        ImGui.TextWrapped("By providing a set of scopes, you are narrowing down from which inventories are displayed.");
+                        ImGui.TextWrapped("The inventory scope editor allows you define which inventories you want to search across.".Loc());
+                        ImGui.TextWrapped("By default, every inventory Allagan Tools knows about is searched.".Loc());
+                        ImGui.TextWrapped("By providing a set of scopes, you are narrowing down from which inventories are displayed.".Loc());
                     }
                     else
                     {
@@ -354,7 +354,7 @@ public class InventoryScopePicker
                                     var isCharacter = _selectedScope.CharacterId != null;
                                     var isWorld = _selectedScope.WorldId != null;
                                     var isActiveCharacter = _selectedScope.ActiveCharacter != null;
-                                    ImGui.Text("Search Scope:");
+                                    ImGui.Text("Search Scope:".Loc());
                                     ImGui.Separator();
                                     if (ImGui.RadioButton("All",!isCharacter && !isWorld && !isActiveCharacter))
                                     {
@@ -548,7 +548,7 @@ public class InventoryScopePicker
                                     ImGui.Separator();
                                     ImGui.NewLine();
                                     var invert = _selectedScope.Invert;
-                                    if (ImGui.Checkbox("Invert", ref invert))
+                                    if (ImGui.Checkbox("Invert".Loc(), ref invert))
                                     {
                                         _selectedScope.Invert = invert;
                                         changed = true;
@@ -563,13 +563,13 @@ public class InventoryScopePicker
                             {
                                 if (commandBar)
                                 {
-                                    if (ImGui.Button("Save"))
+                                    if (ImGui.Button("Save".Loc()))
                                     {
                                         _selectedScope = null;
                                         changed = true;
                                     }
                                     ImGui.SameLine();
-                                    if (ImGui.Button("Delete"))
+                                    if (ImGui.Button("Delete".Loc()))
                                     {
                                         searchScopes.Remove(_selectedScope);
                                         _selectedScope = null;

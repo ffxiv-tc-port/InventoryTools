@@ -20,8 +20,8 @@ public class ItemGlamourReadySetItemSourceRenderer : ItemInfoRenderer<ItemGlamou
 
     public override RendererType RendererType => RendererType.Use;
     public override ItemInfoType Type => ItemInfoType.GlamourReadySetItem;
-    public override string SingularName => "Glamour Ready Set Item";
-    public override string HelpText => "Is the item part of a 'Glamour Ready' outfit set?";
+    public override string SingularName => "Glamour Ready Set Item".Loc();
+    public override string HelpText => "Is the item part of a 'Glamour Ready' outfit set?".Loc();
 
     public override bool ShouldGroup => true;
 
@@ -31,7 +31,7 @@ public class ItemGlamourReadySetItemSourceRenderer : ItemInfoRenderer<ItemGlamou
         ImGui.Text("Transforms into: " + asSource.ConvertedItem.NameString);
         if (asSource.SetItems.Count > 1)
         {
-            ImGui.Text("Set Items:");
+            ImGui.Text("Set Items:".Loc());
             using (ImRaii.PushIndent())
             {
                 foreach (var item in asSource.SetItems)

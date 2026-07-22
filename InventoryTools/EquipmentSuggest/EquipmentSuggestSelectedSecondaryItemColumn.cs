@@ -44,7 +44,7 @@ public class EquipmentSuggestSelectedSecondaryItemColumn  : StringFormField<Equi
 
     public override string DefaultValue { get; set; } = string.Empty;
     public override string Key { get; set; } = "SecondarySelectedItem";
-    public override string Name { get; set; } = "Off-hand";
+    public override string Name { get; set; } = "Off-hand".Loc();
     public string? RenderName { get; set; } = null;
     public int Width { get; set; } = 100;
     public bool HideFilter { get; set; } = true;
@@ -63,7 +63,7 @@ public class EquipmentSuggestSelectedSecondaryItemColumn  : StringFormField<Equi
             var containerSize = _viewModeSetting.GetIconContainerSize(_configuration);
             if (item.SecondarySelectedItem == null)
             {
-                ImGui.Text("No item selected");
+                ImGui.Text("No item selected".Loc());
             }
             else
             {
@@ -217,7 +217,7 @@ public class EquipmentSuggestSelectedSecondaryItemColumn  : StringFormField<Equi
         return "";
     }
 
-    public override string HelpText { get; set; } = "The item you've selected from the list of recommendations";
+    public override string HelpText { get; set; } = "The item you've selected from the list of recommendations".Loc();
     public override string Version { get; } = "1.12.0.10";
 
     public string? CurrentValue(EquipmentSuggestItem item)

@@ -34,9 +34,9 @@ public class ItemMonsterDropSourceRenderer : ItemInfoRenderer<ItemMonsterDropSou
 
     public override RendererType RendererType => RendererType.Source;
     public override ItemInfoType Type => ItemInfoType.Monster;
-    public override string SingularName => "Monster Drop";
-    public override string PluralName => "Monster Drops";
-    public override string HelpText => "Is the item dropped from monsters?";
+    public override string SingularName => "Monster Drop".Loc();
+    public override string PluralName => "Monster Drops".Loc();
+    public override string HelpText => "Is the item dropped from monsters?".Loc();
     public override bool ShouldGroup => true;
 
     public override Action<ItemSource> DrawTooltip => source =>
@@ -44,7 +44,7 @@ public class ItemMonsterDropSourceRenderer : ItemInfoRenderer<ItemMonsterDropSou
         var asSource = AsSource(source);
         ImGui.Text("Monster: " + asSource.MobDrop.BNpcName.Value.Singular.ExtractText().ToTitleCase());
 
-        ImGui.Text("Locations: ");
+        ImGui.Text("Locations: ".Loc());
         using (ImRaii.PushIndent())
         {
             foreach (var groupedSpawns in asSource.BNpcName.MobSpawnPositions.GroupBy(c => c.TerritoryTypeId))

@@ -86,7 +86,7 @@ public class CharacterScopePickerColumnSetting : ColumnSetting<List<CharacterSea
 
         var currentValue = CurrentValue(configuration);
         using var disabled = ImRaii.Disabled(currentValue == null);
-        if (ImGui.Button("Test Scopes"))
+        if (ImGui.Button("Test Scopes".Loc()))
         {
             if (currentValue != null)
             {
@@ -98,7 +98,7 @@ public class CharacterScopePickerColumnSetting : ColumnSetting<List<CharacterSea
         if (_characters is not null && currentValue is not null)
         {
             ImGui.Separator();
-            ImGui.Text("The following characters will be searched in: ");
+            ImGui.Text("The following characters will be searched in: ".Loc());
             foreach (var s in _characters)
             {
                 ImGui.TextUnformatted(s.Name);

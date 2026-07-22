@@ -32,7 +32,7 @@ public class CraftButtonColumn : ButtonColumn
                 var result = _gameInterface.OpenCraftingLog(searchResult.Item.RowId);
                 if (!result)
                 {
-                    _chatUtilities.PrintError("Could not open the crafting log, you are currently crafting.");
+                    _chatUtilities.PrintError("Could not open the crafting log, you are currently crafting.".Loc());
                 }
             }
         }

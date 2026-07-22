@@ -40,7 +40,7 @@ public class FavouritesColumn : CheckboxColumn
         {
             _configuration.ToggleFavouriteItem(itemId);
         }
-        ImGuiUtil.HoverTooltip("Click to favourite/unfavourite.");
+        ImGuiUtil.HoverTooltip("Click to favourite/unfavourite.".Loc());
         return null;
     }
 

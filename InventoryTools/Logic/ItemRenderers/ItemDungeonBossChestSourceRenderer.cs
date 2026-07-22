@@ -26,9 +26,9 @@ public class ItemDungeonBossChestSourceRenderer : ItemInfoRenderer<ItemDungeonBo
 
     public override RendererType RendererType => RendererType.Source;
     public override ItemInfoType Type => ItemInfoType.DungeonBossChest;
-    public override string SingularName => "Dungeon Boss Chest";
-    public override string PluralName => "Dungeon Boss Chests";
-    public override string HelpText => "Can the item appear in a dungeon boss chest?";
+    public override string SingularName => "Dungeon Boss Chest".Loc();
+    public override string PluralName => "Dungeon Boss Chests".Loc();
+    public override string HelpText => "Can the item appear in a dungeon boss chest?".Loc();
     public override bool ShouldGroup => true;
     public override IReadOnlyList<ItemInfoRenderCategory> Categories => [ItemInfoRenderCategory.Duty];
 

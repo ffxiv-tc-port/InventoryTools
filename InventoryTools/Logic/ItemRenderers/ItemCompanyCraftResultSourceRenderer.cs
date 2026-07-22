@@ -28,15 +28,15 @@ public class ItemCompanyCraftResultSourceRenderer : ItemInfoRenderer<ItemCompany
 
     public override RendererType RendererType => RendererType.Source;
     public override ItemInfoType Type => ItemInfoType.FreeCompanyCraftRecipe;
-    public override string SingularName => "Company Craft";
+    public override string SingularName => "Company Craft".Loc();
     public override bool ShouldGroup => true;
     public override IReadOnlyList<ItemInfoRenderCategory> Categories => [ItemInfoRenderCategory.Crafting];
-    public override string HelpText => "Is the item crafted at the company workshop as a company craft recipe?";
+    public override string HelpText => "Is the item crafted at the company workshop as a company craft recipe?".Loc();
     public override Action<ItemSource> DrawTooltip => source =>
     {
         var asSource = AsSource(source);
-        ImGui.Text($"Craft Type: {asSource.CompanyCraftSequence.Base.CompanyCraftType.Value.Name}");
-        ImGui.Text($"Parts: {asSource.CompanyCraftSequence.CompanyCraftParts.Length}");
+        ImGui.Text("Craft Type: ??".Loc(asSource.CompanyCraftSequence.Base.CompanyCraftType.Value.Name));
+        ImGui.Text("Parts: ??".Loc(asSource.CompanyCraftSequence.CompanyCraftParts.Length));
         DrawItems("Ingredients: ", asSource.CostItems);
     };
 

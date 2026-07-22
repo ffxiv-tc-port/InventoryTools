@@ -19,9 +19,9 @@ public class ItemStainUseRenderer : ItemInfoRenderer<ItemStainSource>
 
     public override RendererType RendererType => RendererType.Use;
     public override ItemInfoType Type => ItemInfoType.Stain;
-    public override string SingularName => "Dye";
-    public override string PluralName => "Dyeing";
-    public override string HelpText => "Can the item be used to dye an item?";
+    public override string SingularName => "Dye".Loc();
+    public override string PluralName => "Dyeing".Loc();
+    public override string HelpText => "Can the item be used to dye an item?".Loc();
     public override bool ShouldGroup => true;
 
     public override Action<ItemSource> DrawTooltip => source =>

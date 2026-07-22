@@ -18,9 +18,9 @@ public class ItemCustomDeliverySourceRenderer : ItemInfoRenderer<ItemCustomDeliv
 
     public override RendererType RendererType => RendererType.Use;
     public override ItemInfoType Type => ItemInfoType.CustomDelivery;
-    public override string SingularName => "Custom Delivery";
-    public override string PluralName => "Custom Deliveries";
-    public override string HelpText => "Can the item be delivered in a custom delivery quest?";
+    public override string SingularName => "Custom Delivery".Loc();
+    public override string PluralName => "Custom Deliveries".Loc();
+    public override string HelpText => "Can the item be delivered in a custom delivery quest?".Loc();
     public override bool ShouldGroup => false;
 
     public override Action<ItemSource> DrawTooltip => source =>
@@ -39,7 +39,7 @@ public class ItemCustomDeliverySourceRenderer : ItemInfoRenderer<ItemCustomDeliv
         }
         else
         {
-            ImGui.Text("Unknown Npc");
+            ImGui.Text("Unknown Npc".Loc());
         }
     };
 

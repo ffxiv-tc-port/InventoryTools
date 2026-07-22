@@ -77,26 +77,26 @@ public class EquipmentSuggestWindow : GenericWindow, IMenuWindow
         {
             if (menuBar)
             {
-                using (var menu = ImRaii.Menu("File"))
+                using (var menu = ImRaii.Menu("File".Loc()))
                 {
                     if (menu)
                     {
-                        if (ImGui.MenuItem("Configuration"))
+                        if (ImGui.MenuItem("Configuration".Loc()))
                         {
                             MediatorService.Publish(new OpenGenericWindowMessage(typeof(ConfigurationWindow)));
                         }
 
-                        if (ImGui.MenuItem("Changelog"))
+                        if (ImGui.MenuItem("Changelog".Loc()))
                         {
                             MediatorService.Publish(new OpenGenericWindowMessage(typeof(ChangelogWindow)));
                         }
 
-                        if (ImGui.MenuItem("Help"))
+                        if (ImGui.MenuItem("Help".Loc()))
                         {
                             MediatorService.Publish(new OpenGenericWindowMessage(typeof(HelpWindow)));
                         }
 
-                        if (ImGui.MenuItem("Enable Verbose Logging", "",
+                        if (ImGui.MenuItem("Enable Verbose Logging".Loc(), "",
                                 this._pluginLog.MinimumLogLevel == LogEventLevel.Verbose))
                         {
                             if (this._pluginLog.MinimumLogLevel == LogEventLevel.Verbose)
@@ -109,34 +109,34 @@ public class EquipmentSuggestWindow : GenericWindow, IMenuWindow
                             }
                         }
 
-                        if (ImGui.MenuItem("Report a Issue"))
+                        if (ImGui.MenuItem("Report a Issue".Loc()))
                         {
                             "https://github.com/Critical-Impact/InventoryTools".OpenBrowser();
                         }
 
-                        if (ImGui.MenuItem("Ko-Fi"))
+                        if (ImGui.MenuItem("Ko-Fi".Loc()))
                         {
                             "https://ko-fi.com/critical_impact".OpenBrowser();
                         }
 
-                        if (ImGui.MenuItem("Close"))
+                        if (ImGui.MenuItem("Close".Loc()))
                         {
                             this.IsOpen = false;
                         }
                     }
                 }
 
-                using (var menu = ImRaii.Menu("Mode"))
+                using (var menu = ImRaii.Menu("Mode".Loc()))
                 {
                     if (menu)
                     {
-                        if (ImGui.MenuItem("Class/Job", "",
+                        if (ImGui.MenuItem("Class/Job".Loc(), "",
                                 _modeSetting.CurrentValue(_configuration) == EquipmentSuggestMode.Class))
                         {
                             _modeSetting.UpdateFilterConfiguration(_configuration, EquipmentSuggestMode.Class);
                         }
 
-                        if (ImGui.MenuItem("Tool/Weapon", "",
+                        if (ImGui.MenuItem("Tool/Weapon".Loc(), "",
                                 _modeSetting.CurrentValue(_configuration) == EquipmentSuggestMode.Tool))
                         {
                             _modeSetting.UpdateFilterConfiguration(_configuration, EquipmentSuggestMode.Tool);
@@ -144,24 +144,24 @@ public class EquipmentSuggestWindow : GenericWindow, IMenuWindow
                     }
                 }
 
-                using (var menu = ImRaii.Menu("View"))
+                using (var menu = ImRaii.Menu("View".Loc()))
                 {
                     if (menu)
                     {
-                        if (ImGui.MenuItem("Normal", "",
+                        if (ImGui.MenuItem("Normal".Loc(), "",
                                 _viewModeSetting.CurrentValue(_configuration) == EquipmentSuggestViewMode.Normal))
                         {
                             _viewModeSetting.UpdateFilterConfiguration(_configuration, EquipmentSuggestViewMode.Normal);
                         }
 
-                        if (ImGui.MenuItem("Expanded", "",
+                        if (ImGui.MenuItem("Expanded".Loc(), "",
                                 _viewModeSetting.CurrentValue(_configuration) == EquipmentSuggestViewMode.Expanded))
                         {
                             _viewModeSetting.UpdateFilterConfiguration(_configuration,
                                 EquipmentSuggestViewMode.Expanded);
                         }
 
-                        if (ImGui.MenuItem("Compact", "",
+                        if (ImGui.MenuItem("Compact".Loc(), "",
                                 _viewModeSetting.CurrentValue(_configuration) == EquipmentSuggestViewMode.Compact))
                         {
                             _viewModeSetting.UpdateFilterConfiguration(_configuration,
@@ -170,7 +170,7 @@ public class EquipmentSuggestWindow : GenericWindow, IMenuWindow
                     }
                 }
 
-                using (var menu = ImRaii.Menu("Windows"))
+                using (var menu = ImRaii.Menu("Windows".Loc()))
                 {
                     if (menu)
                     {
@@ -341,7 +341,7 @@ public class EquipmentSuggestWindow : GenericWindow, IMenuWindow
                                 if (tooltip.Success)
                                 {
                                     ImGui.Text(
-                                        "Hitting this will pick the highest iLvl items while also factoring in the relevant stats for the seleted class/item.");
+                                        "Hitting this will pick the highest iLvl items while also factoring in the relevant stats for the seleted class/item.".Loc());
                                 }
                             }
                         }
@@ -374,7 +374,7 @@ public class EquipmentSuggestWindow : GenericWindow, IMenuWindow
 
     public override FilterConfiguration? SelectedConfiguration { get; } = null;
     public override string GenericKey { get; } = "EquipmentSuggest";
-    public override string GenericName { get; } = "Equipment Recommendations";
+    public override string GenericName { get; } = "Equipment Recommendations".Loc();
     public override bool DestroyOnClose { get; } = true;
     public override bool SaveState { get; } = true;
     public override Vector2? DefaultSize { get; } = new Vector2(800, 500);

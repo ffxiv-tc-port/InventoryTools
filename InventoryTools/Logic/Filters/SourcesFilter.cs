@@ -43,7 +43,7 @@ namespace InventoryTools.Logic.Filters
             ImGui.NewLine();
             ImGui.Separator();
             ImGui.NewLine();
-            ImGui.Text("Source Information: ");
+            ImGui.Text("Source Information: ".Loc());
             ImGui.SameLine();
             ImGuiService.HelpMarker(HelpText);
             var allCharacters = _characterMonitor.Characters;

@@ -22,8 +22,8 @@ public class ItemSkybuilderHandInSourceRenderer : ItemInfoRenderer<ItemSkybuilde
     }
     public override RendererType RendererType => RendererType.Use;
     public override ItemInfoType Type => ItemInfoType.SkybuilderHandIn;
-    public override string SingularName => "Sky Builder Hand In";
-    public override string HelpText => "Can the item be handed in at the firmament for skybuilders' scrip?";
+    public override string SingularName => "Sky Builder Hand In".Loc();
+    public override string HelpText => "Can the item be handed in at the firmament for skybuilders' scrip?".Loc();
     public override bool ShouldGroup => false;
 
     public override Action<ItemSource> DrawTooltip => source =>
@@ -35,7 +35,7 @@ public class ItemSkybuilderHandInSourceRenderer : ItemInfoRenderer<ItemSkybuilde
         ImGui.Text("Level: " + asSource.Level);
         ImGui.Text("Max Level: " + asSource.LevelMax);
 
-        ImGui.Text("Rewards:");
+        ImGui.Text("Rewards:".Loc());
         using (ImRaii.PushIndent())
         {
             ImGui.Text("Exp: " + baseReward.ExpReward + "/" + midReward.ExpReward + "/" + highReward.ExpReward);
@@ -58,6 +58,6 @@ public class ItemSkybuilderHandInSourceRenderer : ItemInfoRenderer<ItemSkybuilde
         var baseReward = asSource.HWDCrafterSupplyParams.BaseCollectableReward.Value;
         var midReward = asSource.HWDCrafterSupplyParams.MidCollectableReward.Value;
         var highReward = asSource.HWDCrafterSupplyParams.HighCollectableReward.Value;
-        return $"Levels {asSource.Level} - {asSource.LevelMax} ({baseReward.ExpReward} xp, {midReward.ExpReward} xp, {highReward.ExpReward} xp), ({baseReward.ScriptRewardAmount} script, {midReward.ScriptRewardAmount} script, {highReward.ScriptRewardAmount} script), ({baseReward.Points} points, {midReward.Points} points, {highReward.Points} points)";
+        return "Levels ?? - ?? (?? xp, ?? xp, ?? xp), (?? script, ?? script, ?? script), (?? points, ?? points, ?? points)".Loc(asSource.Level, asSource.LevelMax, baseReward.ExpReward, midReward.ExpReward, highReward.ExpReward, baseReward.ScriptRewardAmount, midReward.ScriptRewardAmount, highReward.ScriptRewardAmount, baseReward.Points, midReward.Points, highReward.Points);
     };
 }
