@@ -20,8 +20,8 @@ namespace InventoryTools.Logic.Filters
             _configuration = configuration;
         }
         public override string Key { get; set; } = "Acquired";
-        public override string Name { get; set; } = "Is Acquired?";
-        public override string HelpText { get; set; } = "Has this item be acquired by your active character?";
+        public override string Name { get; set; } = "Is Acquired?".Loc();
+        public override string HelpText { get; set; } = "Has this item be acquired by your active character?".Loc();
         public override FilterCategory FilterCategory { get; set; } = FilterCategory.Acquisition;
 
         public override bool? FilterItem(FilterConfiguration configuration,InventoryItem item)

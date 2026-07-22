@@ -18,7 +18,7 @@ namespace InventoryTools.Logic.Settings
         }
 
         public override string Key { get; set; } = "SwitchFiltersAutomatically";
-        public override string Name { get; set; } = "Switch lists automatically?";
+        public override string Name { get; set; } = "Switch lists automatically?".Loc();
 
         public override string HelpText { get; set; } =
             "When you view a different list, should highlighting automatically switch to the list you are viewing? Highlighting will only change to the new list if highlighting is already active.";

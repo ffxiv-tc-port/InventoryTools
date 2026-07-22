@@ -18,8 +18,8 @@ namespace InventoryTools.Logic.Filters
             ShowOperatorTooltip = true;
         }
         public override string Key { get; set; } = "MBMinPrice";
-        public override string Name { get; set; } = "Marketboard Minimum Price";
-        public override string HelpText { get; set; } = "The market board minimum price of the item. For this to work you need to have automatic pricing enabled and also note that any background price updates will not be evaluated until an event that refreshes the inventory occurs(this happens fairly often).";
+        public override string Name { get; set; } = "Marketboard Minimum Price".Loc();
+        public override string HelpText { get; set; } = "The market board minimum price of the item. For this to work you need to have automatic pricing enabled and also note that any background price updates will not be evaluated until an event that refreshes the inventory occurs(this happens fairly often).".Loc();
         public override FilterCategory FilterCategory { get; set; } = FilterCategory.Market;
 
 

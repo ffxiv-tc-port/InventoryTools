@@ -34,7 +34,7 @@ namespace InventoryTools.Logic.Settings
         }
 
         public override string Key { get; set; } = "WindowFilter";
-        public override string Name { get; set; } = "Window List Highlighting";
+        public override string Name { get; set; } = "Window List Highlighting".Loc();
 
         public override string HelpText { get; set; } =
             "This is the list that will be highlighted when any of the allagan tools windows are visible.";

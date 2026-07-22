@@ -36,7 +36,7 @@ namespace InventoryTools.Logic.Filters
 
         public override int LabelSize { get; set; } = 240;
         public override string Key { get; set; } = "SourceWorlds";
-        public override string Name { get; set; } = "Source - Worlds";
+        public override string Name { get; set; } = "Source - Worlds".Loc();
         public override string HelpText { get; set; } =
             "This is a list of sources worlds to search in. It will attempt to search for items in any bag of any character/retainer on that world.";
 

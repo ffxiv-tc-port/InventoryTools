@@ -112,9 +112,9 @@ public class CraftMarketPriceColumn : GilColumn
         return new List<MessageBase>();
     }
 
-    public override string Name { get; set; } = "Market Pricing";
+    public override string Name { get; set; } = "Market Pricing".Loc();
     public override float Width { get; set; } = 150;
-    public override string HelpText { get; set; } = "The current market pricing for the given item. ";
+    public override string HelpText { get; set; } = "The current market pricing for the given item. ".Loc();
 
     public override FilterType DefaultIn => Logic.FilterType.CraftFilter;
     public override FilterType AvailableIn => Logic.FilterType.CraftFilter;

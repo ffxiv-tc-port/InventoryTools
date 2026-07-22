@@ -5,13 +5,14 @@ using System.Text;
 
 namespace InventoryTools;
 
-// Minimal self-contained localization helper mirroring ECommons.LanguageHelpers:
-// same ini format (one entry per line: English key, double-equals separator, then
-// the translation; literal \n escapes; ?? positional placeholders) and the same
-// .Loc() string extension name.
-// InventoryTools does not use ECommons, so we ship this tiny equivalent instead of
-// pulling in the full library just for loc. English strings stay in code as keys;
-// Traditional Chinese lives in LanguageChineseTraditional.ini next to the plugin dll.
+// Minimal self-contained localization helper mirroring ECommons LanguageHelpers,
+// with the same ini format: one entry per line consisting of the English key, a
+// double-equals separator, then the translation; literal backslash-n escapes; and
+// double-question-mark positional placeholders. The string extension is named Loc
+// to match. InventoryTools does not use ECommons, so we ship this tiny equivalent
+// instead of pulling in the full library just for loc. English strings stay in code
+// as keys; Traditional Chinese lives in LanguageChineseTraditional.ini next to the
+// plugin dll.
 public static class Localization
 {
     private static readonly Dictionary<string, string> Translations = new();

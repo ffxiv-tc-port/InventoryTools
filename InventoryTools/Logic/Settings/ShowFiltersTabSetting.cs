@@ -18,7 +18,7 @@ namespace InventoryTools.Logic.Settings
         }
 
         public override string Key { get; set; } = "ShowFiltersTab";
-        public override string Name { get; set; } = "Show 'All Lists' Tab?";
+        public override string Name { get; set; } = "Show 'All Lists' Tab?".Loc();
 
         public override string HelpText { get; set; } =
             "Should the main window show the tab called 'All Lists' containing all available lists in one tab?";

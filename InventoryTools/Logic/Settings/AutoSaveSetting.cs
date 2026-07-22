@@ -25,9 +25,9 @@ namespace InventoryTools.Logic.Settings
         }
 
         public override string Key { get; set; } = "AutoSave";
-        public override string Name { get; set; } = "Auto save inventories/configuration?";
+        public override string Name { get; set; } = "Auto save inventories/configuration?".Loc();
 
-        public override string WizardName { get; } = "Auto save inventories?";
+        public override string WizardName { get; } = "Auto save inventories?".Loc();
 
         public override string HelpText { get; set; } =
             "Should the inventories/configuration be automatically saved on a defined interval? While the plugin does save when the game is closed and when configurations are altered, it is not saved in cases of crashing so this attempts to alleviate this.";

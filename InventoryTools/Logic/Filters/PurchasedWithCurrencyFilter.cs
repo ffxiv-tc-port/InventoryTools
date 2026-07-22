@@ -24,7 +24,7 @@
          }
 
          public override string Key { get; set; } = "PurchaseWithCurrency";
-         public override string Name { get; set; } = "Purchased with Currency";
+         public override string Name { get; set; } = "Purchased with Currency".Loc();
 
          public override string HelpText { get; set; } =
              "Filter items based on the currency they can be purchased with.";

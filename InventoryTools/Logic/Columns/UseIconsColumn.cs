@@ -138,7 +138,7 @@ namespace InventoryTools.Logic.Columns
         }
 
         public override float Width { get; set; } = 250;
-        public override string Name { get; set; } = "Uses";
+        public override string Name { get; set; } = "Uses".Loc();
 
         public override string HelpText { get; set; } =
             "Shows icons indicating what the items drop/can be used for";

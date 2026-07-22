@@ -191,11 +191,11 @@ namespace InventoryTools.Logic.Columns
             return null;
         }
         public override FilterType AvailableIn { get; } = Logic.FilterType.CraftFilter;
-        public override string Name { get; set; } = "Amount Required";
-        public override string RenderName => "Required";
+        public override string Name { get; set; } = "Amount Required".Loc();
+        public override string RenderName => "Required".Loc();
         public override float Width { get; set; } = 60;
         public override bool? CraftOnly => true;
-        public override string HelpText { get; set; } = "The amount required with inventory and external sources factored in/The amount required without inventory and external sources factored in.";
+        public override string HelpText { get; set; } = "The amount required with inventory and external sources factored in/The amount required without inventory and external sources factored in.".Loc();
         public override bool HasFilter { get; set; } = false;
         public override ColumnFilterType FilterType { get; set; } = ColumnFilterType.Text;
 

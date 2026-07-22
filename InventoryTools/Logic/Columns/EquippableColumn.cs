@@ -1,4 +1,4 @@
-﻿using InventoryTools.Logic.Columns.Abstract;
+using InventoryTools.Logic.Columns.Abstract;
 using InventoryTools.Services;
 using Microsoft.Extensions.Logging;
 
@@ -15,9 +15,9 @@ namespace InventoryTools.Logic.Columns
         {
             return searchResult.Item.ClassJobCategory?.Base.Name.ExtractText() ?? "";
         }
-        public override string Name { get; set; } = "Equipped By (Class/Job)";
+        public override string Name { get; set; } = "Equipped By (Class/Job)".Loc();
         public override float Width { get; set; } = 200;
-        public override string HelpText { get; set; } = "Shows what class/job an item can be equipped by";
+        public override string HelpText { get; set; } = "Shows what class/job an item can be equipped by".Loc();
         public override bool HasFilter { get; set; } = true;
         public override ColumnFilterType FilterType { get; set; } = ColumnFilterType.Text;
     }

@@ -33,7 +33,7 @@ public class IsRecipeCompletedColumn : CheckboxColumn
         return searchResult.Item.Recipes.All(c => _questManagerService.IsRecipeComplete(c.RowId));
     }
 
-    public override string Name { get; set; } = "Are Recipes Completed?";
+    public override string Name { get; set; } = "Are Recipes Completed?".Loc();
     public override float Width { get; set; } = 100;
-    public override string HelpText { get; set; } = "Have the recipes that make this item been completed?";
+    public override string HelpText { get; set; } = "Have the recipes that make this item been completed?".Loc();
 }

@@ -1,4 +1,4 @@
-﻿using InventoryTools.Logic.Columns.Abstract;
+using InventoryTools.Logic.Columns.Abstract;
 using InventoryTools.Services;
 using Microsoft.Extensions.Logging;
 
@@ -22,10 +22,10 @@ namespace InventoryTools.Logic.Columns
             return itemItemUiCategory?.Name.ExtractText() ?? "";
         }
 
-        public override string Name { get; set; } = "Category (Basic)";
-        public override string RenderName => "Category";
+        public override string Name { get; set; } = "Category (Basic)".Loc();
+        public override string RenderName => "Category".Loc();
         public override float Width { get; set; } = 200.0f;
-        public override string HelpText { get; set; } = "The category of the item.";
+        public override string HelpText { get; set; } = "The category of the item.".Loc();
         public override bool HasFilter { get; set; } = true;
         public override ColumnFilterType FilterType { get; set; } = ColumnFilterType.Text;
         public override FilterType DefaultIn => Logic.FilterType.GameItemFilter;

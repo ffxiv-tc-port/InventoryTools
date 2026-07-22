@@ -49,8 +49,8 @@ namespace InventoryTools.Logic.Columns
             return null;
         }
 
-        public override string Name { get; set; } = "Amount in Character Inventory";
-        public override string RenderName => "Inventory";
+        public override string Name { get; set; } = "Amount in Character Inventory".Loc();
+        public override string RenderName => "Inventory".Loc();
         public override float Width { get; set; } = 60;
         public override bool? CraftOnly => true;
         public override FilterType AvailableIn { get; } = Logic.FilterType.CraftFilter;

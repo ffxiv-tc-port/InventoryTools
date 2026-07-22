@@ -17,9 +17,9 @@ public class CraftButtonColumn : ButtonColumn
         _gameInterface = gameInterface;
         _chatUtilities = chatUtilities;
     }
-    public override string Name { get; set; } = "Craft Button";
+    public override string Name { get; set; } = "Craft Button".Loc();
     public override float Width { get; set; } = 80;
-    public override string HelpText { get; set; } = "A button that opens the crafting log for the item";
+    public override string HelpText { get; set; } = "A button that opens the crafting log for the item".Loc();
 
     public override List<MessageBase>? Draw(FilterConfiguration configuration, ColumnConfiguration columnConfiguration,
         SearchResult searchResult, int rowIndex, int columnIndex)

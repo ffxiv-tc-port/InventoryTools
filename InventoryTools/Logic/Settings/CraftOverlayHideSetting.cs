@@ -19,7 +19,7 @@ public class CraftOverlayHideSetting : GenericEnumChoiceSetting<CraftOverlayHide
     private readonly IClientState _clientState;
     private readonly ICondition _condition;
 
-    public CraftOverlayHideSetting(ILogger<CraftOverlayHideSetting> logger, ImGuiService imGuiService, IClientState clientState, ICondition condition) : base("CraftOverlayHide", "Hide during duties?", "Should the craft overlay be hidden during duties/cutscenes/chocobo racing/etc?", CraftOverlayHide.HideDuringDuties, new Dictionary<CraftOverlayHide, string>()
+    public CraftOverlayHideSetting(ILogger<CraftOverlayHideSetting> logger, ImGuiService imGuiService, IClientState clientState, ICondition condition) : base("CraftOverlayHide", "Hide during duties?".Loc(), "Should the craft overlay be hidden during duties/cutscenes/chocobo racing/etc?".Loc(), CraftOverlayHide.HideDuringDuties, new Dictionary<CraftOverlayHide, string>()
     {
         { CraftOverlayHide.AlwaysShow, "Always show" },
         { CraftOverlayHide.HideDuringDuties, "Hide during duties" },

@@ -14,10 +14,10 @@ public class PatchColumn : DecimalColumn
     {
         return searchResult.Item.Patch;
     }
-    public override string Name { get; set; } = "Patch Added";
-    public override string RenderName => "Patch";
+    public override string Name { get; set; } = "Patch Added".Loc();
+    public override string RenderName => "Patch".Loc();
     public override float Width { get; set; } = 100;
-    public override string HelpText { get; set; } = "Shows the patch in which the item was added.";
+    public override string HelpText { get; set; } = "Shows the patch in which the item was added.".Loc();
     public override bool HasFilter { get; set; } = true;
     public override ColumnFilterType FilterType { get; set; } = ColumnFilterType.Text;
 }

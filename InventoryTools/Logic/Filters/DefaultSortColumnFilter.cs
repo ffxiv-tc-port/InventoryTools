@@ -30,8 +30,8 @@ public class DefaultSortColumnFilter : ChoiceFilter<string>
     }
 
     public override string Key { get; set; } = "DefaultSortColumn";
-    public override string Name { get; set; } = "Default Sort Column";
-    public override string HelpText { get; set; } = "The column to use to sort by default";
+    public override string Name { get; set; } = "Default Sort Column".Loc();
+    public override string HelpText { get; set; } = "The column to use to sort by default".Loc();
     public override FilterCategory FilterCategory { get; set; } = FilterCategory.Columns;
 
     public override string? DefaultValue { get; set; } = null;

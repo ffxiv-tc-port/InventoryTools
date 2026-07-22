@@ -58,8 +58,8 @@ public class ScopePickerColumnSetting : ColumnSetting<List<InventorySearchScope>
     }
 
     public override string Key { get; set; } = "ScopePicker";
-    public override string Name { get; set; } = "Inventory Search Scope";
-    public override string HelpText { get; set; } = "Select the inventories you want to search inside.";
+    public override string Name { get; set; } = "Inventory Search Scope".Loc();
+    public override string HelpText { get; set; } = "Select the inventories you want to search inside.".Loc();
     public override List<InventorySearchScope>? DefaultValue { get; set; } = null;
 
     public override bool DrawFilter(ColumnConfiguration configuration, string? helpText)

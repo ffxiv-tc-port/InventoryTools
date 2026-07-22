@@ -162,8 +162,8 @@ namespace InventoryTools.Logic.Columns
             return null;
         }
 
-        public override string Name { get; set; } = "Next Step in Craft";
-        public override string RenderName => "Next Step";
+        public override string Name { get; set; } = "Next Step in Craft".Loc();
+        public override string RenderName => "Next Step".Loc();
 
         public override float Width { get; set; } = 200;
         public override bool? CraftOnly => true;

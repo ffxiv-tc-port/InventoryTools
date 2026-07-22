@@ -40,7 +40,7 @@ public class CraftCurrencyGroupFilter : ChoiceFilter<CurrencyGroupSetting>
     }
 
     public override string Key { get; set; } = "CraftCurrencyGroupFilter";
-    public override string Name { get; set; } = "Group Currency By";
+    public override string Name { get; set; } = "Group Currency By".Loc();
 
     public override string HelpText { get; set; } =
         "Should the currency be grouped together or show up in the Gather/Buy list?";

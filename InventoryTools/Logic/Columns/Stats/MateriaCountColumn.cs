@@ -10,9 +10,9 @@ public class MateriaCountColumn : IntegerColumn
     {
     }
 
-    public override string Name { get; set; } = "Materia Count";
+    public override string Name { get; set; } = "Materia Count".Loc();
     public override float Width { get; set; } = 90;
-    public override string HelpText { get; set; } = "How many materia does this item have or can it have?";
+    public override string HelpText { get; set; } = "How many materia does this item have or can it have?".Loc();
     public override ColumnCategory ColumnCategory { get; } = ColumnCategory.Stats;
     public override int? CurrentValue(ColumnConfiguration columnConfiguration, SearchResult searchResult)
     {

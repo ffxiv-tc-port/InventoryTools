@@ -1,4 +1,4 @@
-﻿using InventoryTools.Logic.Columns.Abstract;
+using InventoryTools.Logic.Columns.Abstract;
 using InventoryTools.Services;
 using Microsoft.Extensions.Logging;
 
@@ -19,8 +19,8 @@ namespace InventoryTools.Logic.Columns
 
             return "";
         }
-        public override string Name { get; set; } = "Category (Marketboard)";
-        public override string RenderName => "MB Category";
+        public override string Name { get; set; } = "Category (Marketboard)".Loc();
+        public override string RenderName => "MB Category".Loc();
         public override float Width { get; set; } = 200.0f;
 
         public override string HelpText { get; set; } =

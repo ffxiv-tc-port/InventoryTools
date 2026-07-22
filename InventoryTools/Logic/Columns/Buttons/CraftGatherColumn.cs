@@ -352,10 +352,10 @@ namespace InventoryTools.Logic.Columns.Buttons
             return false;
         }
 
-        public override string RenderName { get; } = "Gather/Purchase";
-        public override string Name { get; set; } = "Gather/Purchase/Buy";
+        public override string RenderName { get; } = "Gather/Purchase".Loc();
+        public override string Name { get; set; } = "Gather/Purchase/Buy".Loc();
         public override float Width { get; set; } = 100;
-        public override string HelpText { get; set; } = "Shows a button that links to gatherbuddy's /gather function.";
+        public override string HelpText { get; set; } = "Shows a button that links to gatherbuddy's /gather function.".Loc();
         public override bool HasFilter { get; set; } = false;
         public override ColumnFilterType FilterType { get; set; } = ColumnFilterType.Text;
         public override FilterType DefaultIn => Logic.FilterType.CraftFilter;

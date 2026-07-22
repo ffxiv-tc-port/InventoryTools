@@ -22,9 +22,9 @@ public class ContextMenuOpenCraftingLogSetting : BooleanSetting
     }
 
     public override string Key { get; set; } = "OpenCraftingLogContextMenu";
-    public override string Name { get; set; } = "Context Menu - Open Crafting Log";
+    public override string Name { get; set; } = "Context Menu - Open Crafting Log".Loc();
 
-    public override string WizardName { get; } = "Open Crafting Log";
+    public override string WizardName { get; } = "Open Crafting Log".Loc();
 
     public override string HelpText { get; set; } =
         "Add a context menu item to open the crafting log for any item that can be crafted?";

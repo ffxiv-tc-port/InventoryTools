@@ -16,10 +16,10 @@ namespace InventoryTools.Logic.Columns
         {
             return searchResult.Item.HasSourcesByCategory(ItemInfoCategory.HiddenGathering);
         }
-        public override string Name { get; set; } = "Is From Hidden Node?";
-        public override string RenderName => "Hidden Node?";
+        public override string Name { get; set; } = "Is From Hidden Node?".Loc();
+        public override string RenderName => "Hidden Node?".Loc();
         public override float Width { get; set; } = 125.0f;
-        public override string HelpText { get; set; } = "Is this item available at a hidden node?";
+        public override string HelpText { get; set; } = "Is this item available at a hidden node?".Loc();
         public override bool HasFilter { get; set; } = true;
         public override ColumnFilterType FilterType { get; set; } = ColumnFilterType.Boolean;
     }

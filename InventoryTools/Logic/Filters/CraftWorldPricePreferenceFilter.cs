@@ -59,7 +59,7 @@ public class CraftWorldPricePreference : SortedListFilter<uint, uint>
     }
 
     public override string Key { get; set; } = "CraftWorldPricePreference";
-    public override string Name { get; set; } = "World Price Preference";
+    public override string Name { get; set; } = "World Price Preference".Loc();
 
     public override string HelpText { get; set; } =
         "Which worlds should prices be sourced from?";

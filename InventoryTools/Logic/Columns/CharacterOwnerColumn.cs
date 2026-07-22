@@ -24,7 +24,7 @@ public class CharacterOwnerColumn : TextColumn
         _characterOwners = new();
     }
 
-    public override string Name { get; set; } = "Character Owner";
+    public override string Name { get; set; } = "Character Owner".Loc();
     public override float Width { get; set; } = 100;
 
     public override string HelpText { get; set; } =

@@ -42,7 +42,7 @@ public class CraftCalculatorColumn : IntegerColumn, IDisposable
         return (int?)(_craftable.ContainsKey(searchResult.Item.RowId) ? _craftable[searchResult.Item.RowId] : 0);
     }
 
-    public override string Name { get; set; } = "Craft Calculator";
+    public override string Name { get; set; } = "Craft Calculator".Loc();
     public override float Width { get; set; } = 80;
 
     public override string HelpText { get; set; } =

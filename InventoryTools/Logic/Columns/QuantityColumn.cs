@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using CharacterTools.Logic.Editors;
 using CriticalCommonLib.Services;
 using CriticalCommonLib.Services.Mediator;
@@ -117,8 +117,8 @@ namespace InventoryTools.Logic.Columns
             return base.Draw(configuration, columnConfiguration, searchResult, rowIndex, columnIndex);
         }
 
-        public override string Name { get; set; } = "Quantity/Total Quantity Available";
-        public override string RenderName => "Quantity";
+        public override string Name { get; set; } = "Quantity/Total Quantity Available".Loc();
+        public override string RenderName => "Quantity".Loc();
 
         public override float Width { get; set; } = 70.0f;
 

@@ -19,9 +19,9 @@ namespace InventoryTools.Logic.Settings
         }
 
         public override string Key { get; set; } = "TooltipDisplayMBMinimum";
-        public override string Name { get; set; } = "Add Market Minimum NQ/HQ Price?";
+        public override string Name { get; set; } = "Add Market Minimum NQ/HQ Price?".Loc();
 
-        public override string WizardName { get; } = "Market Price";
+        public override string WizardName { get; } = "Market Price".Loc();
 
         public override string HelpText { get; set; } =
             "When hovering an item, should the tooltip contain the minimum market price for both NQ and HQ. Please make sure 'Automatically download prices' is enabled.";

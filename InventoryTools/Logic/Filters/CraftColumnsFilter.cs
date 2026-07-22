@@ -58,7 +58,7 @@ namespace InventoryTools.Logic.Filters
         }
 
         public override string Key { get; set; } = "Craft Columns";
-        public override string Name { get; set; } = "Craft Columns";
+        public override string Name { get; set; } = "Craft Columns".Loc();
         public override string HelpText { get; set; } = "";
         public override FilterCategory FilterCategory { get; set; } = FilterCategory.CraftColumns;
         public override bool ShowReset { get; set; } = false;

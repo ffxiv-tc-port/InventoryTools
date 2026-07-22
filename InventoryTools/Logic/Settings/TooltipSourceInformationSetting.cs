@@ -33,17 +33,17 @@ public enum TooltipSourceModifier
 
 public class TooltipSourceInformationEnabledSetting : GenericBooleanSetting
 {
-    public TooltipSourceInformationEnabledSetting(ILogger<TooltipSourceInformationEnabledSetting> logger, ImGuiService imGuiService) : base("TooltipSourceInformationEnabled", "Source Information Enabled", "Should source information be shown in the tooltip? For example that an item can be sourced via crafting, shops, monsters etc", false, SettingCategory.ToolTips, SettingSubCategory.SourceInformation, "1.11.0.11", logger, imGuiService)
+    public TooltipSourceInformationEnabledSetting(ILogger<TooltipSourceInformationEnabledSetting> logger, ImGuiService imGuiService) : base("TooltipSourceInformationEnabled", "Source Information Enabled".Loc(), "Should source information be shown in the tooltip? For example that an item can be sourced via crafting, shops, monsters etc".Loc(), false, SettingCategory.ToolTips, SettingSubCategory.SourceInformation, "1.11.0.11", logger, imGuiService)
     {
     }
 
-    public override string WizardName { get; } = "Show Source Information";
+    public override string WizardName { get; } = "Show Source Information".Loc();
     public override uint? Order { get; } = 0;
 }
 
 public class TooltipSourceInformationModifierSetting : GenericEnumChoiceSetting<TooltipSourceModifier>
 {
-    public TooltipSourceInformationModifierSetting(ILogger<TooltipSourceInformationModifierSetting> logger, ImGuiService imGuiService) : base("TooltipSourceInformationModifier", "Source Information Modifier Key", "Should the tooltip only be shown if a modifier key is pressed?", TooltipSourceModifier.Always, new()
+    public TooltipSourceInformationModifierSetting(ILogger<TooltipSourceInformationModifierSetting> logger, ImGuiService imGuiService) : base("TooltipSourceInformationModifier", "Source Information Modifier Key".Loc(), "Should the tooltip only be shown if a modifier key is pressed?".Loc(), TooltipSourceModifier.Always, new()
     {
         {TooltipSourceModifier.Always, "Always"},
         {TooltipSourceModifier.Control, "Control"},
@@ -273,7 +273,7 @@ public class TooltipSourceInformationSetting : Setting<Dictionary<ItemInfoType, 
     }
 
     public override string Key { get; set; } = "TooltipSourceInformation";
-    public override string Name { get; set; } = "Source Information Configuration";
+    public override string Name { get; set; } = "Source Information Configuration".Loc();
 
     public override uint? Order { get; } = 3;
 

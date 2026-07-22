@@ -20,9 +20,9 @@ public class FiltersWindowLayoutSetting : ChoiceSetting<WindowLayout>
     }
 
     public override string Key { get; set; } = "FilterWindowLayout";
-    public override string Name { get; set; } = "Items Window Layout";
-    public override string WizardName { get; } = "Items Window";
-    public override string HelpText { get; set; } = "Set the layout of the items window";
+    public override string Name { get; set; } = "Items Window Layout".Loc();
+    public override string WizardName { get; } = "Items Window".Loc();
+    public override string HelpText { get; set; } = "Set the layout of the items window".Loc();
     public override SettingCategory SettingCategory { get; set; } = SettingCategory.Windows;
     public override SettingSubCategory SettingSubCategory { get; } = SettingSubCategory.WindowLayout;
 

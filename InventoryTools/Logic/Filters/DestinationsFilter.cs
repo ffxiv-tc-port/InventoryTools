@@ -23,7 +23,7 @@ namespace InventoryTools.Logic.Filters
         }
         public override int Order { get; set; } = 2;
         public override string Key { get; set; } = "Destinations";
-        public override string Name { get; set; } = "Destinations";
+        public override string Name { get; set; } = "Destinations".Loc();
 
         public override string HelpText { get; set; } =
             "This lists all the destinations that are applicable given the destinations picked above.";

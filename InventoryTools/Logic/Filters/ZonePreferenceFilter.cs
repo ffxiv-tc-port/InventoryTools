@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using System.Linq;
 using AllaganLib.GameSheets.Sheets;
 using AllaganLib.GameSheets.Sheets.Rows;
@@ -55,7 +55,7 @@ public class ZonePreferenceFilter : SortedListFilter<uint, uint>
     }
 
     public override string Key { get; set; } = "CraftZonePreference";
-    public override string Name { get; set; } = "Default Zone Order";
+    public override string Name { get; set; } = "Default Zone Order".Loc();
 
     public override string HelpText { get; set; } =
         "When grouping items by zone, which zones should take preference?";

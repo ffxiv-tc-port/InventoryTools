@@ -44,9 +44,9 @@ public class FavouritesColumn : CheckboxColumn
         return null;
     }
 
-    public override string Name { get; set; } = "Favourite?";
+    public override string Name { get; set; } = "Favourite?".Loc();
     public override float Width { get; set; } = 80;
-    public override string HelpText { get; set; } = "Is this item in your list of favourites?";
+    public override string HelpText { get; set; } = "Is this item in your list of favourites?".Loc();
 
     public override FilterType DefaultIn => Logic.FilterType.SearchFilter | Logic.FilterType.SortingFilter | Logic.FilterType.GameItemFilter;
 }

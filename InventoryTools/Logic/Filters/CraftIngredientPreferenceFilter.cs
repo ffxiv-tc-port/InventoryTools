@@ -60,7 +60,7 @@ public class CraftIngredientPreferenceFilter : SortedListFilter<(IngredientPrefe
     }
 
     public override string Key { get; set; } = "CraftIngredientPreference";
-    public override string Name { get; set; } = "Default Ingredient Sourcing";
+    public override string Name { get; set; } = "Default Ingredient Sourcing".Loc();
 
     public override string HelpText { get; set; } =
         "When generating the materials for a craft, the 'Ingredient Sourcing' setting determines the preferred method of acquisition. The craft list will refer to this sorted list to determine the appropriate method. Please note that this assumes the item in the craft list can be obtained through this method. If not, the next item in the ingredient sourcing list will be considered.";

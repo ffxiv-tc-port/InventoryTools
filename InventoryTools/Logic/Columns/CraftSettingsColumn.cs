@@ -55,9 +55,9 @@ public class CraftSettingsColumn : IColumn
     private HoverButton _settingsIcon = new();
 
 
-    public string Name { get; set; } = "Settings";
+    public string Name { get; set; } = "Settings".Loc();
     public float Width { get; set; } = 120;
-    public string HelpText { get; set; } = "Modify each items craft settings in this column";
+    public string HelpText { get; set; } = "Modify each items craft settings in this column".Loc();
     public string FilterText { get; set; } = "";
 
     public string RenderName { get; } = "";

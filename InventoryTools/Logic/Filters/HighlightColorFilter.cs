@@ -13,7 +13,7 @@ namespace InventoryTools.Logic.Filters
         public override FilterType AvailableIn { get; set; } =
             FilterType.SearchFilter | FilterType.CraftFilter | FilterType.SortingFilter | FilterType.GameItemFilter | FilterType.HistoryFilter | FilterType.CuratedList;
         public override string Key { get; set; } = "HighlightColor";
-        public override string Name { get; set; } = "Highlight Color";
+        public override string Name { get; set; } = "Highlight Color".Loc();
 
         public override string HelpText { get; set; } =
             "The color to set the highlighted items to for this specific filter.";

@@ -19,7 +19,7 @@ public class TooltipsFeature : Feature
     {
     }
 
-    public override string Name { get; } = "Tooltips";
+    public override string Name { get; } = "Tooltips".Loc();
     public override string Description { get; } =
         "Allagan Tools can add extra information to the tooltips for items. Select which you would like to show in the tooltip. For further configuration including the ability to change each tooltips colour and settings specific to each tooltip please open the configuration window.";
 }

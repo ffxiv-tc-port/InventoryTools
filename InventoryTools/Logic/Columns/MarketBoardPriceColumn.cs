@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using System.Numerics;
 using CriticalCommonLib.MarketBoard;
 using CriticalCommonLib.Models;
@@ -161,8 +161,8 @@ namespace InventoryTools.Logic.Columns
             return (Loading, Loading);
         }
 
-        public override string Name { get; set; } = "Market Board Average Price NQ/HQ";
-        public override string RenderName => "MB Avg. Price NQ/HQ";
+        public override string Name { get; set; } = "Market Board Average Price NQ/HQ".Loc();
+        public override string RenderName => "MB Avg. Price NQ/HQ".Loc();
         public override string HelpText { get; set; } =
             "Shows the average price of both the NQ and HQ form of the item. If no world is selected, your home world is used. This data is sourced from universalis.";
         public override float Width { get; set; } = 200.0f;

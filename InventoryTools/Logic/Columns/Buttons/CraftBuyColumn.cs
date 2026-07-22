@@ -30,9 +30,9 @@ public class CraftBuyColumn : ButtonColumn
         _chatUtilities = chatUtilities;
         _teleporterService = teleporterService;
     }
-    public override string Name { get; set; } = "Buy Button";
+    public override string Name { get; set; } = "Buy Button".Loc();
     public override float Width { get; set; } = 80;
-    public override string HelpText { get; set; } = "A button/list to show you where you can buy an item";
+    public override string HelpText { get; set; } = "A button/list to show you where you can buy an item".Loc();
     public override List<MessageBase>? Draw(FilterConfiguration configuration, ColumnConfiguration columnConfiguration,
         SearchResult searchResult, int rowIndex, int columnIndex)
     {

@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using System.Linq;
 using InventoryTools.Logic.Settings.Abstract;
 using InventoryTools.Services;
@@ -34,7 +34,7 @@ namespace InventoryTools.Logic.Settings
         }
 
         public override string Key { get; set; } = "ActiveCraftList";
-        public override string Name { get; set; } = "Active Craft List";
+        public override string Name { get; set; } = "Active Craft List".Loc();
 
         public override string HelpText { get; set; } =
             "This is the craft list that crafts will count towards.";
