@@ -200,22 +200,22 @@ public class ImGuiTooltipService
 
     private static void DrawBaseAttributes(ItemRow item)
     {
-        ImGui.TextUnformatted($"Item Level {item.Base.LevelItem.RowId}");
+        ImGui.TextUnformatted("Item Level ??".Loc(item.Base.LevelItem.RowId));
         if (item.ClassJobCategory != null)
         {
-            ImGui.TextUnformatted($"Equip Level {item.Base.LevelEquip}");
+            ImGui.TextUnformatted("Equip Level ??".Loc(item.Base.LevelEquip));
         }
 
         ImGui.TextUnformatted(item.FormattedRarity);
 
         if (item.EquipRace != CharacterRace.Any && item.EquipRace != CharacterRace.None)
         {
-            ImGui.TextUnformatted($"Only equippable by {item.EquipRace}");
+            ImGui.TextUnformatted("Only equippable by ??".Loc(item.EquipRace));
         }
 
         if (item.EquippableByGender != CharacterSex.Both && item.EquippableByGender != CharacterSex.NotApplicable)
         {
-            ImGui.TextUnformatted($"Only equippable by {item.EquippableByGender.ToString()}");
+            ImGui.TextUnformatted("Only equippable by ??".Loc(item.EquippableByGender.ToString()));
         }
 
         if (item.Base.CanBeHq)

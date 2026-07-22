@@ -154,7 +154,7 @@ namespace InventoryTools.Logic.Filters
             if (item.Key.Name != null)
             {
                 ImGui.SameLine();
-                ImGuiService.HelpMarker("Original Column Name: " + item.Key.Column.Name);
+                ImGuiService.HelpMarker("Original Column Name: ".Loc() + item.Key.Column.Name);
             }
         }
 

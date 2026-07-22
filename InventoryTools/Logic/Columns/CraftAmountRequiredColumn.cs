@@ -153,21 +153,21 @@ namespace InventoryTools.Logic.Columns
             {
                 using var tt = ImRaii.Tooltip();
                 ImGui.Text("Ingredient Breakdown:".Loc());
-                ImGui.TextUnformatted("Amount Originally Required: " + searchResult.CraftItem.QuantityRequired);
-                ImGui.TextUnformatted("Amount Required: " + searchResult.CraftItem.QuantityNeededPreUpdate);
-                ImGui.TextUnformatted("Amount in Inventory: " + searchResult.CraftItem.QuantityReady);
-                ImGui.TextUnformatted("Amount to Retrieve: " + searchResult.CraftItem.QuantityAvailable);
+                ImGui.TextUnformatted("Amount Originally Required: ".Loc() + searchResult.CraftItem.QuantityRequired);
+                ImGui.TextUnformatted("Amount Required: ".Loc() + searchResult.CraftItem.QuantityNeededPreUpdate);
+                ImGui.TextUnformatted("Amount in Inventory: ".Loc() + searchResult.CraftItem.QuantityReady);
+                ImGui.TextUnformatted("Amount to Retrieve: ".Loc() + searchResult.CraftItem.QuantityAvailable);
                 ImGui.Separator();
-                ImGui.TextUnformatted("Amount Missing: " + searchResult.CraftItem.QuantityMissingOverall);
+                ImGui.TextUnformatted("Amount Missing: ".Loc() + searchResult.CraftItem.QuantityMissingOverall);
                 if (searchResult.Item.CanBeCrafted)
                 {
-                    ImGui.TextUnformatted("Amount Craftable: " + searchResult.CraftItem.QuantityCanCraft);
+                    ImGui.TextUnformatted("Amount Craftable: ".Loc() + searchResult.CraftItem.QuantityCanCraft);
                     if (searchResult.CraftItem.Yield != 1)
                     {
                         ImGui.Separator();
-                        ImGui.TextUnformatted("Craft Operations Required: " +
+                        ImGui.TextUnformatted("Craft Operations Required: ".Loc() +
                                               searchResult.CraftItem.QuantityNeeded / searchResult.CraftItem.Yield);
-                        ImGui.TextUnformatted("Recipe Yield: " + searchResult.CraftItem.Yield);
+                        ImGui.TextUnformatted("Recipe Yield: ".Loc() + searchResult.CraftItem.Yield);
                     }
                 }
 

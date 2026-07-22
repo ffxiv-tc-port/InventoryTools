@@ -204,13 +204,13 @@ public class CraftSettingsColumn : IColumn
                 if (tooltip.Success)
                 {
 
-                    ImGui.TextUnformatted("Sourcing: " + (ingredientPreferenceDefault != null ? _ingredientPreferenceLocalizer.FormattedName(ingredientPreferenceDefault) : "Use Default"));
-                    ImGui.TextUnformatted("Retainer: " + (perItemRetainerRetrieval?.FormattedName() ?? "Use Default"));
-                    ImGui.TextUnformatted("Zone: " + (zonePreference != null ? _mapSheet.GetRowOrDefault(zonePreference.Value)?.FormattedName ?? "Use Default" : "Use Default"));
+                    ImGui.TextUnformatted("Sourcing: ".Loc() + (ingredientPreferenceDefault != null ? _ingredientPreferenceLocalizer.FormattedName(ingredientPreferenceDefault) : "Use Default".Loc()));
+                    ImGui.TextUnformatted("Retainer: ".Loc() + (perItemRetainerRetrieval?.FormattedName() ?? "Use Default".Loc()));
+                    ImGui.TextUnformatted("Zone: ".Loc() + (zonePreference != null ? _mapSheet.GetRowOrDefault(zonePreference.Value)?.FormattedName ?? "Use Default".Loc() : "Use Default".Loc()));
                     if (searchResult.Item.CanBePlacedOnMarket)
                     {
-                        ImGui.TextUnformatted("Market World Preference: " + (worldPreference != null ? _worldSheet.GetRowOrDefault(worldPreference.Value)?.Name.ExtractText() ?? "Use Default" : "Use Default"));
-                        ImGui.TextUnformatted("Market Price Override: " + (priceOverride != null ? priceOverride.Value.ToString("N0") : "Use Default"));
+                        ImGui.TextUnformatted("Market World Preference: ".Loc() + (worldPreference != null ? _worldSheet.GetRowOrDefault(worldPreference.Value)?.Name.ExtractText() ?? "Use Default".Loc() : "Use Default".Loc()));
+                        ImGui.TextUnformatted("Market Price Override: ".Loc() + (priceOverride != null ? priceOverride.Value.ToString("N0") : "Use Default".Loc()));
                     }
                 }
             }
@@ -238,7 +238,7 @@ public class CraftSettingsColumn : IColumn
                     {
                         ImGui.Text("Retainer Retrieval: ".Loc());
                         ImGui.Separator();
-                        ImGui.Text(retainerRetrieval.FormattedName() + (perItemRetainerRetrieval == null ? " (Default)" : ""));
+                        ImGui.Text(retainerRetrieval.FormattedName() + (perItemRetainerRetrieval == null ? " (Default)".Loc() : ""));
                     }
                 }
             }
@@ -257,7 +257,7 @@ public class CraftSettingsColumn : IColumn
                     {
                         ImGui.Text("Retainer Retrieval: ".Loc());
                         ImGui.Separator();
-                        ImGui.Text(retainerRetrieval.FormattedName() + " (Default)");
+                        ImGui.Text(retainerRetrieval.FormattedName() + " (Default)".Loc());
                     }
                 }
             }
@@ -401,15 +401,15 @@ public class CraftSettingsColumn : IColumn
                     }
                     else if(canBeHq)
                     {
-                        ImGui.Text(configuration.CraftList.HQRequired ? "HQ Only (List Default)" : "HQ/NQ (List Default)");
+                        ImGui.Text(configuration.CraftList.HQRequired ? "HQ Only (List Default)".Loc() : "HQ/NQ (List Default)".Loc());
                     }
                     else
                     {
                         ImGui.Text("NQ Only (List Default)".Loc());
                     }
 
-                    ImGui.Text(canBeHq ? "Can be HQ" : "Can't be HQ");
-                    ImGui.Text(isCollectable ? "Always Collectable" : "Can't be Collectable");
+                    ImGui.Text(canBeHq ? "Can be HQ".Loc() : "Can't be HQ".Loc());
+                    ImGui.Text(isCollectable ? "Always Collectable".Loc() : "Can't be Collectable".Loc());
                 }
             }
         }
@@ -462,7 +462,7 @@ public class CraftSettingsColumn : IColumn
                 }
 
                 using var tt = ImRaii.Tooltip();
-                ImGui.Text($"Recipe ({itemRecipe.CraftType?.FormattedName ?? "Unknown"}): ");
+                ImGui.Text("Recipe (??): ".Loc(itemRecipe.CraftType?.FormattedName ?? "Unknown".Loc()));
                 ImGui.Separator();
                 foreach (var ingredient in itemRecipe.IngredientCounts)
                 {
@@ -488,7 +488,7 @@ public class CraftSettingsColumn : IColumn
             if (ImGui.IsItemHovered(ImGuiHoveredFlags.None))
             {
                 using var tt = ImRaii.Tooltip();
-                ImGui.Text($"Recipe (Company Craft): ");
+                ImGui.Text("Recipe (Company Craft): ".Loc());
                 foreach (var ingredient in item.Item.CompanyCraftSequence.MaterialsRequired(item.Phase))
                 {
                     var itemId = ingredient.ItemId;
@@ -506,7 +506,7 @@ public class CraftSettingsColumn : IColumn
             if (ImGui.IsItemHovered(ImGuiHoveredFlags.None))
             {
                 using var tt = ImRaii.Tooltip();
-                ImGui.Text($"Items: ");
+                ImGui.Text("Items: ".Loc());
                 ImGui.Separator();
                 if (item.IngredientPreference.LinkedItemId != null && item.IngredientPreference.LinkedItemQuantity != null)
                 {
@@ -554,7 +554,7 @@ public class CraftSettingsColumn : IColumn
             var previewValue = currentIngredientPreference != null ? _ingredientPreferenceLocalizer.FormattedName(currentIngredientPreference) : "Use Default";
             ImGui.Text("Source Preference:".Loc());
             ImGui.SameLine();
-            ImGuiService.HelpMarker("How should the item be sourced? As there are multiple ways to source an item, you can either rely on your list's ingredient sourcing (tab inside the craft list's settings) or you can override the source here.");
+            ImGuiService.HelpMarker("How should the item be sourced? As there are multiple ways to source an item, you can either rely on your list's ingredient sourcing (tab inside the craft list's settings) or you can override the source here.".Loc());
             using (var combo = ImRaii.Combo("##SetIngredients" + rowIndex, previewValue))
             {
                 if (combo.Success)
@@ -592,7 +592,7 @@ public class CraftSettingsColumn : IColumn
             var priceString = priceOverride?.ToString() ?? "";
             ImGui.Text("Market Price Override:".Loc());
             ImGui.SameLine();
-            ImGuiService.HelpMarker("Override the price for this item. This is only used when no pricing is available. Use this to give you a rough estimate of the gil cost of your item.");
+            ImGuiService.HelpMarker("Override the price for this item. This is only used when no pricing is available. Use this to give you a rough estimate of the gil cost of your item.".Loc());
             if (ImGui.InputText("##MarketPricePreference" + rowIndex, ref priceString, 50))
             {
                 if (priceString == "")
@@ -620,7 +620,7 @@ public class CraftSettingsColumn : IColumn
             var previewValue = currentWorld?.Name.ExtractText() ?? "Use Default";
             ImGui.Text("Market World Preference:".Loc());
             ImGui.SameLine();
-            ImGuiService.HelpMarker("Override the market world preferences for this item. If you select a world here, the craft pricer will attempt to take prices from this world first then follow the normal rules for craft pricing.");
+            ImGuiService.HelpMarker("Override the market world preferences for this item. If you select a world here, the craft pricer will attempt to take prices from this world first then follow the normal rules for craft pricing.".Loc());
             using (var combo = ImRaii.Combo("##MarketWorldPreference" + rowIndex, previewValue))
             {
                 if (combo.Success)
@@ -662,7 +662,7 @@ public class CraftSettingsColumn : IColumn
                 var previewValue = currentMap?.FormattedName ?? "Use Default";
                 ImGui.Text("Zone Preference:".Loc());
                 ImGui.SameLine();
-                ImGuiService.HelpMarker("Where should the item be sourced from? As there are sometimes multiple locations to source an item from, you can either rely on your list's zone preferences (tab inside the craft list's settings) or you can override the zone here.");
+                ImGuiService.HelpMarker("Where should the item be sourced from? As there are sometimes multiple locations to source an item from, you can either rely on your list's zone preferences (tab inside the craft list's settings) or you can override the zone here.".Loc());
                 using (var combo = ImRaii.Combo("##ZonePreference" + rowIndex, previewValue))
                 {
                     if (combo.Success)
@@ -724,7 +724,7 @@ public class CraftSettingsColumn : IColumn
 
         ImGui.Text("Retrieve from Retainer:".Loc());
         ImGui.SameLine();
-        ImGuiService.HelpMarker("Should we source the item from your retainers? If there is a quantity available of the correct quality it will show up in the Items in Retainers/Bags section.");
+        ImGuiService.HelpMarker("Should we source the item from your retainers? If there is a quantity available of the correct quality it will show up in the Items in Retainers/Bags section.".Loc());
         using (var combo = ImRaii.Combo("##SetRetrieveRetainer" + rowIndex, previewValue))
         {
             if (combo.Success)
@@ -795,7 +795,7 @@ public class CraftSettingsColumn : IColumn
 
             ImGui.Text("HQ Required:".Loc());
             ImGui.SameLine();
-            ImGuiService.HelpMarker("Should the item be HQ or NQ? For output items, the quantity needed will only reduce if you craft an item of the correct quality. For other materials this will dictate what is listed to retrieve and what counts towards the amount you need.");
+            ImGuiService.HelpMarker("Should the item be HQ or NQ? For output items, the quantity needed will only reduce if you craft an item of the correct quality. For other materials this will dictate what is listed to retrieve and what counts towards the amount you need.".Loc());
             using (var combo = ImRaii.Combo("##SetHQRequired" + rowIndex, previewValue))
             {
                 if (combo.Success)
@@ -837,7 +837,7 @@ public class CraftSettingsColumn : IColumn
             var recipeName = item.Recipe?.CraftType?.FormattedName ?? "";
             ImGui.Text("Recipe:".Loc());
             ImGui.SameLine();
-            ImGuiService.HelpMarker("Select which recipe you wish to use for this item. Some items can be crafted by multiple classes.");
+            ImGuiService.HelpMarker("Select which recipe you wish to use for this item. Some items can be crafted by multiple classes.".Loc());
             using (var combo = ImRaii.Combo("##SetRecipe" + rowIndex, recipeName))
             {
                 if (combo.Success)

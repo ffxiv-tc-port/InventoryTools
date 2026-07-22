@@ -361,7 +361,7 @@ public class InventoryScopePicker
                                         _selectedScope.Reset();
                                     }
                                     ImGui.SameLine();
-                                    _imGuiService.HelpMarker("Match against all inventories");
+                                    _imGuiService.HelpMarker("Match against all inventories".Loc());
                                     ImGui.NewLine();
 
                                     if (ImGui.RadioButton("Character",isCharacter))
@@ -370,7 +370,7 @@ public class InventoryScopePicker
                                         _selectedScope.CharacterId = 0;
                                     }
                                     ImGui.SameLine();
-                                    _imGuiService.HelpMarker("Match against a specific character(player character, retainer, free company, etc)");
+                                    _imGuiService.HelpMarker("Match against a specific character(player character, retainer, free company, etc)".Loc());
 
                                     if (_selectedScope.CharacterId != null)
                                     {
@@ -405,7 +405,7 @@ public class InventoryScopePicker
                                         _selectedScope.ActiveCharacter = true;
                                     }
                                     ImGui.SameLine();
-                                    _imGuiService.HelpMarker("Match against the currently logged in character.");
+                                    _imGuiService.HelpMarker("Match against the currently logged in character.".Loc());
                                     ImGui.NewLine();
 
                                     if (ImGui.RadioButton("World",isWorld))
@@ -414,7 +414,7 @@ public class InventoryScopePicker
                                         _selectedScope.WorldId = 0;
                                     }
                                     ImGui.SameLine();
-                                    _imGuiService.HelpMarker("Match against a specific world");
+                                    _imGuiService.HelpMarker("Match against a specific world".Loc());
                                     if (_selectedScope.WorldId != null)
                                     {
                                         var selectedWorld = _selectedScope.WorldId == 0 ? null : _worldSheet.GetRowOrDefault(_selectedScope.WorldId.Value);
@@ -490,7 +490,7 @@ public class InventoryScopePicker
                                     }
 
                                     ImGui.SameLine();
-                                    _imGuiService.HelpMarker("When a category is selected, only items from this category will be shown. Select an item again to unselect it.");
+                                    _imGuiService.HelpMarker("When a category is selected, only items from this category will be shown. Select an item again to unselect it.".Loc());
 
                                     if (_selectedScope.CharacterId == null)
                                     {
@@ -542,7 +542,7 @@ public class InventoryScopePicker
                                             }
                                         }
                                         ImGui.SameLine();
-                                        _imGuiService.HelpMarker("When 'All' or 'World' is selected, choose the types of characters you want to filter against. Select an item again to unselect it.");
+                                        _imGuiService.HelpMarker("When 'All' or 'World' is selected, choose the types of characters you want to filter against. Select an item again to unselect it.".Loc());
                                     }
 
                                     ImGui.Separator();
@@ -555,7 +555,7 @@ public class InventoryScopePicker
                                     }
 
                                     ImGui.SameLine();
-                                    _imGuiService.HelpMarker("When checked, match against the opposite of what is selected.");
+                                    _imGuiService.HelpMarker("When checked, match against the opposite of what is selected.".Loc());
                                 }
                             }
 
