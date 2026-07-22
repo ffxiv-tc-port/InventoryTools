@@ -89,7 +89,7 @@ public class DisplayMarketPriceTooltip : BaseTooltip
                             var marketData = _marketCache.GetPricing((uint)hoverItemId, activeCharacter.WorldId, false);
                             if (marketData != null)
                             {
-                                textLines.Add("Market Board Data:\n");
+                                textLines.Add("Market Board Data:\n".Loc());
                                 if (Configuration.TooltipDisplayMarketAveragePrice)
                                 {
                                     textLines.Add(

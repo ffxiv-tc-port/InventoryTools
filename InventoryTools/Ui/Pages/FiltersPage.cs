@@ -44,11 +44,11 @@ namespace InventoryTools.Ui.Pages
                 _popupMenus[configuration] = new Widgets.PopupMenu("fm" + configuration.Key, Widgets.PopupMenu.PopupMenuButtons.LeftRight,
                     new List<Widgets.PopupMenu.IPopupMenuItem>()
                     {
-                        new Widgets.PopupMenu.PopupMenuItemSelectableAskName("Duplicate", "df_" + configuration.Key, configuration.Name, DuplicateList, "Duplicate the list."),
-                        new Widgets.PopupMenu.PopupMenuItemSelectable("Export Configuration", "ef_" + configuration.Key,ExportList, "Exports the list."),
-                        new Widgets.PopupMenu.PopupMenuItemSelectable( "Move Up", "mu_" + configuration.Key, MoveListUp,  "Move the list up."),
-                        new Widgets.PopupMenu.PopupMenuItemSelectable( "Move Down", "md_" + configuration.Key, MoveListDown, "Move the list down."),
-                        new Widgets.PopupMenu.PopupMenuItemSelectableConfirm("Remove", "rf_" + configuration.Key, "Are you sure you want to remove this list?", RemoveList, "Remove the list."),
+                        new Widgets.PopupMenu.PopupMenuItemSelectableAskName("Duplicate".Loc(), "df_" + configuration.Key, configuration.Name, DuplicateList, "Duplicate the list.".Loc()),
+                        new Widgets.PopupMenu.PopupMenuItemSelectable("Export Configuration".Loc(), "ef_" + configuration.Key,ExportList, "Exports the list.".Loc()),
+                        new Widgets.PopupMenu.PopupMenuItemSelectable( "Move Up".Loc(), "mu_" + configuration.Key, MoveListUp,  "Move the list up.".Loc()),
+                        new Widgets.PopupMenu.PopupMenuItemSelectable( "Move Down".Loc(), "md_" + configuration.Key, MoveListDown, "Move the list down.".Loc()),
+                        new Widgets.PopupMenu.PopupMenuItemSelectableConfirm("Remove".Loc(), "rf_" + configuration.Key, "Are you sure you want to remove this list?".Loc(), RemoveList, "Remove the list.".Loc()),
                     }
                 );
             }
@@ -97,7 +97,7 @@ namespace InventoryTools.Ui.Pages
             {
                 var base64 = _importExportService.ToBase64(existingFilter);
                 _clipboardService.CopyToClipboard(base64);
-                _chatUtilities.PrintClipboardMessage("[Export] ", "Filter Configuration");
+                _chatUtilities.PrintClipboardMessage("[Export] ".Loc(), "Filter Configuration".Loc());
             }
         }
 
@@ -111,12 +111,12 @@ namespace InventoryTools.Ui.Pages
             }
         }
 
-        public override string Name { get; } = "Item Lists";
+        public override string Name { get; } = "Item Lists".Loc();
         public override List<MessageBase>? Draw()
         {
             var messages = new List<MessageBase>();
             var filterConfigurations = _listService.Lists.Where(c => c.FilterType != FilterType.CraftFilter).ToList();
-            if (ImGui.CollapsingHeader("Item Lists", ImGuiTreeNodeFlags.DefaultOpen | ImGuiTreeNodeFlags.CollapsingHeader))
+            if (ImGui.CollapsingHeader("Item Lists".Loc(), ImGuiTreeNodeFlags.DefaultOpen | ImGuiTreeNodeFlags.CollapsingHeader))
             {
                 ImGui.PushStyleVar(ImGuiStyleVar.CellPadding, new Vector2(5, 5) * ImGui.GetIO().FontGlobalScale);
                 using (var table = ImRaii.Table("FilterConfigTable", 4, ImGuiTableFlags.BordersV |
@@ -128,16 +128,16 @@ namespace InventoryTools.Ui.Pages
                 {
                     if (table)
                     {
-                        ImGui.TableSetupColumn("Name", ImGuiTableColumnFlags.WidthStretch, 100.0f, (uint)0);
-                        ImGui.TableSetupColumn("Type", ImGuiTableColumnFlags.WidthStretch, 100.0f, (uint)1);
-                        ImGui.TableSetupColumn("Order", ImGuiTableColumnFlags.WidthStretch, 100.0f, (uint)1);
+                        ImGui.TableSetupColumn("Name".Loc(), ImGuiTableColumnFlags.WidthStretch, 100.0f, (uint)0);
+                        ImGui.TableSetupColumn("Type".Loc(), ImGuiTableColumnFlags.WidthStretch, 100.0f, (uint)1);
+                        ImGui.TableSetupColumn("Order".Loc(), ImGuiTableColumnFlags.WidthStretch, 100.0f, (uint)1);
                         ImGui.TableSetupColumn("", ImGuiTableColumnFlags.WidthStretch, 100.0f, (uint)2);
                         ImGui.TableHeadersRow();
                         if (filterConfigurations.Count == 0)
                         {
                             ImGui.TableNextRow();
                             ImGui.TableNextColumn();
-                            ImGui.TextUnformatted("No item lists created yet!");
+                            ImGui.TextUnformatted("No item lists created yet!".Loc());
                             ImGui.TableNextColumn();
                             ImGui.TableNextColumn();
                             ImGui.TableNextColumn();
@@ -158,13 +158,13 @@ namespace InventoryTools.Ui.Pages
                             ImGui.TextUnformatted(filterConfiguration.FormattedFilterType);
 
                             ImGui.TableNextColumn();
-                            if (ImGui.SmallButton("Up##" + index))
+                            if (ImGui.SmallButton("Up".Loc() + "##" + index))
                             {
                                 _listService.MoveListUp(filterConfiguration);
                             }
 
                             ImGui.SameLine();
-                            if (ImGui.SmallButton("Down##" + index))
+                            if (ImGui.SmallButton("Down".Loc() + "##" + index))
                             {
                                 _listService.MoveListDown(filterConfiguration);
                             }

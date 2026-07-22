@@ -46,7 +46,7 @@ namespace InventoryTools.Logic.Settings
         {
             get
             {
-                var filterItems = new Dictionary<string, string> {{"", "None"}};
+                var filterItems = new Dictionary<string, string> {{"", "None".Loc()}};
                 foreach (var config in _listService.Lists.Where(c => c.FilterType == FilterType.CraftFilter && !c.CraftListDefault))
                 {
                     filterItems.Add(config.Key, config.Name);

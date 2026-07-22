@@ -45,9 +45,9 @@ public class TooltipSourceInformationModifierSetting : GenericEnumChoiceSetting<
 {
     public TooltipSourceInformationModifierSetting(ILogger<TooltipSourceInformationModifierSetting> logger, ImGuiService imGuiService) : base("TooltipSourceInformationModifier", "Source Information Modifier Key".Loc(), "Should the tooltip only be shown if a modifier key is pressed?".Loc(), TooltipSourceModifier.Always, new()
     {
-        {TooltipSourceModifier.Always, "Always"},
-        {TooltipSourceModifier.Control, "Control"},
-        {TooltipSourceModifier.Shift, "Shift"},
+        {TooltipSourceModifier.Always, "Always".Loc()},
+        {TooltipSourceModifier.Control, "Control".Loc()},
+        {TooltipSourceModifier.Shift, "Shift".Loc()},
     }, SettingCategory.ToolTips, SettingSubCategory.SourceInformation, "1.11.0.11", logger, imGuiService)
     {
     }
@@ -66,9 +66,9 @@ public class TooltipSourceInformationSetting : Setting<Dictionary<ItemInfoType, 
         _itemInfoRenderers = itemInfoRenderers.Where(c => c.RendererType == RendererType.Source).ToDictionary(c => c.Type, c => c);
         _choices = new Dictionary<SourceIconGrouping, string>()
         {
-            {SourceIconGrouping.Default, "Default"},
-            {SourceIconGrouping.Grouped, "Grouped"},
-            {SourceIconGrouping.Ungrouped, "Ungrouped"}
+            {SourceIconGrouping.Default, "Default".Loc()},
+            {SourceIconGrouping.Grouped, "Grouped".Loc()},
+            {SourceIconGrouping.Ungrouped, "Ungrouped".Loc()}
         };
     }
 

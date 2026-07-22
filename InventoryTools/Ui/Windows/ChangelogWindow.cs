@@ -132,7 +132,7 @@ public class ChangelogWindow : GenericWindow, IMenuWindow
 
     public override FilterConfiguration? SelectedConfiguration { get; } = null;
     public override string GenericKey { get; } = "changelog";
-    public override string GenericName { get; } = "Changelog";
+    public override string GenericName { get; } = "Changelog".Loc();
     public override bool DestroyOnClose { get; } = true;
     public override bool SaveState { get; } = true;
     public override Vector2? DefaultSize { get; } = new Vector2(500, 500);

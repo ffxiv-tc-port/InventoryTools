@@ -48,7 +48,7 @@ namespace InventoryTools.Ui
             }
             else
             {
-                WindowName = "Invalid Submarine Exploration";
+                WindowName = "Invalid Submarine Exploration".Loc();
                 Key = "sepid_invalid";
                 _drops = new List<ItemRow>();
             }
@@ -59,24 +59,24 @@ namespace InventoryTools.Ui
         private SubmarineExplorationRow? SubmarineExploration => _submarineExplorationSheet.GetRowOrDefault(_submarineExplorationPointId);
 
         public override string GenericKey { get; } = "submarine";
-        public override string GenericName { get; } = "Submarines";
+        public override string GenericName { get; } = "Submarines".Loc();
         public override bool DestroyOnClose => true;
         public override void Draw()
         {
             if (SubmarineExploration == null)
             {
-                ImGui.TextUnformatted("Submarine Exploration Point with the ID " + _submarineExplorationPointId + " could not be found.");
+                ImGui.TextUnformatted("Submarine Exploration Point with the ID ".Loc() + _submarineExplorationPointId + " could not be found.".Loc());
             }
             else
             {
                 ImGui.TextUnformatted(SubmarineExploration.Base.Location.ExtractText());
-                ImGui.TextUnformatted("Unlocked Via: " + SubmarineExploration.Unlock?.Base.Location.ExtractText() ?? "N/A");
-                ImGui.TextUnformatted("Rank Required: " + SubmarineExploration.Base.RankReq);
+                ImGui.TextUnformatted("Unlocked Via: ".Loc() + SubmarineExploration.Unlock?.Base.Location.ExtractText() ?? "N/A");
+                ImGui.TextUnformatted("Rank Required: ".Loc() + SubmarineExploration.Base.RankReq);
                 ;
                 ImGui.Image(ImGuiService.GetIconTexture(Icons.AirshipIcon).ImGuiHandle, new Vector2(100, 100) * ImGui.GetIO().FontGlobalScale);
 
 
-                if (ImGui.CollapsingHeader("Rewards (" + _drops.Count + ")", ImGuiTreeNodeFlags.DefaultOpen | ImGuiTreeNodeFlags.CollapsingHeader))
+                if (ImGui.CollapsingHeader("Rewards (".Loc() + _drops.Count + ")", ImGuiTreeNodeFlags.DefaultOpen | ImGuiTreeNodeFlags.CollapsingHeader))
                 {
                     ImGuiStylePtr style = ImGui.GetStyle();
                     float windowVisibleX2 = ImGui.GetWindowPos().X + ImGui.GetWindowContentRegionMax().X;
@@ -121,9 +121,9 @@ namespace InventoryTools.Ui
                 }
 
                 #if DEBUG
-                if (ImGui.CollapsingHeader("Debug"))
+                if (ImGui.CollapsingHeader("Debug".Loc()))
                 {
-                    ImGui.TextUnformatted("Duty ID: " + _submarineExplorationPointId);
+                    ImGui.TextUnformatted("Duty ID: ".Loc() + _submarineExplorationPointId);
                     Utils.PrintOutObject(SubmarineExploration, 0, new List<string>());
                 }
                 #endif

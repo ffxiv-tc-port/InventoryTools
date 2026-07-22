@@ -36,12 +36,12 @@ public class TooltipLocationDisplayModeSetting : ChoiceSetting<TooltipLocationDi
         {
             return new Dictionary<TooltipLocationDisplayMode, string>()
             {
-                { TooltipLocationDisplayMode.CharacterQuantityQuality, "Character/Retainer - Quantity - Quality" },
-                { TooltipLocationDisplayMode.CharacterBagSlotQuality, "Character/Retainer - Bag - Slot - Quality" },
-                { TooltipLocationDisplayMode.CharacterBagSlotQuantity, "Character/Retainer - Bag - Slot - Quantity" },
+                { TooltipLocationDisplayMode.CharacterQuantityQuality, "Character/Retainer - Quantity - Quality".Loc() },
+                { TooltipLocationDisplayMode.CharacterBagSlotQuality, "Character/Retainer - Bag - Slot - Quality".Loc() },
+                { TooltipLocationDisplayMode.CharacterBagSlotQuantity, "Character/Retainer - Bag - Slot - Quantity".Loc() },
                 {
                     TooltipLocationDisplayMode.CharacterCategoryQuantityQuality,
-                    "Character/Retainer - Category - Quantity - Quality"
+                    "Character/Retainer - Category - Quantity - Quality".Loc()
                 },
             };
         }

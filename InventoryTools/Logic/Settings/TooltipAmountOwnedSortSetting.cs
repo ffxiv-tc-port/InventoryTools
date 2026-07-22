@@ -35,10 +35,10 @@ public class TooltipAmountOwnedSortSetting : ChoiceSetting<TooltipAmountOwnedSor
     public override Dictionary<TooltipAmountOwnedSort, string> Choices { get; } =
         new Dictionary<TooltipAmountOwnedSort, string>()
         {
-            { TooltipAmountOwnedSort.Alphabetically, "Alphabetical Order(Character/Retainer/etc)" },
-            { TooltipAmountOwnedSort.Categorically, "Alphabetical Order(Category)" },
-            { TooltipAmountOwnedSort.Quantity, "Item Quantity" },
-            { TooltipAmountOwnedSort.None, "No Order" },
+            { TooltipAmountOwnedSort.Alphabetically, "Alphabetical Order(Character/Retainer/etc)".Loc() },
+            { TooltipAmountOwnedSort.Categorically, "Alphabetical Order(Category)".Loc() },
+            { TooltipAmountOwnedSort.Quantity, "Item Quantity".Loc() },
+            { TooltipAmountOwnedSort.None, "No Order".Loc() },
         };
 }
 

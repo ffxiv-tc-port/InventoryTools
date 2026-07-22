@@ -71,7 +71,7 @@ namespace InventoryTools.Commands
             Logger.LogTrace(args);
             if (args.Trim() == "")
             {
-                _chatUtilities.PrintError("You must enter the name of an list.");
+                _chatUtilities.PrintError("You must enter the name of an list.".Loc());
             }
             else
             {
@@ -85,7 +85,7 @@ namespace InventoryTools.Commands
         {
             if (args.Trim() == "")
             {
-                _chatUtilities.PrintError("You must enter the name of a list.");
+                _chatUtilities.PrintError("You must enter the name of a list.".Loc());
             }
             else
             {
@@ -96,7 +96,7 @@ namespace InventoryTools.Commands
                 }
                 else
                 {
-                    _chatUtilities.PrintError("Could not find a list with that name.");
+                    _chatUtilities.PrintError("Could not find a list with that name.".Loc());
                 }
             }
         }

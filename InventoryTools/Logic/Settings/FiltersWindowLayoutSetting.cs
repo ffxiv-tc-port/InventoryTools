@@ -32,9 +32,9 @@ public class FiltersWindowLayoutSetting : ChoiceSetting<WindowLayout>
 
     public override Dictionary<WindowLayout, string> Choices { get; } = new Dictionary<WindowLayout, string>()
     {
-        { WindowLayout.Sidebar, "Sidebar" },
-        { WindowLayout.Tabs , "Tabs" },
-        { WindowLayout.Single , "Single" }
+        { WindowLayout.Sidebar, "Sidebar".Loc() },
+        { WindowLayout.Tabs , "Tabs".Loc() },
+        { WindowLayout.Single , "Single".Loc() }
     };
     public override string Version => "1.7.0.0";
 

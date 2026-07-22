@@ -45,11 +45,11 @@ public class ENpcsWindow : GenericTabbedTable<ENpcResidentRow>, IMenuWindow
 
     public override void Initialize()
     {
-        WindowName = "NPCs";
+        WindowName = "NPCs".Loc();
         Key = "enpcs";
          _columns = new List<TableColumn<ENpcResidentRow>>()
         {
-            new("Icon", 32, ImGuiTableColumnFlags.WidthFixed)
+            new("Icon".Loc(), 32, ImGuiTableColumnFlags.WidthFixed)
             {
                 OnLeftClick = OnLeftClick,
                 Draw = (ex, contentTypeId) =>
@@ -62,7 +62,7 @@ public class ENpcsWindow : GenericTabbedTable<ENpcResidentRow>, IMenuWindow
                     }
                 }
             },
-            new("Name", 200, ImGuiTableColumnFlags.WidthFixed)
+            new("Name".Loc(), 200, ImGuiTableColumnFlags.WidthFixed)
             {
                 Sort = (specs, exes) =>
                 {
@@ -89,7 +89,7 @@ public class ENpcsWindow : GenericTabbedTable<ENpcResidentRow>, IMenuWindow
                     ImGui.TextUnformatted(ex.Base.Singular.ExtractText() ?? "");
                 }
             },
-            new("Locations", 200, ImGuiTableColumnFlags.WidthFixed | ImGuiTableColumnFlags.NoSort)
+            new("Locations".Loc(), 200, ImGuiTableColumnFlags.WidthFixed | ImGuiTableColumnFlags.NoSort)
             {
                 Draw = (ex, contentTypeId) =>
                 {
@@ -117,7 +117,7 @@ public class ENpcsWindow : GenericTabbedTable<ENpcResidentRow>, IMenuWindow
 
                 }
             },
-            new("Is Vendor", 200, ImGuiTableColumnFlags.WidthFixed | ImGuiTableColumnFlags.NoSort)
+            new("Is Vendor".Loc(), 200, ImGuiTableColumnFlags.WidthFixed | ImGuiTableColumnFlags.NoSort)
             {
                 FilterBool = (s, exes) =>
                 {
@@ -133,15 +133,15 @@ public class ENpcsWindow : GenericTabbedTable<ENpcResidentRow>, IMenuWindow
                 {
                     if (ex.ENpcBase.IsVendor)
                     {
-                        ImGui.Text("Yes");
+                        ImGui.Text("Yes".Loc());
                     }
                     else
                     {
-                        ImGui.Text("No");
+                        ImGui.Text("No".Loc());
                     }
                 }
             },
-            new("Vendor Items", 200, ImGuiTableColumnFlags.WidthFixed | ImGuiTableColumnFlags.NoSort)
+            new("Vendor Items".Loc(), 200, ImGuiTableColumnFlags.WidthFixed | ImGuiTableColumnFlags.NoSort)
             {
                 Sort = (specs, exes) =>
                 {
@@ -302,7 +302,7 @@ public class ENpcsWindow : GenericTabbedTable<ENpcResidentRow>, IMenuWindow
 
     public override bool UseClipper => _useClipper;
     public override string GenericKey => "npcs";
-    public override string GenericName => "Npcs";
+    public override string GenericName => "Npcs".Loc();
     public override bool DestroyOnClose => false;
     public override bool SaveState => true;
     public override Vector2? MaxSize { get; } = new(2000, 2000);

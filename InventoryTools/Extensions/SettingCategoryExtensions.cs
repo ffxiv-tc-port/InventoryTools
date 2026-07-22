@@ -9,41 +9,41 @@ namespace InventoryTools.Extensions
             switch (settingCategory)
             {
                 case SettingCategory.General:
-                    return "General";
+                    return "General".Loc();
                 case SettingCategory.Visuals:
-                    return "Visuals";
+                    return "Visuals".Loc();
                 case SettingCategory.MarketBoard:
-                    return "Marketboard";
+                    return "Marketboard".Loc();
                 case SettingCategory.CraftOverlay:
-                    return "Craft Overlay";
+                    return "Craft Overlay".Loc();
                 case SettingCategory.CraftTracker:
-                    return "Craft Tracker (Legacy)";
+                    return "Craft Tracker (Legacy)".Loc();
                 case SettingCategory.ToolTips:
-                    return "Tooltips";
+                    return "Tooltips".Loc();
                 case SettingCategory.Hotkeys:
-                    return "Hotkeys";
+                    return "Hotkeys".Loc();
                 case SettingCategory.History:
-                    return "History";
+                    return "History".Loc();
                 case SettingCategory.Windows:
-                    return "Windows";
+                    return "Windows".Loc();
                 case SettingCategory.Lists:
-                    return "Lists";
+                    return "Lists".Loc();
                 case SettingCategory.ContextMenu:
-                    return "Context Menu";
+                    return "Context Menu".Loc();
                 case SettingCategory.MobSpawnTracker:
-                    return "Mob Spawn Tracker";
+                    return "Mob Spawn Tracker".Loc();
                 case SettingCategory.TitleMenuButtons:
-                    return "Title Menu Button";
+                    return "Title Menu Button".Loc();
                 case SettingCategory.AutoSave:
-                    return "Auto Save";
+                    return "Auto Save".Loc();
                 case SettingCategory.Items:
-                    return "Items";
+                    return "Items".Loc();
                 case SettingCategory.Highlighting:
-                    return "Highlighting";
+                    return "Highlighting".Loc();
                 case SettingCategory.EquipmentRecommendation:
-                    return "Equipment Recommendations";
+                    return "Equipment Recommendations".Loc();
             }
-            return settingCategory.ToString();
+            return settingCategory.ToString().Loc();
         }
     }
 }

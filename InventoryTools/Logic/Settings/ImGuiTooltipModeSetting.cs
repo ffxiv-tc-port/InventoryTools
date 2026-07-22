@@ -22,9 +22,9 @@ public class ImGuiTooltipModeSetting : GenericEnumChoiceSetting<ImGuiTooltipMode
         ImGuiTooltipMode.Icons,
         new Dictionary<ImGuiTooltipMode, string>()
         {
-            {ImGuiTooltipMode.Never, "Never"},
-            {ImGuiTooltipMode.Icons, "Icons"},
-            {ImGuiTooltipMode.Everywhere, "Everywhere"},
+            {ImGuiTooltipMode.Never, "Never".Loc()},
+            {ImGuiTooltipMode.Icons, "Icons".Loc()},
+            {ImGuiTooltipMode.Everywhere, "Everywhere".Loc()},
         },
         SettingCategory.General,
         SettingSubCategory.General,

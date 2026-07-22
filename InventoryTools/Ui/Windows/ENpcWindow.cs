@@ -56,7 +56,7 @@ namespace InventoryTools.Ui
             }
             else
             {
-                WindowName = "Invalid NPC";
+                WindowName = "Invalid NPC".Loc();
                 Key = "enpc_unknown";
             }
         }
@@ -65,7 +65,7 @@ namespace InventoryTools.Ui
         private uint _eNpcId;
         private ENpcResidentRow? ENpcResidentRow => _eNpcResidentSheet.GetRowOrDefault(_eNpcId);
         public List<IShop>? Shops;
-        public override string GenericName => "Npcs";
+        public override string GenericName => "Npcs".Loc();
         public override bool DestroyOnClose => true;
         public override void Draw()
         {
@@ -76,7 +76,7 @@ namespace InventoryTools.Ui
 
             if (ENpcResidentRow == null)
             {
-                ImGui.TextUnformatted("eNpc with the ID " + _eNpcId + " could not be found.");
+                ImGui.TextUnformatted("eNpc with the ID ".Loc() + _eNpcId + " could not be found.".Loc());
             }
             else
             {
@@ -85,18 +85,18 @@ namespace InventoryTools.Ui
                 {
                     $"https://www.garlandtools.org/db/#eNpc/{_eNpcId}".OpenBrowser();
                 }
-                ImGuiUtil.HoverTooltip("Open in Garland Tools");
+                ImGuiUtil.HoverTooltip("Open in Garland Tools".Loc());
                 ImGui.SameLine();
                 if (ImGui.ImageButton(ImGuiService.GetImageTexture("teamcraft").ImGuiHandle,
                         new Vector2(32, 32) * ImGui.GetIO().FontGlobalScale))
                 {
                     $"https://ffxivteamcraft.com/db/en/eNpc/{_eNpcId}".OpenBrowser();
                 }
-                ImGuiUtil.HoverTooltip("Open in Teamcraft");
+                ImGuiUtil.HoverTooltip("Open in Teamcraft".Loc());
 
                 ImGui.Separator();
 
-                if (Shops != null && ImGui.CollapsingHeader("Shops (" + Shops.Count + ")", ImGuiTreeNodeFlags.DefaultOpen | ImGuiTreeNodeFlags.CollapsingHeader))
+                if (Shops != null && ImGui.CollapsingHeader("Shops (".Loc() + Shops.Count + ")", ImGuiTreeNodeFlags.DefaultOpen | ImGuiTreeNodeFlags.CollapsingHeader))
                 {
                     ImGuiStylePtr style = ImGui.GetStyle();
                     float windowVisibleX2 = ImGui.GetWindowPos().X + ImGui.GetWindowContentRegionMax().X;
@@ -165,14 +165,14 @@ namespace InventoryTools.Ui
                 var hasInformation = false;
                 if (!hasInformation)
                 {
-                    ImGui.TextUnformatted("No information available.");
+                    ImGui.TextUnformatted("No information available.".Loc());
                 }
 
                 #if DEBUG
-                if (ImGui.CollapsingHeader("Debug"))
+                if (ImGui.CollapsingHeader("Debug".Loc()))
                 {
-                    ImGui.TextUnformatted("eNpc ID: " + _eNpcId);
-                    if (ImGui.Button("Copy"))
+                    ImGui.TextUnformatted("eNpc ID: ".Loc() + _eNpcId);
+                    if (ImGui.Button("Copy".Loc()))
                     {
                         _clipboardService.CopyToClipboard(_eNpcId.ToString());
                     }

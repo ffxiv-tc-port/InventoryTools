@@ -53,8 +53,8 @@ public class FilterService : IFilterService
 
         _availableFilters = filters.ToList();
 
-        _availableFilters.Add(_booleanFilterFactory.Invoke("grCombined", "Glamour Ready Combined",
-            "Is the item combined in the glamour chest?", FilterCategory.Basic,
+        _availableFilters.Add(_booleanFilterFactory.Invoke("grCombined", "Glamour Ready Combined".Loc(),
+            "Is the item combined in the glamour chest?".Loc(), FilterCategory.Basic,
             item => item.SortedCategory == InventoryCategory.GlamourChest && item.GlamourId != 0, null));
 
         foreach (var itemInfoType in Enum.GetValues<ItemInfoType>())
@@ -96,7 +96,7 @@ public class FilterService : IFilterService
             var name = baseParam.Name.ExtractText();
             if (helpText == string.Empty)
             {
-                helpText = $"The {name} of the item.";
+                helpText = "The ?? of the item.".Loc(name);
             }
             var genericFilter = _integerFilterFactory.Invoke("BaseParam" + baseParam.RowId, name, helpText, FilterCategory.Stats, null,
                 row =>

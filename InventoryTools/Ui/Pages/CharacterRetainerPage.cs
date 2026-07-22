@@ -55,8 +55,8 @@ namespace InventoryTools.Ui.Pages
                 _popupMenus[character] = new PopupMenu("cm_" + character.CharacterId, PopupMenu.PopupMenuButtons.Right,
                     new List<PopupMenu.IPopupMenuItem>()
                     {
-                        new PopupMenu.PopupMenuItemSelectableConfirm("Clear Inventories", "ci_" + character.CharacterId, "Are you sure you want to clear the inventories of this " + character.CharacterType.FormattedName() + "?", ClearInventories, "Clear the inventories of this " + character.CharacterType.FormattedName() + "?"),
-                        new PopupMenu.PopupMenuItemSelectableConfirm("Delete " + character.CharacterType.FormattedName(), "dc_" + character.CharacterId, "Are you sure you want to delete this " + character.CharacterType.FormattedName() + "?", DeleteCharacter, "Delete the " + character.CharacterType.FormattedName() + "?"),
+                        new PopupMenu.PopupMenuItemSelectableConfirm("Clear Inventories".Loc(), "ci_" + character.CharacterId, "Are you sure you want to clear the inventories of this ".Loc() + character.CharacterType.FormattedName().Loc() + "?", ClearInventories, "Clear the inventories of this ".Loc() + character.CharacterType.FormattedName().Loc() + "?"),
+                        new PopupMenu.PopupMenuItemSelectableConfirm("Delete ".Loc() + character.CharacterType.FormattedName().Loc(), "dc_" + character.CharacterId, "Are you sure you want to delete this ".Loc() + character.CharacterType.FormattedName().Loc() + "?", DeleteCharacter, "Delete the ".Loc() + character.CharacterType.FormattedName().Loc() + "?"),
                     }
                 );
             }
@@ -234,7 +234,7 @@ namespace InventoryTools.Ui.Pages
 
                     if (retainers.Count != 0)
                     {
-                        ImGui.TextUnformatted("Orphaned Retainers:");
+                        ImGui.TextUnformatted("Orphaned Retainers:".Loc());
                         ImGui.Separator();
                         for (var index2 = 0; index2 < retainers.Count; index2++)
                         {
@@ -275,11 +275,11 @@ namespace InventoryTools.Ui.Pages
                         selectedWorld = _worldSheet.GetRowOrDefault(_currentWorld);
                     }
 
-                    ImGui.Text("World: ");
+                    ImGui.Text("World: ".Loc());
                     using var combo = ImRaii.Combo("##activeWorld", selectedWorld?.Name.ExtractText() ?? "All");
                     if (combo.Success)
                     {
-                        if (ImGui.Selectable("All"))
+                        if (ImGui.Selectable("All".Loc()))
                         {
                             _currentWorld = 0;
                         }
@@ -322,12 +322,12 @@ namespace InventoryTools.Ui.Pages
                                 _newName = character.AlternativeName ?? "";
                             }
 
-                            ImGuiUtil.HoverTooltip("Edit name, set the name to blank to return it to the original name.");
+                            ImGuiUtil.HoverTooltip("Edit name, set the name to blank to return it to the original name.".Loc());
 
                             if (_editMode)
                             {
                                 var newName = _newName;
-                                ImGui.Text("Custom Name: ");
+                                ImGui.Text("Custom Name: ".Loc());
                                 ImGui.SameLine();
                                 if (ImGui.InputText("##customName", ref newName, 100))
                                 {
@@ -339,7 +339,7 @@ namespace InventoryTools.Ui.Pages
                                     ImGui.Text("Original Name: " + character.Name);
                                 }
 
-                                if (ImGui.Button("Save"))
+                                if (ImGui.Button("Save".Loc()))
                                 {
                                     if (_newName == "" || _newName == character.Name)
                                     {
@@ -373,7 +373,7 @@ namespace InventoryTools.Ui.Pages
                                 ImGui.Text("World: " + (character.World?.Name.ExtractText() ?? "Unknown"));
                                 ImGui.Text("Plot Size: " + character.GetPlotSize());
                                 ImGui.Text("Location: " + character.HousingName);
-                                ImGui.Text("Owners: ");
+                                ImGui.Text("Owners: ".Loc());
                                 foreach (var ownerId in character.Owners)
                                 {
                                     var owner = _characterMonitor.GetCharacterById(ownerId);
@@ -384,7 +384,7 @@ namespace InventoryTools.Ui.Pages
                             else if (character.CharacterType is CharacterType.FreeCompanyChest)
                             {
                                 ImGui.Text("World: " + (character.World?.Name.ExtractText() ?? "Unknown"));
-                                ImGui.Text("Related Characters: ");
+                                ImGui.Text("Related Characters: ".Loc());
                                 foreach (var relatedCharacter in _characterMonitor.GetFreeCompanyCharacters(character.CharacterId))
                                 {
                                     var relatedCharacterName = relatedCharacter.Value.FormattedName;
@@ -393,7 +393,7 @@ namespace InventoryTools.Ui.Pages
                             }
 
                             ImGui.NewLine();
-                            ImGui.Text("Inventories: ");
+                            ImGui.Text("Inventories: ".Loc());
                             ImGui.Separator();
                             var inventories =
                                 _inventoryMonitor.Inventories.ContainsKey(character.CharacterId)
@@ -499,13 +499,13 @@ namespace InventoryTools.Ui.Pages
                             }
                             else
                             {
-                                ImGui.Text("No inventories found.");
+                                ImGui.Text("No inventories found.".Loc());
                             }
 
                         }
                         else
                         {
-                            ImGui.Text("Invalid character selected.");
+                            ImGui.Text("Invalid character selected.".Loc());
                         }
                     }
                 }

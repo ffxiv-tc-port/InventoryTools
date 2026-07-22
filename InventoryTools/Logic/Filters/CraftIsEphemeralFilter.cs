@@ -37,7 +37,7 @@ public class CraftIsEphemeralFilter : BooleanFilter
         configuration.IsEphemeralCraftList = newValue ?? false;
     }
 
-    private readonly string[] _choices = new []{"Yes", "No"};
+    private readonly string[] _choices = new []{"Yes", "No".Loc()};
 
     public override string[] GetChoices()
     {

@@ -24,7 +24,7 @@ namespace InventoryTools.Logic.Settings.Abstract
             if (HasValueSet(configuration) && value.W == 0)
             {
                 ImGui.SameLine();
-                ImGui.TextColored(ImGuiColors.DalamudRed, "The alpha is currently set to 0, this will be invisible.");
+                ImGui.TextColored(ImGuiColors.DalamudRed, "The alpha is currently set to 0, this will be invisible.".Loc());
             }
             ImGui.SameLine();
             if (disableColouring != true && HasValueSet(configuration))
@@ -42,7 +42,7 @@ namespace InventoryTools.Logic.Settings.Abstract
             if (disableReset != true && HasValueSet(configuration))
             {
                 ImGui.SameLine();
-                if (ImGui.Button("Reset##" + Key + "Reset"))
+                if (ImGui.Button("Reset".Loc() + "##" + Key + "Reset"))
                 {
                     Reset(configuration);
                 }

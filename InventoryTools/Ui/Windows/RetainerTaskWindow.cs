@@ -48,7 +48,7 @@ namespace InventoryTools.Ui
             else
             {
                 Key = "rt_invalid";
-                WindowName = "Allagan Tools - Invalid Retainer Task";
+                WindowName = "Allagan Tools - Invalid Retainer Task".Loc();
                 _drops = new List<ItemRow>();
             }
         }
@@ -59,27 +59,27 @@ namespace InventoryTools.Ui
 
 
         public override string GenericKey { get; } = "retainertask";
-        public override string GenericName { get; } = "Retainer Task";
+        public override string GenericName { get; } = "Retainer Task".Loc();
         public override bool DestroyOnClose => true;
         public override void Draw()
         {
             if (RetainerTask == null)
             {
-                ImGui.TextUnformatted("Submarine Exploration Point with the ID " + _retainerTaskId + " could not be found.");
+                ImGui.TextUnformatted("Submarine Exploration Point with the ID ".Loc() + _retainerTaskId + " could not be found.".Loc());
             }
             else
             {
                 ImGui.TextUnformatted(RetainerTask.FormattedName);
-                ImGui.TextUnformatted("Level: " + RetainerTask.Base.RetainerLevel);
-                ImGui.TextUnformatted("Duration: " + RetainerTask.DurationString);
-                ImGui.TextUnformatted("Experience: " + RetainerTask.ExperienceString);
-                ImGui.TextUnformatted("Venture Cost: " + RetainerTask.Base.VentureCost);
-                ImGui.TextUnformatted("Average iLvl: " + RetainerTask.Base.RequiredItemLevel);
+                ImGui.TextUnformatted("Level: ".Loc() + RetainerTask.Base.RetainerLevel);
+                ImGui.TextUnformatted("Duration: ".Loc() + RetainerTask.DurationString);
+                ImGui.TextUnformatted("Experience: ".Loc() + RetainerTask.ExperienceString);
+                ImGui.TextUnformatted("Venture Cost: ".Loc() + RetainerTask.Base.VentureCost);
+                ImGui.TextUnformatted("Average iLvl: ".Loc() + RetainerTask.Base.RequiredItemLevel);
                 ;
                 ImGui.Image(ImGuiService.GetIconTexture(65049).ImGuiHandle, new Vector2(100, 100) * ImGui.GetIO().FontGlobalScale);
 
 
-                if (ImGui.CollapsingHeader("Rewards (" + _drops.Count + ")", ImGuiTreeNodeFlags.DefaultOpen | ImGuiTreeNodeFlags.CollapsingHeader))
+                if (ImGui.CollapsingHeader("Rewards (".Loc() + _drops.Count + ")", ImGuiTreeNodeFlags.DefaultOpen | ImGuiTreeNodeFlags.CollapsingHeader))
                 {
                     ImGuiStylePtr style = ImGui.GetStyle();
                     float windowVisibleX2 = ImGui.GetWindowPos().X + ImGui.GetWindowContentRegionMax().X;
@@ -124,9 +124,9 @@ namespace InventoryTools.Ui
                 }
 
                 #if DEBUG
-                if (ImGui.CollapsingHeader("Debug"))
+                if (ImGui.CollapsingHeader("Debug".Loc()))
                 {
-                    ImGui.TextUnformatted("Duty ID: " + _retainerTaskId);
+                    ImGui.TextUnformatted("Duty ID: ".Loc() + _retainerTaskId);
                     Utils.PrintOutObject(RetainerTask, 0, new List<string>());
                 }
                 #endif

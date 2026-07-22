@@ -9,7 +9,7 @@ namespace InventoryTools.Logic.Settings
     {
         public Dictionary<string, string> StaticChoices = new Dictionary<string, string>()
         {
-            {"Always", "Always"}, {"When Searching", "When Searching"}
+            {"Always", "Always".Loc()}, {"When Searching", "When Searching"}
         };
 
         public override string DefaultValue { get; set; } = "When Searching";

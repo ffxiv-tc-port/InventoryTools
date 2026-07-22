@@ -108,14 +108,14 @@ namespace InventoryTools.Logic.Filters.Abstract
                 if (combo.Success)
                 {
                     var searchString = SearchString;
-                    ImGui.InputText("Start typing to search..##ItemSearch", ref searchString, 50);
+                    ImGui.InputText("Start typing to search..".Loc() + "##ItemSearch", ref searchString, 50);
                     if (_searchString != searchString)
                     {
                         SearchString = searchString;
                     }
                     var activeChoices = GetActiveChoices(configuration);
                     ImGui.SameLine();
-                    if (ImGui.Button("Add All"))
+                    if (ImGui.Button("Add All".Loc()))
                     {
                         foreach (var item in activeChoices)
                         {
@@ -154,7 +154,7 @@ namespace InventoryTools.Logic.Filters.Abstract
             if (HasValueSet(configuration) && ShowReset)
             {
                 ImGui.SameLine();
-                if (ImGui.Button("Reset##" + Key + "Reset"))
+                if (ImGui.Button("Reset".Loc() + "##" + Key + "Reset"))
                 {
                     ResetFilter(configuration);
                     _cachedChoices = null;

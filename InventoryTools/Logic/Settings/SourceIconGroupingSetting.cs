@@ -29,9 +29,9 @@ public class SourceIconGroupingSetting : Setting<Dictionary<Type, bool>?>
         _sourceRenderers = itemInfoRenderers.Where(c => c.RendererType == RendererType.Source).ToDictionary(c => c.ItemSourceType, c => c);
         _choices = new Dictionary<SourceIconGrouping, string>()
         {
-            {SourceIconGrouping.Default, "Default"},
-            {SourceIconGrouping.Grouped, "Grouped"},
-            {SourceIconGrouping.Ungrouped, "Ungrouped"}
+            {SourceIconGrouping.Default, "Default".Loc()},
+            {SourceIconGrouping.Grouped, "Grouped".Loc()},
+            {SourceIconGrouping.Ungrouped, "Ungrouped".Loc()}
         };
     }
 

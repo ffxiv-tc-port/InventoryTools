@@ -29,11 +29,11 @@ public class RetainerTasksWindow : GenericTabbedTable<RetainerTaskRow>, IMenuWin
     }
     public override void Initialize()
     {
-        WindowName = "Retainer Ventures";
+        WindowName = "Retainer Ventures".Loc();
         Key = "retainerTasks";
         _columns = new List<TableColumn<RetainerTaskRow>>()
         {
-            new("Icon", 32, ImGuiTableColumnFlags.WidthFixed)
+            new("Icon".Loc(), 32, ImGuiTableColumnFlags.WidthFixed)
             {
                 OnLeftClick = OnLeftClick,
                 Draw = (ex, contentTypeId) =>
@@ -45,7 +45,7 @@ public class RetainerTasksWindow : GenericTabbedTable<RetainerTaskRow>, IMenuWin
                     }
                 }
             },
-            new("Name", 200, ImGuiTableColumnFlags.WidthFixed)
+            new("Name".Loc(), 200, ImGuiTableColumnFlags.WidthFixed)
             {
                 Sort = (specs, exes) =>
                 {
@@ -69,7 +69,7 @@ public class RetainerTasksWindow : GenericTabbedTable<RetainerTaskRow>, IMenuWin
                     ImGui.TextUnformatted(ex.FormattedName.ToString());
                 }
             },
-            new("Task Type", 200, ImGuiTableColumnFlags.WidthFixed)
+            new("Task Type".Loc(), 200, ImGuiTableColumnFlags.WidthFixed)
             {
                 Sort = (specs, exes) =>
                 {
@@ -94,7 +94,7 @@ public class RetainerTasksWindow : GenericTabbedTable<RetainerTaskRow>, IMenuWin
                 },
                 AllTabOnly = true
             },
-            new("Level", 200, ImGuiTableColumnFlags.WidthFixed)
+            new("Level".Loc(), 200, ImGuiTableColumnFlags.WidthFixed)
             {
                 Sort = (specs, exes) =>
                 {
@@ -118,7 +118,7 @@ public class RetainerTasksWindow : GenericTabbedTable<RetainerTaskRow>, IMenuWin
                     ImGui.TextUnformatted(ex.Base.RetainerLevel.ToString());
                 }
             },
-            new("Duration", 200, ImGuiTableColumnFlags.WidthFixed)
+            new("Duration".Loc(), 200, ImGuiTableColumnFlags.WidthFixed)
             {
                 Sort = (specs, exes) =>
                 {
@@ -142,7 +142,7 @@ public class RetainerTasksWindow : GenericTabbedTable<RetainerTaskRow>, IMenuWin
                     ImGui.TextUnformatted(ex.DurationString);
                 }
             },
-            new("Experience", 200, ImGuiTableColumnFlags.WidthFixed)
+            new("Experience".Loc(), 200, ImGuiTableColumnFlags.WidthFixed)
             {
                 Sort = (specs, exes) =>
                 {
@@ -166,7 +166,7 @@ public class RetainerTasksWindow : GenericTabbedTable<RetainerTaskRow>, IMenuWin
                     ImGui.TextUnformatted(ex.ExperienceString.ToString());
                 }
             },
-            new("Venture Cost", 200, ImGuiTableColumnFlags.WidthFixed)
+            new("Venture Cost".Loc(), 200, ImGuiTableColumnFlags.WidthFixed)
             {
                 Sort = (specs, exes) =>
                 {
@@ -190,7 +190,7 @@ public class RetainerTasksWindow : GenericTabbedTable<RetainerTaskRow>, IMenuWin
                     ImGui.TextUnformatted(ex.Base.VentureCost.ToString());
                 }
             },
-            new("Average iLvl", 200, ImGuiTableColumnFlags.WidthFixed)
+            new("Average iLvl".Loc(), 200, ImGuiTableColumnFlags.WidthFixed)
             {
                 Sort = (specs, exes) =>
                 {
@@ -214,7 +214,7 @@ public class RetainerTasksWindow : GenericTabbedTable<RetainerTaskRow>, IMenuWin
                     ImGui.TextUnformatted(ex.Base.RequiredItemLevel.ToString());
                 }
             },
-            new("Drops", 200, ImGuiTableColumnFlags.WidthFixed | ImGuiTableColumnFlags.NoSort)
+            new("Drops".Loc(), 200, ImGuiTableColumnFlags.WidthFixed | ImGuiTableColumnFlags.NoSort)
             {
                 Sort = (specs, exes) =>
                 {
@@ -285,7 +285,7 @@ public class RetainerTasksWindow : GenericTabbedTable<RetainerTaskRow>, IMenuWin
     }
 
     public override string GenericKey { get; } = "retainerTasks";
-    public override string GenericName { get; } = "Retainer Tasks";
+    public override string GenericName { get; } = "Retainer Tasks".Loc();
     public override bool DestroyOnClose => false;
     public override bool SaveState => true;
     public override Vector2? MaxSize { get; } = new(2000, 2000);

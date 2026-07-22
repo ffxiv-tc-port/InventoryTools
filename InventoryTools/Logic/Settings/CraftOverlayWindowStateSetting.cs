@@ -11,9 +11,9 @@ public class CraftOverlayWindowStateSetting : GenericEnumChoiceSetting<CraftOver
 {
     public CraftOverlayWindowStateSetting(ILogger<CraftOverlayWindowStateSetting> logger, ImGuiService imGuiService) : base("CraftOverlayWindowState", "Window State".Loc(), "The current state of the craft overlay window.".Loc(), CraftOverlayWindowState.Single, new Dictionary<CraftOverlayWindowState, string>()
     {
-        { CraftOverlayWindowState.Collapsed, "Collapsed"},
-        { CraftOverlayWindowState.Single, "Single"},
-        { CraftOverlayWindowState.List, "Expanded"},
+        { CraftOverlayWindowState.Collapsed, "Collapsed".Loc()},
+        { CraftOverlayWindowState.Single, "Single".Loc()},
+        { CraftOverlayWindowState.List, "Expanded".Loc()},
     }, SettingCategory.None, SettingSubCategory.None, "1.11.0.8", logger, imGuiService)
     {
     }

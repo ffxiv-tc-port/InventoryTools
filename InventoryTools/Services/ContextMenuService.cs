@@ -77,7 +77,7 @@ public class ContextMenuService : DisposableMediatorSubscriberBase, IHostedServi
             if (_configuration.AddMoreInformationContextMenu)
             {
                 var menuItem = new MenuItem();
-                menuItem.Name = "More Information";
+                menuItem.Name = "More Information".Loc();
                 menuItem.PrefixChar = 'A';
                 menuItem.OnClicked += clickedArgs => MoreInformationClicked(clickedArgs, itemId);
                 args.AddMenuItem(menuItem);
@@ -86,7 +86,7 @@ public class ContextMenuService : DisposableMediatorSubscriberBase, IHostedServi
             if (_configuration.ItemSearchContextMenu)
             {
                 var menuItem = new MenuItem();
-                menuItem.Name = "Search";
+                menuItem.Name = "Search".Loc();
                 menuItem.PrefixChar = 'A';
                 menuItem.OnClicked += clickedArgs => ItemSearchClicked(clickedArgs, itemId);
                 args.AddMenuItem(menuItem);
@@ -98,7 +98,7 @@ public class ContextMenuService : DisposableMediatorSubscriberBase, IHostedServi
                 if (activeList != null)
                 {
                     var menuItem = new MenuItem();
-                    menuItem.Name = "Add to Active Craft List";
+                    menuItem.Name = "Add to Active Craft List".Loc();
                     menuItem.PrefixChar = 'A';
                     menuItem.OnClicked += clickedArgs => AddToCraftList(activeList, clickedArgs, itemId);
                     args.AddMenuItem(menuItem);
@@ -108,7 +108,7 @@ public class ContextMenuService : DisposableMediatorSubscriberBase, IHostedServi
             if (_configuration.AddToCraftListContextMenu)
             {
                 var menuItem = new MenuItem();
-                menuItem.Name = "Add to Craft List";
+                menuItem.Name = "Add to Craft List".Loc();
                 menuItem.PrefixChar = 'A';
                 menuItem.IsSubmenu = true;
                 menuItem.OnClicked += clickedArgs => OpenAddCraftListSubmenu(clickedArgs, itemId);
@@ -118,7 +118,7 @@ public class ContextMenuService : DisposableMediatorSubscriberBase, IHostedServi
             if (_curatedListSetting.CurrentValue(_configuration))
             {
                 var menuItem = new MenuItem();
-                menuItem.Name = "Add to Curated List";
+                menuItem.Name = "Add to Curated List".Loc();
                 menuItem.PrefixChar = 'A';
                 menuItem.IsSubmenu = true;
                 menuItem.OnClicked += clickedArgs => OpenAddCuratedListSubmenu(clickedArgs, itemId);
@@ -132,7 +132,7 @@ public class ContextMenuService : DisposableMediatorSubscriberBase, IHostedServi
                 if (item != null && item.CanOpenCraftingLog)
                 {
                     var menuItem = new MenuItem();
-                    menuItem.Name = "Open Crafting Log";
+                    menuItem.Name = "Open Crafting Log".Loc();
                     menuItem.PrefixChar = 'A';
                     menuItem.OnClicked += _ => _gameInterface.OpenCraftingLog(itemId.Value);
                     args.AddMenuItem(menuItem);
@@ -145,7 +145,7 @@ public class ContextMenuService : DisposableMediatorSubscriberBase, IHostedServi
                 if (item != null && item.CanOpenGatheringLog)
                 {
                     var menuItem = new MenuItem();
-                    menuItem.Name = "Open Gathering Log";
+                    menuItem.Name = "Open Gathering Log".Loc();
                     menuItem.PrefixChar = 'A';
                     menuItem.OnClicked += _ => _gameInterface.OpenGatheringLog(itemId.Value);
                     args.AddMenuItem(menuItem);
@@ -157,7 +157,7 @@ public class ContextMenuService : DisposableMediatorSubscriberBase, IHostedServi
                 if (item != null && item.CanOpenFishingLog)
                 {
                     var menuItem = new MenuItem();
-                    menuItem.Name = "Open Fishing Log";
+                    menuItem.Name = "Open Fishing Log".Loc();
                     menuItem.PrefixChar = 'A';
                     menuItem.OnClicked += _ => _gameInterface.OpenFishingLog(itemId.Value, item.ObtainedSpearFishing);
                     args.AddMenuItem(menuItem);
@@ -305,12 +305,12 @@ public class ContextMenuService : DisposableMediatorSubscriberBase, IHostedServi
         }
 
         var newButton = new MenuItem();
-        newButton.Name = "Add to New Craft List";
+        newButton.Name = "Add to New Craft List".Loc();
         newButton.OnClicked += args => AddToNewCraftList(args, itemId);
         menuItems.Add(newButton);
 
         newButton = new MenuItem();
-        newButton.Name = "Add to New Ephemeral Craft List";
+        newButton.Name = "Add to New Ephemeral Craft List".Loc();
         newButton.OnClicked += args => AddToNewEphemeralCraftList(args, itemId);
         menuItems.Add(newButton);
         obj.OpenSubmenu(menuItems);
@@ -332,7 +332,7 @@ public class ContextMenuService : DisposableMediatorSubscriberBase, IHostedServi
         }
 
         var newButton = new MenuItem();
-        newButton.Name = "Add to New Curated List";
+        newButton.Name = "Add to New Curated List".Loc();
         newButton.OnClicked += args => AddToNewCuratedList(args, itemId);
         menuItems.Add(newButton);
 
