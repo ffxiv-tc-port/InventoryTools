@@ -13,7 +13,8 @@ public class GenericHasUseCategoryFilter : BooleanFilter, IGenericFilter
 {
     private readonly ItemInfoRenderCategory _renderCategory;
     private readonly ItemInfoRenderService _infoRenderService;
-    private ItemInfoType[] _sourceTypes;
+    private ItemInfoType[]? _useCats;
+    private readonly string _key;
 
     public override int LabelSize { get; set; } = 250;
 
@@ -22,13 +23,11 @@ public class GenericHasUseCategoryFilter : BooleanFilter, IGenericFilter
     {
         _renderCategory = renderCategory;
         _infoRenderService = infoRenderService;
+        _key = "HasUseCat" + (uint)_renderCategory;
     }
 
     public override string Key {
-        get
-        {
-            return "HasUseCat" + (uint)_renderCategory;
-        }
+        get => _key;
         set
         {
 
@@ -63,8 +62,8 @@ public class GenericHasUseCategoryFilter : BooleanFilter, IGenericFilter
             return null;
         }
 
-        _sourceTypes = _infoRenderService.GetUsesByCategory(_renderCategory).Select(c => c.Type).ToArray();
+        _useCats ??= _infoRenderService.GetUsesByCategory(_renderCategory).Select(c => c.Type).ToArray();
 
-        return currentValue == true ? item.HasUsesByType(_sourceTypes) : !item.HasUsesByType(_sourceTypes);
+        return currentValue == true ? item.HasUsesByType(_useCats) : !item.HasUsesByType(_useCats);
     }
 }

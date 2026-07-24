@@ -8,6 +8,141 @@ Instead the changelog reader and automation surrounding plugin PRs will add the 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.html).
 
+## [13.1.9] - 2025-11-25
+
+### Fixed
+- Shops that yield more than 1 item when being purchased will be factored into craft lists correctly
+- Fixed certain shops not highlighting correctly when there was more than 1 shop listing available
+
+### Added
+- The total quantity available column can now be configured to provide a total of any combination of NQ/HQ/Collectible items
+- Added a "Add to Favourites" context menu setting
+
+## [13.1.8] - 2025-11-17
+
+### Fixed
+- Fixed an issue with the plugin not loading when running in a non-english language
+- Fixed an issue with history not loading properly
+
+## [13.1.7] - 2025-11-16
+
+### Added
+- Certain items required for anima weapons will show up as shops and are now available in craft lists
+- The Item Window will show an items Desynth Class if available
+- Added Anima and Zodiac Weapons as Uses
+- Added Anima Shops as a source
+
+### Changed
+- Data update including more mob spawns thanks to user provided data
+
+### Fixed
+- Fixed an exception being thrown with the mobs window when trying to sort the Type column
+
+## [13.1.6] - 2025-10-17
+
+### Fixed
+- Fixed a broken signature, I'll see if I can make this less liable to break later
+
+## [13.1.5] - 2025-10-08
+
+### Changed
+- 7.35 data update
+
+### Added
+- Sell to Vendor Price(Total) column added
+
+### Fixed
+- When a source/use is ungrouped and shown in a tooltip, the results will be capped at 20
+- Fixed a broken signature
+
+
+### Fixed
+- Fixed a bug with how task queues were being assigned in the background
+- Adding items from the equipment recommendation window should not longer lock up the UI while doing so
+
+## [13.1.4] - 2025-09-06
+
+### Changed
+- Made several optimizations, this should make list results generate much faster, if you notice any filter not applying correctly let me know via github issue or via the xivlauncher/dalamud discord
+
+### Fixed
+- Fixed a bug with how task queues were being assigned in the background
+- Adding items from the equipment recommendation window should not longer lock up the UI while doing so
+
+## [13.1.3] - 2025-09-05
+
+### Fixed
+- Fixed signature mismatch
+
+## [13.1.2] - 2025-09-01
+
+### Changed
+- Added data for 7.31
+- This stable release includes the major changes introduced for the source/destination system, please see the change log accessible inside the File menu within any of the plugin's windows
+
+### Fixed
+- Fixed a bug that would cause a craft list to not highlight in certain cases
+- The way interior housing sources are calculated was reworked so items not visible in the in-game housing catalog are shown
+- The highlighting colors configurable in each list will now show a override button instead of the previous unintuitive behaviour
+- The highlight when setting inside a list's configuration will now list "Use Global Configuration" if the list is using the highlighting mode setting in the main configuration
+
+## [13.1.1] - 2025-08-31
+
+### Fixed
+- Changing a inventory search scope will validate the categories selected and remove them if they are no longer applicable
+- Certain filters would report as being changed from the default which would highlight the tab as green even if they hadn't been
+- Certain inventory scopes were not respecting the default value
+- Your inventory scopes may get migrated again so any changes you made since 13.1.0 was released will be overwritten. This will only be the case if you had installed 13.1.0 before installing the update.
+
+## [13.1.0] - 2025-08-28
+
+### List Source/Destination Changes
+- The way that sources and destinations work has changed, the individual dropdowns have been removed and replaced with a new scope picker.
+- From the scope picker you can define a set of inventories, characters, categories or worlds you want to match against.
+- Craft lists have received the same upgrade and also include a "Staging Area" scope that lets you pick which items are considered to be in your inventory
+- Your previous settings will have been migrated
+- Lists exported as "import codes" made on previous versions will not longer import and will need to be remade on this version.
+
+The other following additions were made:
+
+### Added
+- Preconfigured/sample lists were added to the lists menu in the lists window
+- A import/export menu item was added to the lists menu
+
+## [13.0.4] - 2025-08-27
+
+### Fixed
+- Fixed a bug in source/use loading, those filters should now work correctly
+
+## [13.0.3] - 2025-08-23
+
+### Fixed
+- Fixed a bug in the equipment recommendation window
+
+## [13.0.2] - 2025-08-22
+
+### Fixed
+- Fixed an issue where houses would not register if they were Plot 1
+
+## [13.0.1] - 2025-08-21
+
+### Added
+- Added debug windows available for end-users when debugging specific issues
+
+### Fixed
+- Fixed a silent crash when trying to duplicate a list
+- The Gather column will show a button for spearfishing
+- Removed bad mob data causing the mob window to crash
+- Hotkeys now work even if you continue to down a modifier key(shift, ctrl, alt)
+
+### Removed
+- Tetris has been removed as Allagan Tetris supersedes it
+
+## [13.0.0] - 2025-08-09
+
+### Fixed
+- API13 support
+
 ## [12.0.21] - 2025-07-07
 
 ### Fixed

@@ -10,7 +10,7 @@ using CriticalCommonLib.Services.Ui;
 using DalaMock.Host.Mediator;
 using DalaMock.Shared.Interfaces;
 using FFXIVClientStructs.FFXIV.Client.Game;
-using ImGuiNET;
+using Dalamud.Bindings.ImGui;
 using InventoryTools.Logic;
 using InventoryTools.Ui.Widgets;
 using Dalamud.Interface.Utility.Raii;
@@ -76,8 +76,6 @@ namespace InventoryTools.Ui
                         "Open the submarines window.".Loc()),
                     new PopupMenu.PopupMenuItemSelectable("Retainer Ventures Window".Loc(), "ventures",_ => MediatorService.Publish(new OpenGenericWindowMessage(typeof(RetainerTasksWindow))),
                         "Open the retainer ventures window.".Loc()),
-                    new PopupMenu.PopupMenuItemSelectable("Tetris".Loc(), "tetris", _ => MediatorService.Publish(new OpenGenericWindowMessage(typeof(TetrisWindow))),
-                        "Open the tetris window.".Loc(), () => _configuration.TetrisEnabled),
                     new PopupMenu.PopupMenuItemSeparator(),
                     new PopupMenu.PopupMenuItemSelectable("Help".Loc(), "help", _ => MediatorService.Publish(new OpenGenericWindowMessage(typeof(HelpWindow))), "Open the help window.".Loc()),
                 });
@@ -200,7 +198,7 @@ namespace InventoryTools.Ui
 
                     ImGui.SameLine();
                     ImGuiService.CenterElement(20 * ImGui.GetIO().FontGlobalScale);
-                    if(_clearIcon.Draw(ImGuiService.GetIconTexture(66308).ImGuiHandle, "clearSearch"))
+                    if(_clearIcon.Draw(ImGuiService.GetIconTexture(66308).Handle, "clearSearch"))
                     {
                         itemTable.ClearFilters();
                     }
@@ -235,7 +233,7 @@ namespace InventoryTools.Ui
                 if (bottomBarChild.Success)
                 {
                     ImGuiService.CenterElement(24 * ImGui.GetIO().FontGlobalScale);
-                    if(_marketIcon.Draw(ImGuiService.GetImageTexture("refresh-web").ImGuiHandle, "refreshMarket"))
+                    if(_marketIcon.Draw(ImGuiService.GetImageTexture("refresh-web").Handle, "refreshMarket"))
                     {
                         var activeCharacter = _characterMonitor.ActiveCharacter;
                         if (activeCharacter != null)
@@ -250,7 +248,7 @@ namespace InventoryTools.Ui
                     ImGuiUtil.HoverTooltip("Refresh Market Prices".Loc());
                     ImGui.SameLine();
                     ImGuiService.CenterElement(24 * ImGui.GetIO().FontGlobalScale);
-                    if (_csvIcon.Draw(ImGuiService.GetImageTexture("export2").ImGuiHandle, "exportCsv"))
+                    if (_csvIcon.Draw(ImGuiService.GetImageTexture("export2").Handle, "exportCsv"))
                     {
                         _fileDialogManager.SaveFileDialog("Save to csv", "*.csv", "export.csv", ".csv",
                             (b, s) => { SaveCallback(itemTable, b, s); }, null, true);
@@ -313,7 +311,7 @@ namespace InventoryTools.Ui
                     width -= 30 * ImGui.GetIO().FontGlobalScale;
                     ImGui.SetCursorPosX(width);
                     ImGuiService.CenterElement(24 * ImGui.GetIO().FontGlobalScale);
-                    if (_menuIcon.Draw(ImGuiService.GetImageTexture("menu").ImGuiHandle, "openMenu"))
+                    if (_menuIcon.Draw(ImGuiService.GetImageTexture("menu").Handle, "openMenu"))
                     {
                     }
                     _settingsMenu.Draw();
@@ -321,7 +319,7 @@ namespace InventoryTools.Ui
                     width -= 30 * ImGui.GetIO().FontGlobalScale;
                     ImGuiService.CenterElement(24 * ImGui.GetIO().FontGlobalScale);
                     ImGui.SetCursorPosX(width);
-                    if (_settingsIcon.Draw(ImGuiService.GetIconTexture(66319).ImGuiHandle,"openConfig"))
+                    if (_settingsIcon.Draw(ImGuiService.GetIconTexture(66319).Handle,"openConfig"))
                     {
                         MediatorService.Publish(new ToggleGenericWindowMessage(typeof(ConfigurationWindow)));
                     }
@@ -332,7 +330,7 @@ namespace InventoryTools.Ui
                     width -= 30 * ImGui.GetIO().FontGlobalScale;
                     ImGui.SetCursorPosX(width);
                     ImGuiService.CenterElement(24 * ImGui.GetIO().FontGlobalScale);
-                    if (_filtersIcon.Draw(ImGuiService.GetImageTexture("filters").ImGuiHandle, "openFilters"))
+                    if (_filtersIcon.Draw(ImGuiService.GetImageTexture("filters").Handle, "openFilters"))
                     {
                         MediatorService.Publish(new ToggleGenericWindowMessage(typeof(FiltersWindow)));
                     }
@@ -343,7 +341,7 @@ namespace InventoryTools.Ui
                     width -= 30 * ImGui.GetIO().FontGlobalScale;
                     ImGui.SetCursorPosX(width);
                     ImGuiService.CenterElement(24 * ImGui.GetIO().FontGlobalScale);
-                    if (_craftIcon.Draw(ImGuiService.GetImageTexture("craft").ImGuiHandle, "openCraft"))
+                    if (_craftIcon.Draw(ImGuiService.GetImageTexture("craft").Handle, "openCraft"))
                     {
                         MediatorService.Publish(new ToggleGenericWindowMessage(typeof(CraftsWindow)));
                     }

@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using CriticalCommonLib.Services.Mediator;
 using DalaMock.Host.Mediator;
-using ImGuiNET;
+using Dalamud.Bindings.ImGui;
 using InventoryTools.Logic.Columns.Abstract;
 using InventoryTools.Logic.Columns.Abstract.ColumnSettings;
 
@@ -24,7 +24,7 @@ namespace InventoryTools.Logic.Columns
         public bool IsConfigurable { get; }
         public string? RenderName { get; }
         public FilterType DefaultIn { get; }
-        public uint MaxFilterLength { get; set; }
+        public int MaxFilterLength { get; set; }
         public List<IColumnSetting> FilterSettings { get; set; }
         public List<IColumnSetting> Settings { get; set; }
         public string? FilterIcon { get; }

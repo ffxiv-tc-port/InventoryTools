@@ -6,7 +6,7 @@ using AllaganLib.Shared.Extensions;
 using CriticalCommonLib.Crafting;
 using CriticalCommonLib.Extensions;
 using CriticalCommonLib.Models;
-using ImGuiNET;
+using Dalamud.Bindings.ImGui;
 using InventoryTools.Logic.Filters.Abstract;
 using Dalamud.Interface.Utility.Raii;
 using InventoryTools.Extensions;
@@ -70,7 +70,7 @@ public class CraftIngredientPreferenceFilter : SortedListFilter<(IngredientPrefe
 
     public override bool HasValueSet(FilterConfiguration configuration)
     {
-        return true;
+        return false;
     }
 
     public override FilterType AvailableIn { get; set; } = FilterType.CraftFilter;
@@ -126,11 +126,11 @@ public class CraftIngredientPreferenceFilter : SortedListFilter<(IngredientPrefe
 
     public override void Draw(FilterConfiguration configuration)
     {
-        ImGui.TextUnformatted(Name);
+        ImGui.TextUnformatted(GetName(configuration));
         ImGui.Separator();
         DrawTable(configuration);
         ImGui.SameLine();
-        ImGuiService.HelpMarker(HelpText);
+        ImGuiService.HelpMarker(GetHelpText(configuration));
 
         var currentAddColumn = "";
         ImGui.SetNextItemWidth(LabelSize);

@@ -7,7 +7,7 @@ using CriticalCommonLib.Extensions;
 using CriticalCommonLib.Models;
 
 using Dalamud.Interface.Colors;
-using ImGuiNET;
+using Dalamud.Bindings.ImGui;
 using InventoryTools.Logic.Columns;
 using InventoryTools.Logic.Columns.Abstract;
 using InventoryTools.Logic.Filters.Abstract;
@@ -45,7 +45,6 @@ namespace InventoryTools.Logic.Filters
             return (configuration.CraftColumns ?? new List<ColumnConfiguration>()).ToDictionary(c => c, GetColumnDetails);
         }
 
-
         public override void UpdateFilterConfiguration(FilterConfiguration configuration, Dictionary<ColumnConfiguration, (string, string?)> newValue)
         {
             configuration.CraftColumns = newValue.Select(c => c.Key).ToList();
@@ -66,7 +65,7 @@ namespace InventoryTools.Logic.Filters
 
         public override bool HasValueSet(FilterConfiguration configuration)
         {
-            return configuration.CraftColumns != null && configuration.CraftColumns.Count != 0;
+            return false;
         }
 
         public override FilterType AvailableIn { get; set; } = FilterType.CraftFilter;
@@ -227,14 +226,14 @@ namespace InventoryTools.Logic.Filters
                                     if (column.Value.DefaultIn.HasFlag(configuration.FilterType))
                                     {
                                         ImGui.SameLine();
-                                        ImGui.Image(ImGuiService.GetIconTexture(Icons.SproutIcon).ImGuiHandle, new Vector2(16,16));
+                                        ImGui.Image(ImGuiService.GetIconTexture(Icons.SproutIcon).Handle, new Vector2(16,16));
                                         ImGuiUtil.HoverTooltip("Default Column".Loc());
                                     }
 
                                     if (column.Value.IsConfigurable)
                                     {
                                         ImGui.SameLine();
-                                        ImGui.Image(ImGuiService.GetIconTexture(Icons.WrenchIcon).ImGuiHandle, new Vector2(16,16));
+                                        ImGui.Image(ImGuiService.GetIconTexture(Icons.WrenchIcon).Handle, new Vector2(16,16));
                                         ImGuiUtil.HoverTooltip("Configurable".Loc());
                                     }
 

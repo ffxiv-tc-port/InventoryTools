@@ -11,6 +11,7 @@ using InventoryTools.Logic.ItemRenderers;
 using Lumina.Excel;
 using Lumina.Excel.Sheets;
 using OtterGui;
+using OtterGui.Extensions;
 
 namespace InventoryTools.Services;
 
@@ -52,10 +53,6 @@ public class FilterService : IFilterService
         _itemSheet = itemSheet;
 
         _availableFilters = filters.ToList();
-
-        _availableFilters.Add(_booleanFilterFactory.Invoke("grCombined", "Glamour Ready Combined".Loc(),
-            "Is the item combined in the glamour chest?".Loc(), FilterCategory.Basic,
-            item => item.SortedCategory == InventoryCategory.GlamourChest && item.GlamourId != 0, null));
 
         foreach (var itemInfoType in Enum.GetValues<ItemInfoType>())
         {

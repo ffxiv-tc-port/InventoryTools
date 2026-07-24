@@ -2,159 +2,17 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
-using CriticalCommonLib.Enums;
 using CriticalCommonLib.Extensions;
 using CriticalCommonLib.Models;
 using CriticalCommonLib.Services;
 using Dalamud.Interface.Utility.Raii;
-using ImGuiNET;
+using Dalamud.Bindings.ImGui;
 using InventoryTools.Services;
 using InventoryTools.Ui.Widgets;
 using Lumina.Excel;
 using Lumina.Excel.Sheets;
 
 namespace InventoryTools.Logic.Editors;
-
-public class InventorySearchScope
-{
-    public ulong? CharacterId { get; set; }
-    public uint? WorldId { get; set; }
-    public bool? ActiveCharacter { get; set; }
-    public bool? ActiveWorld { get; set; }
-
-    public HashSet<InventoryCategory>? Categories { get; set; }
-    public HashSet<CharacterType>? CharacterTypes { get; set; }
-    public InventorySearchScopeMode Mode { get; set; }
-    public bool Invert { get; set; }
-
-    public bool IncludeOwned { get; set; }
-
-    //Add Enum With Mode, turn into combo box
-
-
-    public void Reset()
-    {
-        CharacterId = null;
-        WorldId = null;
-        ActiveCharacter = null;
-        ActiveWorld = null;
-    }
-}
-
-public enum InventorySearchScopeMode
-{
-    Normal,
-    Invert
-}
-
-public class InventoryScopeCalculator
-{
-    private readonly ICharacterMonitor _characterMonitor;
-    private Dictionary<ulong, uint> _characterWorldIds = new Dictionary<ulong, uint>();
-    private Dictionary<ulong, CharacterType> _characterTypes = new Dictionary<ulong, CharacterType>();
-
-    public InventoryScopeCalculator(ICharacterMonitor characterMonitor)
-    {
-        _characterMonitor = characterMonitor;
-    }
-
-    public bool Filter(IEnumerable<InventorySearchScope> searchScopes, InventoryItem inventoryItem)
-    {
-        return searchScopes.Any(c => Filter(c, inventoryItem));
-    }
-
-    public bool Filter(InventorySearchScope searchScope, InventoryItem inventoryItem)
-    {
-        bool topLevelMatch = false;
-        if (searchScope.CharacterId != null)
-        {
-            if (inventoryItem.RetainerId == searchScope.CharacterId)
-            {
-                topLevelMatch = true;
-            }
-        }
-        else if (searchScope.WorldId != null)
-        {
-            if (!_characterWorldIds.ContainsKey(inventoryItem.RetainerId))
-            {
-                var character = _characterMonitor.GetCharacterById(inventoryItem.RetainerId);
-                if (character == null)
-                {
-                    return false;
-                }
-                _characterWorldIds[inventoryItem.RetainerId] = character.WorldId;
-            }
-
-            if (_characterWorldIds[inventoryItem.RetainerId] == searchScope.WorldId)
-            {
-                topLevelMatch = true;
-            }
-        }
-        else if (searchScope.ActiveCharacter is true)
-        {
-            if(_characterMonitor.BelongsToActiveCharacter(inventoryItem.RetainerId))
-            {
-                topLevelMatch = true;
-            }
-        }
-        else if (searchScope.ActiveWorld is true)
-        {
-            if (!_characterWorldIds.ContainsKey(inventoryItem.RetainerId))
-            {
-                var character = _characterMonitor.GetCharacterById(inventoryItem.RetainerId);
-                if (character == null)
-                {
-                    return false;
-                }
-                _characterWorldIds[inventoryItem.RetainerId] = character.WorldId;
-            }
-
-            if (_characterWorldIds[inventoryItem.RetainerId] == _characterMonitor.ActiveCharacter?.WorldId)
-            {
-                topLevelMatch = true;
-            }
-        }
-        else
-        {
-            topLevelMatch = true;
-        }
-
-        var secondLevelMatch = true;
-        if (topLevelMatch)
-        {
-            if (searchScope.Categories != null)
-            {
-                if (!searchScope.Categories.Contains(inventoryItem.SortedCategory))
-                {
-                    secondLevelMatch = false;
-                }
-            }
-            if (searchScope.CharacterTypes != null)
-            {
-                if (!_characterTypes.ContainsKey(inventoryItem.RetainerId))
-                {
-                    var character = _characterMonitor.GetCharacterById(inventoryItem.RetainerId);
-                    if (character == null)
-                    {
-                        return false;
-                    }
-                    _characterTypes[inventoryItem.RetainerId] = character.CharacterType;
-                }
-
-                if (!searchScope.CharacterTypes.Contains(_characterTypes[inventoryItem.RetainerId]))
-                {
-                    secondLevelMatch = false;
-                }
-            }
-        }
-        else
-        {
-            secondLevelMatch = false;
-        }
-
-        return searchScope.Invert ? !secondLevelMatch : secondLevelMatch;
-    }
-}
 
 public class InventoryScopePicker
 {
@@ -209,11 +67,37 @@ public class InventoryScopePicker
 
     private InventorySearchScope? _selectedScope;
 
+    public bool ValidateSearchScopes(List<InventorySearchScope> searchScopes)
+    {
+        var wasChanged = false;
+        foreach (var scope in searchScopes)
+        {
+            if (scope.CharacterId != null && scope.CharacterId != 0)
+            {
+                var character = _characterMonitor.GetCharacterById(scope.CharacterId.Value);
+                if (character != null && scope.Categories != null)
+                {
+                    foreach (var category in scope.Categories)
+                    {
+                        if (!category.IsApplicable(character.CharacterType))
+                        {
+                            scope.Categories.Remove(category);
+                            wasChanged = true;
+                            break;
+                        }
+                    }
+                }
+            }
+        }
+
+        return wasChanged;
+    }
+
     public bool Draw(string label, List<InventorySearchScope> searchScopes)
     {
 
         var changed = false;
-        var fakeRef = searchScopes.Count + " items selected.";
+        var fakeRef = searchScopes.Count + " scopes defined.";
         using (var disabled = ImRaii.Disabled())
         {
             if (disabled)
@@ -245,7 +129,7 @@ public class InventoryScopePicker
                     {
                         foreach (var characterType in searchScope.CharacterTypes)
                         {
-                            ImGui.Text(characterType.FormattedName());
+                            ImGui.Text(characterType.FormattedName() + " (All Inventories)");
                         }
                     }
                 }
@@ -254,7 +138,7 @@ public class InventoryScopePicker
 
         ImGui.SameLine();
         var cursorScreenPos = ImGui.GetCursorScreenPos();
-        if (_editButton.Draw(_imGuiService.LoadImage("edit").GetWrapOrEmpty().ImGuiHandle, new Vector2(18, 18) * ImGui.GetIO().FontGlobalScale))
+        if (_editButton.Draw(_imGuiService.LoadImage("edit").GetWrapOrEmpty().Handle, new Vector2(18, 18) * ImGui.GetIO().FontGlobalScale))
         {
             ImGui.OpenPopup("scopePopup");
             ImGui.SetNextWindowPos(cursorScreenPos);
@@ -341,7 +225,7 @@ public class InventoryScopePicker
                     {
                         ImGui.TextWrapped("The inventory scope editor allows you define which inventories you want to search across.".Loc());
                         ImGui.TextWrapped("By default, every inventory Allagan Tools knows about is searched.".Loc());
-                        ImGui.TextWrapped("By providing a set of scopes, you are narrowing down from which inventories are displayed.".Loc());
+                        ImGui.TextWrapped("By providing a set of scopes, you are narrowing down which inventories are displayed.".Loc());
                     }
                     else
                     {
@@ -405,7 +289,7 @@ public class InventoryScopePicker
                                         _selectedScope.ActiveCharacter = true;
                                     }
                                     ImGui.SameLine();
-                                    _imGuiService.HelpMarker("Match against the currently logged in character.".Loc());
+                                    _imGuiService.HelpMarker("Match against the currently logged in character. This includes all retainers/free companies/etc owned by the character. Use categories or character types to filter down further.".Loc());
                                     ImGui.NewLine();
 
                                     if (ImGui.RadioButton("World",isWorld))
@@ -583,6 +467,10 @@ public class InventoryScopePicker
             }
         }
 
+        if (ValidateSearchScopes(searchScopes))
+        {
+            changed = true;
+        }
         return changed;
     }
 }

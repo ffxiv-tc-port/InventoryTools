@@ -42,27 +42,23 @@ public class InventoryToolsTestingPlugin : InventoryToolsPlugin
     public InventoryToolsTestingPlugin(IDalamudPluginInterface pluginInterface, IPluginLog pluginLog,
         IAddonLifecycle addonLifecycle, IChatGui chatGui, IClientState clientState, ICommandManager commandManager,
         ICondition condition, IDataManager dataManager, IFramework framework, IGameGui gameGui,
-        IGameInteropProvider gameInteropProvider, IKeyState keyState, IGameNetwork gameNetwork,
-        IObjectTable objectTable, ITargetManager targetManager, ITextureProvider textureProvider, IToastGui toastGui,
+        IGameInteropProvider gameInteropProvider, IKeyState keyState, IObjectTable objectTable, ITargetManager targetManager,
+        ITextureProvider textureProvider, IToastGui toastGui,
         IContextMenu contextMenu, ITitleScreenMenu titleScreenMenu, IGameInventory gameInventory) : base(pluginInterface, pluginLog,
         addonLifecycle, chatGui, clientState, commandManager, condition, dataManager, framework, gameGui,
-        gameInteropProvider, keyState, gameNetwork, objectTable, targetManager, textureProvider, toastGui, contextMenu,
+        gameInteropProvider, keyState, objectTable, targetManager, textureProvider, toastGui, contextMenu,
         titleScreenMenu, gameInventory)
     {
-    }
-
-    public override void ReplaceHostedServices(Dictionary<Type, Type> replacements)
-    {
-        replacements.Add(typeof(WotsitIpc),typeof(MockWotsitIpc));
-        replacements.Add(typeof(CraftMonitor),typeof(MockHostedCraftMonitor));
-        replacements.Add(typeof(OdrScanner),typeof(MockOdrScanner));
-        replacements.Add(typeof(SimpleAcquisitionTrackerService),typeof(MockAcquisitionTrackerService));
-        replacements.Add(typeof(Chat2Ipc),typeof(MockChat2Ipc));
     }
 
     public override void PreBuild(IHostBuilder hostBuilder)
     {
         base.PreBuild(hostBuilder);
+
+        this.ReplaceHostedService(typeof(WotsitIpc),typeof(MockWotsitIpc));
+        this.ReplaceHostedService(typeof(CraftMonitor),typeof(MockHostedCraftMonitor));
+        this.ReplaceHostedService(typeof(OdrScanner),typeof(MockOdrScanner));
+        this.ReplaceHostedService(typeof(Chat2Ipc),typeof(MockChat2Ipc));
 
         this.seriLog = new LoggerConfiguration()
             .WriteTo.Console(standardErrorFromLevel: LogEventLevel.Verbose)

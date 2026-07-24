@@ -19,7 +19,7 @@ using DalaMock.Host.Mediator;
 using DalaMock.Shared.Interfaces;
 using Dalamud.Game.ClientState.Keys;
 using Dalamud.Interface.Colors;
-using ImGuiNET;
+using Dalamud.Bindings.ImGui;
 using InventoryTools.Logic;
 using InventoryTools.Logic.Settings;
 using InventoryTools.Ui.Widgets;
@@ -31,6 +31,7 @@ using InventoryTools.Mediator;
 using InventoryTools.Services;
 using InventoryTools.Services.Interfaces;
 using InventoryTools.Extensions;
+using InventoryTools.Logic.Features;
 using Microsoft.Extensions.Logging;
 using Serilog.Events;
 using ImGuiUtil = OtterGui.ImGuiUtil;
@@ -54,11 +55,14 @@ namespace InventoryTools.Ui
         private readonly FiltersWindowLayoutSetting _layoutSetting;
         private readonly ItemSheet _itemSheet;
         private readonly FilterConfiguration.Factory _filterConfigFactory;
+        private readonly IEnumerable<ISampleFilter> _sampleFilters;
         private readonly IClipboardService _clipboardService;
         private readonly PopupService _popupService;
         private readonly IKeyState _keyState;
         private readonly IFramework _framework;
         private readonly IPluginLog _pluginLog;
+        private readonly HighlightWhenFilter _highlightWhenFilter;
+        private readonly HighlightWhenSetting _highlightWhenSetting;
         private IEnumerable<IMenuWindow>? _menuWindows;
         private readonly InventoryToolsConfiguration _configuration;
 
@@ -68,8 +72,9 @@ namespace InventoryTools.Ui
             IUniversalis universalis, IFileDialogManager fileDialogManager, IGameUiManager gameUiManager,
             HostedInventoryHistory inventoryHistory, ListImportExportService importExportService,
             IComponentContext context, FiltersWindowLayoutSetting layoutSetting, ItemSheet itemSheet,
-            FilterConfiguration.Factory filterConfigFactory,
-            IClipboardService clipboardService, PopupService popupService, IKeyState keyState, IFramework framework, IPluginLog pluginLog) : base(logger, mediator, imGuiService, configuration, "Filters Window")
+            FilterConfiguration.Factory filterConfigFactory, IEnumerable<ISampleFilter> sampleFilters,
+            IClipboardService clipboardService, PopupService popupService, IKeyState keyState, IFramework framework,
+            IPluginLog pluginLog, HighlightWhenFilter highlightWhenFilter, HighlightWhenSetting highlightWhenSetting) : base(logger, mediator, imGuiService, configuration, "Filters Window")
         {
             _listService = listService;
             _filterService = filterService;
@@ -85,11 +90,14 @@ namespace InventoryTools.Ui
             _layoutSetting = layoutSetting;
             _itemSheet = itemSheet;
             _filterConfigFactory = filterConfigFactory;
+            _sampleFilters = sampleFilters;
             _clipboardService = clipboardService;
             _popupService = popupService;
             _keyState = keyState;
             _framework = framework;
             _pluginLog = pluginLog;
+            _highlightWhenFilter = highlightWhenFilter;
+            _highlightWhenSetting = highlightWhenSetting;
             _configuration = configuration;
             this.Flags = ImGuiWindowFlags.MenuBar;
         }
@@ -113,8 +121,6 @@ namespace InventoryTools.Ui
                         "Open the submarines window.".Loc()),
                     new PopupMenu.PopupMenuItemSelectable("Retainer Ventures Window".Loc(), "ventures",
                         OpenRetainerVenturesWindow, "Open the retainer ventures window.".Loc()),
-                    new PopupMenu.PopupMenuItemSelectable("Tetris".Loc(), "tetris", OpenTetrisWindow,
-                        "Open the tetris window.".Loc(), () => _configuration.TetrisEnabled),
                     new PopupMenu.PopupMenuItemSeparator(),
                     new PopupMenu.PopupMenuItemSelectable("Help".Loc(), "help", OpenHelpWindow, "Open the help window.".Loc()),
                 });
@@ -168,8 +174,6 @@ namespace InventoryTools.Ui
         private HoverButton _editIcon = new();
         private HoverButton _settingsIcon = new();
         private HoverButton _craftIcon = new();
-        private HoverButton _csvIcon = new();
-        private HoverButton _clipboardIcon = new();
         private HoverButton _clearIcon = new();
         private HoverButton _closeSettingsIcon = new();
         private HoverButton _marketIcon = new();
@@ -268,11 +272,6 @@ namespace InventoryTools.Ui
         private void OpenRetainerVenturesWindow(string obj)
         {
             MediatorService.Publish(new Mediator.OpenGenericWindowMessage(typeof(RetainerTasksWindow)));
-        }
-
-        private void OpenTetrisWindow(string obj)
-        {
-            MediatorService.Publish(new Mediator.OpenGenericWindowMessage(typeof(TetrisWindow)));
         }
 
         private void OpenMobsWindow(string obj)
@@ -934,6 +933,87 @@ namespace InventoryTools.Ui
                                 }
                             }
 
+                            using (var addMenu = ImRaii.Menu("Add (Preconfigured)"))
+                            {
+                                if (addMenu)
+                                {
+                                    foreach (var defaultFilter in _sampleFilters.OrderBy(c => c.Name))
+                                    {
+                                        if (defaultFilter.SampleFilterType == SampleFilterType.Default)
+                                        {
+                                            if (ImGui.MenuItem(defaultFilter.Name))
+                                            {
+                                                _popupService.AddPopup(new NamePopup(GetType(), "addDefault" + defaultFilter.Name, defaultFilter.SampleDefaultName, result =>
+                                                {
+                                                    if (result.Item1)
+                                                    {
+                                                        var newFilter = defaultFilter.AddFilter();
+                                                        newFilter.Name = result.Item2;
+                                                        Invalidate();
+                                                        MediatorService.Publish(new OpenGenericWindowMessage(typeof(ConfigurationWindow)));
+                                                        MediatorService.Publish(new ConfigurationWindowEditFilter(newFilter));
+                                                        FocusFilter(newFilter);
+                                                    }
+                                                }));
+                                            }
+
+                                            ImGuiUtil.HoverTooltip(defaultFilter.SampleDescription);
+                                        }
+                                    }
+                                }
+                            }
+
+                            using (var addMenu = ImRaii.Menu("Import/Export"))
+                            {
+                                if (addMenu)
+                                {
+                                    if (ImGui.MenuItem("Export Current List (Share Code)"))
+                                    {
+                                        if (SelectedConfiguration != null)
+                                        {
+                                            var base64 = _importExportService.ToBase64(SelectedConfiguration);
+                                            _clipboardService.CopyToClipboard(base64);
+                                            _chatUtilities.PrintClipboardMessage("[Export] ", "Filter Configuration");
+                                        }
+                                    }
+
+                                    if (ImGui.MenuItem("Import List (Share Code)"))
+                                    {
+                                        _popupService.AddPopup(new MultiLineTextPopup(GetType(), "addSearchList", "Please enter a valid share code for a list below and then hit ok to import it.", result =>
+                                        {
+                                            if (result.Item1)
+                                            {
+                                                var importData = result.Item2;
+                                                if (importData == "")
+                                                {
+                                                    _chatUtilities.PrintClipboardMessage("[Import] ", "You must paste a list generated via the export function or that was shared with you before pressing ok.");
+                                                }
+                                                else
+                                                {
+                                                    try
+                                                    {
+                                                        if (_importExportService.FromBase64(importData,
+                                                                out var newList))
+                                                        {
+                                                            _chatUtilities.PrintClipboardMessage("[Import] ", "The list was imported successfully.");
+                                                            _listService.AddList(newList);
+                                                        }
+                                                        else
+                                                        {
+                                                            _chatUtilities.PrintClipboardMessage("[Import] ", "Invalid data detected in import string. Please make sure this string is valid.");
+                                                        }
+                                                    }
+                                                    catch (ListImportVersionException e)
+                                                    {
+                                                        _chatUtilities.PrintClipboardMessage("[Import] ", $"This list is no longer valid. It's version is {(e.ImportingVersion?.ToString() ?? "0")} and it's required version is {e.RequiredVersion}.");
+                                                    }
+                                                }
+                                            }
+                                        }));
+                                    }
+                                }
+                            }
+
                             ImGui.NewLine();
 
                             var windowGroups = _listService.Lists.GroupBy(c => c.FilterType).OrderBySequence(
@@ -1099,7 +1179,7 @@ namespace InventoryTools.Ui
                             }
 
                             ImGui.SameLine();
-                            if(_clearIcon.Draw(ImGuiService.GetIconTexture(66308).ImGuiHandle, "clearSearch", new Vector2(18,18) * ImGui.GetIO().FontGlobalScale))
+                            if(_clearIcon.Draw(ImGuiService.GetIconTexture(66308).Handle, "clearSearch", new Vector2(18,18) * ImGui.GetIO().FontGlobalScale))
                             {
                                 SearchString = "";
                             }
@@ -1170,7 +1250,7 @@ namespace InventoryTools.Ui
                         {
                             float height = ImGui.GetWindowSize().Y;
                             ImGui.SetCursorPosY(height - 24 * ImGui.GetIO().FontGlobalScale);
-                            if (_addIcon.Draw(ImGuiService.GetIconTexture(66315).ImGuiHandle, "cb_af"))
+                            if (_addIcon.Draw(ImGuiService.GetIconTexture(66315).Handle, "cb_af"))
                             {
                             }
 
@@ -1187,7 +1267,7 @@ namespace InventoryTools.Ui
 
         private unsafe void DrawTabBar()
         {
-            using (var tabBar = ImRaii.TabBar("InventoryTabs" + _tabLayout, ImGuiTabBarFlags.FittingPolicyScroll | ImGuiTabBarFlags.TabListPopupButton))
+            using (var tabBar = ImRaii.TabBar("InventoryTabs" + _tabLayout, ImGuiTabBarFlags.FittingPolicyScroll | ImGuiTabBarFlags.ListPopupButton))
             {
                 if (!tabBar.Success) return;
                 var filterConfigurations = Filters;
@@ -1200,38 +1280,36 @@ namespace InventoryTools.Ui
                     {
                         var imGuiTabItemFlags = _newTab == index && SwitchNewTab ? ImGuiTabItemFlags.SetSelected : ImGuiTabItemFlags.None;
                         using var id = ImRaii.PushId(index);
-                        fixed (byte* namePtr = filterConfiguration.NameAsBytes)
+
+                        using (var tabItem = ImRaii.TabItem(filterConfiguration.NameFormatted + "##" + filterConfiguration.Key, imGuiTabItemFlags))
                         {
-                            using (var tabItem = ImRaii.TabItem(namePtr, imGuiTabItemFlags))
+                            GetFilterMenu(filterConfiguration, WindowLayout.Tabs).Draw();
+
+                            if (SwitchNewTab && _newTab != null && _newTab == index)
                             {
-                                GetFilterMenu(filterConfiguration, WindowLayout.Tabs).Draw();
+                                _newTab = null;
+                                _applyNewTabTime = null;
+                            }
+                            if (!tabItem.Success) continue;
 
-                                if (SwitchNewTab && _newTab != null && _newTab == index)
+                            _selectedFilterTab = index;
+                            if (_settingsActive)
+                            {
+                                DrawSettingsPanel(filterConfiguration);
+                            }
+                            else
+                            {
+                                var activeFilter = DrawFilter(itemTable, filterConfiguration);
+                                if (_activeFilter != activeFilter && ImGui.IsWindowFocused())
                                 {
-                                    _newTab = null;
-                                    _applyNewTabTime = null;
-                                }
-                                if (!tabItem.Success) continue;
-
-                                _selectedFilterTab = index;
-                                if (_settingsActive)
-                                {
-                                    DrawSettingsPanel(filterConfiguration);
-                                }
-                                else
-                                {
-                                    var activeFilter = DrawFilter(itemTable, filterConfiguration);
-                                    if (_activeFilter != activeFilter && ImGui.IsWindowFocused())
+                                    if (_configuration.SwitchFiltersAutomatically &&
+                                        _configuration.ActiveUiFilter != filterConfiguration.Key &&
+                                        _configuration.ActiveUiFilter != null)
                                     {
-                                        if (_configuration.SwitchFiltersAutomatically &&
-                                            _configuration.ActiveUiFilter != filterConfiguration.Key &&
-                                            _configuration.ActiveUiFilter != null)
+                                        _framework.RunOnFrameworkThread(() =>
                                         {
-                                            _framework.RunOnFrameworkThread(() =>
-                                            {
-                                                _listService.ToggleActiveUiList(filterConfiguration);
-                                            });
-                                        }
+                                            _listService.ToggleActiveUiList(filterConfiguration);
+                                        });
                                     }
                                 }
                             }
@@ -1527,7 +1605,7 @@ namespace InventoryTools.Ui
                     float width = ImGui.GetWindowSize().X;
                     ImGui.SetCursorPosX(width - 42 * ImGui.GetIO().FontGlobalScale);
                     ImGuiService.CenterElement(24 * ImGui.GetIO().FontGlobalScale);
-                    if (_closeSettingsIcon.Draw(ImGuiService.GetIconTexture(66311).ImGuiHandle, "bb_settings"))
+                    if (_closeSettingsIcon.Draw(ImGuiService.GetIconTexture(66311).Handle, "bb_settings"))
                     {
                         _settingsActive = false;
                     }
@@ -1560,8 +1638,11 @@ namespace InventoryTools.Ui
                         });
                     }
 
-                    if ((filterConfiguration.HighlightWhen ?? _configuration.HighlightWhen) ==
-                        "When Searching".Loc())
+                    var filterHighlightWhen = _highlightWhenFilter.CurrentValue(filterConfiguration);
+                    var configHighlightWhen = _highlightWhenSetting.CurrentValue(_configuration);
+                    var highlightMode = filterHighlightWhen == HighlightWhen.UseGlobalConfiguration ? configHighlightWhen : filterHighlightWhen;
+
+                    if (highlightMode == HighlightWhen.WhenSearching)
                     {
                         ImGuiUtil.HoverTooltip(
                             "When checked, any items matching the filter will be highlighted once you search in any of the columns.".Loc());
@@ -1575,7 +1656,7 @@ namespace InventoryTools.Ui
 
                     ImGui.SameLine();
                     ImGuiService.CenterElement(20 * ImGui.GetIO().FontGlobalScale);
-                    if(_clearIcon.Draw(ImGuiService.GetIconTexture(66308).ImGuiHandle, "clearSearch"))
+                    if(_clearIcon.Draw(ImGuiService.GetIconTexture(66308).Handle, "clearSearch"))
                     {
                         itemTable.ClearFilters();
                     }
@@ -1591,7 +1672,7 @@ namespace InventoryTools.Ui
                         ImGui.SameLine();
                         width -= 28 * ImGui.GetIO().FontGlobalScale;
                         ImGui.SetCursorPosX(width);
-                        if (_searchIcon.Draw(ImGuiService.GetIconTexture(66320).ImGuiHandle, "tb_oib"))
+                        if (_searchIcon.Draw(ImGuiService.GetIconTexture(66320).Handle, "tb_oib"))
                         {
                             _addItemBarOpen = !_addItemBarOpen;
                         }
@@ -1602,7 +1683,7 @@ namespace InventoryTools.Ui
                     ImGui.SameLine();
                     width -= 28 * ImGui.GetIO().FontGlobalScale;
                     ImGui.SetCursorPosX(width);
-                    if (_editIcon.Draw(ImGuiService.GetImageTexture("edit").ImGuiHandle, "tb_edit"))
+                    if (_editIcon.Draw(ImGuiService.GetImageTexture("edit").Handle, "tb_edit"))
                     {
                         _settingsActive = !_settingsActive;
                     }
@@ -1636,7 +1717,7 @@ namespace InventoryTools.Ui
                 if (bottomBarChild.Success)
                 {
                     ImGuiService.CenterElement(24 * ImGui.GetIO().FontGlobalScale);
-                    if(_marketIcon.Draw(ImGuiService.GetImageTexture("refresh-web").ImGuiHandle, "refreshMarket"))
+                    if(_marketIcon.Draw(ImGuiService.GetImageTexture("refresh-web").Handle, "refreshMarket"))
                     {
                         var activeCharacter = _characterMonitor.ActiveCharacter;
                         if (activeCharacter != null)
@@ -1707,7 +1788,7 @@ namespace InventoryTools.Ui
                     width -= 30 * ImGui.GetIO().FontGlobalScale;
                     ImGui.SetCursorPosX(width);
                     ImGuiService.CenterElement(24 * ImGui.GetIO().FontGlobalScale);
-                    if (_menuIcon.Draw(ImGuiService.GetImageTexture("menu").ImGuiHandle, "openMenu"))
+                    if (_menuIcon.Draw(ImGuiService.GetImageTexture("menu").Handle, "openMenu"))
                     {
                     }
                     _settingsMenu.Draw();
@@ -1715,7 +1796,7 @@ namespace InventoryTools.Ui
                     width -= 30 * ImGui.GetIO().FontGlobalScale;
                     ImGuiService.CenterElement(24 * ImGui.GetIO().FontGlobalScale);
                     ImGui.SetCursorPosX(width);
-                    if (_settingsIcon.Draw(ImGuiService.GetIconTexture(66319).ImGuiHandle, "openConfig"))
+                    if (_settingsIcon.Draw(ImGuiService.GetIconTexture(66319).Handle, "openConfig"))
                     {
                         MediatorService.Publish(new ToggleGenericWindowMessage(typeof(ConfigurationWindow)));
                     }
@@ -1726,7 +1807,7 @@ namespace InventoryTools.Ui
                     width -= 30 * ImGui.GetIO().FontGlobalScale;
                     ImGui.SetCursorPosX(width);
                     ImGuiService.CenterElement(24 * ImGui.GetIO().FontGlobalScale);
-                    if (_craftIcon.Draw(ImGuiService.GetImageTexture("craft").ImGuiHandle, "openCraft"))
+                    if (_craftIcon.Draw(ImGuiService.GetImageTexture("craft").Handle, "openCraft"))
                     {
                         MediatorService.Publish(new ToggleGenericWindowMessage(typeof(CraftsWindow)));
                     }
@@ -1739,7 +1820,7 @@ namespace InventoryTools.Ui
                         width -= 30 * ImGui.GetIO().FontGlobalScale;
                         ImGui.SetCursorPosX(width);
                         ImGuiService.CenterElement(24 * ImGui.GetIO().FontGlobalScale);
-                        if (_clearIcon.Draw(ImGuiService.GetIconTexture(66308).ImGuiHandle, "clearHistory"))
+                        if (_clearIcon.Draw(ImGuiService.GetIconTexture(66308).Handle, "clearHistory"))
                         {
                             ImGui.OpenPopup("confirmHistoryDelete");
                         }
@@ -1820,7 +1901,7 @@ namespace InventoryTools.Ui
             ImGui.TableNextColumn();
             using (ImRaii.PushId("s_" + item.RowId))
             {
-                if (_addIcon.Draw(ImGuiService.GetIconTexture(66315).ImGuiHandle, "bbadd_" + item.RowId, new Vector2(16,16) * ImGui.GetIO().FontGlobalScale))
+                if (_addIcon.Draw(ImGuiService.GetIconTexture(66315).Handle, "bbadd_" + item.RowId, new Vector2(16,16) * ImGui.GetIO().FontGlobalScale))
                 {
                     _framework.RunOnFrameworkThread(() =>
                     {

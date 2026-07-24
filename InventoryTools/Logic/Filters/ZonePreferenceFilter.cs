@@ -5,7 +5,7 @@ using AllaganLib.GameSheets.Sheets.Rows;
 using AllaganLib.Shared.Extensions;
 using CriticalCommonLib.Extensions;
 using CriticalCommonLib.Models;
-using ImGuiNET;
+using Dalamud.Bindings.ImGui;
 using InventoryTools.Logic.Filters.Abstract;
 using Dalamud.Interface.Utility.Raii;
 using InventoryTools.Services;
@@ -65,7 +65,7 @@ public class ZonePreferenceFilter : SortedListFilter<uint, uint>
 
     public override bool HasValueSet(FilterConfiguration configuration)
     {
-        return true;
+        return configuration.CraftList.ZonePreferenceOrder.Count != 0;
     }
 
     public override FilterType AvailableIn { get; set; } = FilterType.CraftFilter;
@@ -114,11 +114,11 @@ public class ZonePreferenceFilter : SortedListFilter<uint, uint>
 
     public override void Draw(FilterConfiguration configuration)
     {
-        ImGui.TextUnformatted(Name);
+        ImGui.TextUnformatted(GetName(configuration));
         ImGui.Separator();
         DrawTable(configuration);
         ImGui.SameLine();
-        ImGuiService.HelpMarker(HelpText);
+        ImGuiService.HelpMarker(GetHelpText(configuration));
 
         var currentValue = CurrentValue(configuration);
         ImGui.SetNextItemWidth(LabelSize);

@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using CriticalCommonLib.Services.Mediator;
 using DalaMock.Host.Mediator;
-using ImGuiNET;
+using Dalamud.Bindings.ImGui;
 using InventoryTools.Logic.Columns.Abstract.ColumnSettings;
 
 namespace InventoryTools.Logic.Columns.Abstract;
@@ -130,5 +130,5 @@ public abstract class ButtonColumn : IColumn
     }
 
     public FilterType DefaultIn => Logic.FilterType.None;
-    public uint MaxFilterLength { get; set; } = 200;
+    public int MaxFilterLength { get; set; } = 200;
 }

@@ -4,6 +4,8 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using AllaganLib.GameSheets.Sheets;
+using AllaganLib.Shared.Interfaces;
+using AllaganLib.Shared.Services;
 using CriticalCommonLib.Crafting;
 using CriticalCommonLib.Enums;
 using CriticalCommonLib.Extensions;
@@ -14,6 +16,8 @@ using CriticalCommonLib.Services;
 using CriticalCommonLib.Services.Mediator;
 using DalaMock.Host.Mediator;
 using InventoryTools.Logic;
+using InventoryTools.Logic.Editors;
+using InventoryTools.Logic.Filters;
 using InventoryTools.Mediator;
 using InventoryTools.Services;
 using Microsoft.Extensions.Logging;
@@ -35,14 +39,24 @@ public class ListFilterService : DisposableMediatorBackgroundService
     private readonly IFilterService _filterService;
     private readonly ItemSheet _itemSheet;
     private readonly InventoryItem.Factory _inventoryItemFactory;
+    private readonly CraftSourceInventoriesFilter _craftSourceInventoriesFilter;
+    private readonly CraftDestinationInventoriesFilter _craftDestinationInventoriesFilter;
+    private readonly CraftStagingAreaFilter _craftStagingAreaFilter;
+    private readonly SourceInventoriesFilter _sourceInventoriesFilter;
+    private readonly DestinationInventoriesFilter _destinationInventoriesFilter;
+    private readonly InventoryScopeCalculator _inventoryScopeCalculator;
 
-    public IBackgroundTaskQueue FilterQueue { get; }
+    public NamedBackgroundTaskQueue FilterQueue { get; }
 
     public ListFilterService(InventoryToolsConfiguration configuration, ICharacterMonitor characterMonitor,
-        HostedInventoryHistory inventoryHistory, IInventoryMonitor inventoryMonitor, IBackgroundTaskQueue filterQueue,
+        HostedInventoryHistory inventoryHistory, IInventoryMonitor inventoryMonitor, NamedBackgroundTaskQueue.Factory taskQueueFactory,
         ILogger<ListFilterService> logger, IMarketCache marketCache, CraftPricer craftPricer,
         IFilterService filterService, MediatorService mediatorService, ItemSheet itemSheet,
-        InventoryItem.Factory inventoryItemFactory) : base(logger,
+        InventoryItem.Factory inventoryItemFactory,
+        CraftSourceInventoriesFilter craftSourceInventoriesFilter, CraftDestinationInventoriesFilter craftDestinationInventoriesFilter,
+        CraftStagingAreaFilter craftStagingAreaFilter,
+        SourceInventoriesFilter sourceInventoriesFilter, DestinationInventoriesFilter destinationInventoriesFilter,
+        InventoryScopeCalculator inventoryScopeCalculator) : base(logger,
         mediatorService)
     {
         _configuration = configuration;
@@ -54,11 +68,17 @@ public class ListFilterService : DisposableMediatorBackgroundService
         _filterService = filterService;
         _itemSheet = itemSheet;
         _inventoryItemFactory = inventoryItemFactory;
-        FilterQueue = filterQueue;
+        _craftSourceInventoriesFilter = craftSourceInventoriesFilter;
+        _craftDestinationInventoriesFilter = craftDestinationInventoriesFilter;
+        _craftStagingAreaFilter = craftStagingAreaFilter;
+        _sourceInventoriesFilter = sourceInventoriesFilter;
+        _destinationInventoriesFilter = destinationInventoriesFilter;
+        _inventoryScopeCalculator = inventoryScopeCalculator;
+        FilterQueue = taskQueueFactory.Invoke("List Filter Queue", 1);
         MediatorService.Subscribe<RequestListUpdateMessage>(this, message => RequestRefresh(message.FilterConfiguration));
     }
 
-    public List<SearchResult> RefreshList(FilterConfiguration filterConfiguration)
+    public List<SearchResult> RefreshList(FilterConfiguration filterConfiguration, CancellationToken ct = default)
     {
         var inventories = _inventoryMonitor.Inventories.Select(c => c.Value).ToList();
 
@@ -67,41 +87,35 @@ public class ListFilterService : DisposableMediatorBackgroundService
         {
             filterConfiguration.CraftList.BeenGenerated = false;
             filterConfiguration.CraftList.BeenUpdated = false;
-            var playerBags = _inventoryMonitor.GetSpecificInventory(_characterMonitor.ActiveCharacterId,
-               InventoryCategory.CharacterBags);
-            var crystalBags = _inventoryMonitor.GetSpecificInventory(_characterMonitor.ActiveCharacterId,
-               InventoryCategory.Crystals);
-            var currencyBags = _inventoryMonitor.GetSpecificInventory(_characterMonitor.ActiveCharacterId,
-               InventoryCategory.Currency);
-
-            GenerateSources(filterConfiguration, inventories.ToList(), out var sourceInventories);
 
             var characterSources = new Dictionary<uint, List<CraftItemSource>>();
             var externalSources = new Dictionary<uint, List<CraftItemSource>>();
-            foreach (var item in playerBags)
+
+            var stagingAreaScope = _craftStagingAreaFilter.CurrentValue(filterConfiguration) ?? _craftStagingAreaFilter.DefaultValue;
+            if (stagingAreaScope != null)
             {
-                if (!characterSources.ContainsKey(item.ItemId))
+                foreach (var inventory in _inventoryMonitor.Inventories)
                 {
-                    characterSources.Add(item.ItemId,new List<CraftItemSource>());
+                    var categories = inventory.Value.GetAllInventoryCategories();
+                    foreach (var category in categories)
+                    {
+                        if (_inventoryScopeCalculator.Filter(stagingAreaScope, inventory.Key, category))
+                        {
+                            foreach (var item in inventory.Value.GetItemsByCategory(category))
+                            {
+                                if (!characterSources.ContainsKey(item.ItemId))
+                                {
+                                    characterSources.Add(item.ItemId,new List<CraftItemSource>());
+                                }
+                                characterSources[item.ItemId].Add(new CraftItemSource(item.ItemId, item.Quantity, item.Flags));
+                            }
+                        }
+                    }
                 }
-                characterSources[item.ItemId].Add(new CraftItemSource(item.ItemId, item.Quantity, item.Flags));
             }
-            foreach (var item in crystalBags)
-            {
-                if (!characterSources.ContainsKey(item.ItemId))
-                {
-                    characterSources.Add(item.ItemId,new List<CraftItemSource>());
-                }
-                characterSources[item.ItemId].Add(new CraftItemSource(item.ItemId, item.Quantity, item.Flags));
-            }
-            foreach (var item in currencyBags)
-            {
-                if (!characterSources.ContainsKey(item.ItemId))
-                {
-                    characterSources.Add(item.ItemId,new List<CraftItemSource>());
-                }
-                characterSources[item.ItemId].Add(new CraftItemSource(item.ItemId, item.Quantity, item.Flags));
-            }
+
+            ct.ThrowIfCancellationRequested();
+            GenerateSources(filterConfiguration, inventories.ToList(), out var sourceInventories);
 
             foreach (var inventory in sourceInventories)
             {
@@ -122,7 +136,9 @@ public class ListFilterService : DisposableMediatorBackgroundService
             var craftListConfiguration = new CraftListConfiguration(characterSources, externalSources, null, _craftPricer);
 
             filterConfiguration.CraftList.UpdateStockItems(craftListConfiguration);
+            ct.ThrowIfCancellationRequested();
             filterConfiguration.CraftList.GenerateCraftChildren();
+            ct.ThrowIfCancellationRequested();
             var materials = filterConfiguration.CraftList.GetMaterialsList().ToList();
             if (craftListConfiguration.WorldPreferences == null)
             {
@@ -160,6 +176,7 @@ public class ListFilterService : DisposableMediatorBackgroundService
                     craftListConfiguration.WorldPreferences.Add(worldId);
                 }
             }
+            ct.ThrowIfCancellationRequested();
             var pricingData = _craftPricer.GetItemPricingDictionary(materials, craftListConfiguration.WorldPreferences ?? new(), true);
             craftListConfiguration.PricingSource = pricingData;
             filterConfiguration.CraftList.Update(craftListConfiguration, _craftPricer);
@@ -167,7 +184,7 @@ public class ListFilterService : DisposableMediatorBackgroundService
             filterConfiguration.CraftList.NeedsRefresh = false;
             filterConfiguration.NeedsRefresh = false;
 
-            searchResult = GenerateFilterResult(filterConfiguration, inventories.ToList());
+            searchResult = GenerateFilterResult(filterConfiguration, inventories.ToList(), ct);
             filterConfiguration.CraftList.CalculateCosts(craftListConfiguration, _craftPricer);
             filterConfiguration.NeedsRefresh = false;
             filterConfiguration.Refreshing = false;
@@ -175,8 +192,9 @@ public class ListFilterService : DisposableMediatorBackgroundService
             MediatorService.Publish(new ListUpdatedMessage(filterConfiguration));
             return searchResult;
         }
-
-        searchResult = GenerateFilterResult(filterConfiguration, inventories.ToList());
+        ct.ThrowIfCancellationRequested();
+        searchResult = GenerateFilterResult(filterConfiguration, inventories.ToList(), ct);
+        ct.ThrowIfCancellationRequested();
         filterConfiguration.NeedsRefresh = false;
         filterConfiguration.Refreshing = false;
         filterConfiguration.SearchResults = searchResult;
@@ -184,24 +202,25 @@ public class ListFilterService : DisposableMediatorBackgroundService
         return searchResult;
     }
 
-    private List<SearchResult> GenerateFilterResult(FilterConfiguration filter, List<Inventory> inventories)
+    private List<SearchResult> GenerateFilterResult(FilterConfiguration filter, List<Inventory> inventories, CancellationToken ct = default)
     {
         var searchResults = new List<SearchResult>();
 
         var activeCharacter = _characterMonitor.ActiveCharacterId;
         var activeRetainer = _characterMonitor.ActiveRetainerId;
-        var displaySourceCrossCharacter = filter.SourceIncludeCrossCharacter ?? _configuration.DisplayCrossCharacter;
-        var displayDestinationCrossCharacter = filter.DestinationIncludeCrossCharacter ?? _configuration.DisplayCrossCharacter;
 
         Logger.LogTrace("Filter Information:");
-        Logger.LogTrace("Filter Name:" + filter.NameFilter);
+        Logger.LogTrace("Filter Name:" + filter.Name);
         Logger.LogTrace("Filter Type: " + filter.FilterType);
+
+        var filtersWithValues = _filterService.AvailableFilters.Where(c => c.HasValueSet(filter) && c.AvailableIn.HasFlag(filter.FilterType)).ToList();
 
         if (filter.FilterType == FilterType.SortingFilter || filter.FilterType == FilterType.CraftFilter)
         {
+            ct.ThrowIfCancellationRequested();
             //Determine which source and destination inventories we actually need to examine
             GenerateSourceAndDestinations(filter, inventories, out var sourceInventories, out var destinationInventories);
-
+            ct.ThrowIfCancellationRequested();
             //Filter the source and destination inventories based on the applicable items so we have less to sort
             Dictionary<(ulong, InventoryType), List<FilteredItem>> filteredSources = new();
             //Dictionary<(ulong, InventoryCategory), List<InventoryItem>> filteredDestinations = new();
@@ -212,7 +231,7 @@ public class ListFilterService : DisposableMediatorBackgroundService
                 filter.CraftList.GetFlattenedMergedMaterials(true);
             }
 
-            foreach (var availableFilter in _filterService.AvailableFilters)
+            foreach (var availableFilter in filtersWithValues)
             {
                 availableFilter.InvalidateSearchCache();
             }
@@ -226,7 +245,7 @@ public class ListFilterService : DisposableMediatorBackgroundService
 
                 foreach (var item in sourceInventory.Value)
                 {
-                    var filteredItem = filter.FilterItem(_filterService.AvailableFilters, item);
+                    var filteredItem = filter.FilterItem(filtersWithValues, item);
                     if (filteredItem != null)
                     {
                         filteredSources[sourceInventory.Key].Add(filteredItem);
@@ -253,7 +272,7 @@ public class ListFilterService : DisposableMediatorBackgroundService
                     }
                     else
                     {
-                        var filteredDestinationItem = filter.FilterItem(_filterService.AvailableFilters, destinationItem);
+                        var filteredDestinationItem = filter.FilterItem(filtersWithValues, destinationItem);
                         if (filteredDestinationItem != null)
                         {
                             var itemHashCode = destinationItem.GenerateHashCode(filter.IgnoreHQWhenSorting ?? false);
@@ -273,6 +292,7 @@ public class ListFilterService : DisposableMediatorBackgroundService
                 //_logger.LogTrace("Found " + sourceInventory.Value.Count + " items in " + sourceInventory.Key + " " + sourceInventory.Key.Item2.ToString());
                 for (var index = 0; index < sourceInventory.Value.Count; index++)
                 {
+                    ct.ThrowIfCancellationRequested();
                     var filteredItem = sourceInventory.Value[index];
                     var sourceItem = filteredItem.Item;
                     if (sourceItem.IsEmpty) continue;
@@ -290,6 +310,7 @@ public class ListFilterService : DisposableMediatorBackgroundService
                     {
                         for (var i = 0; i < itemLocations[hashCode].Count; i++)
                         {
+                            ct.ThrowIfCancellationRequested();
                             var existingItem = itemLocations[hashCode][i];
                             //Don't compare inventory to itself
                             if (existingItem.RetainerId == sourceItem.RetainerId && existingItem.SortedCategory == sourceItem.SortedCategory)
@@ -356,6 +377,7 @@ public class ListFilterService : DisposableMediatorBackgroundService
                                 var seenInventoryLocations = absoluteItemLocations[hashCode];
                                 while (seenInventoryLocations.Count != 0 && sourceItem.TempQuantity != 0)
                                 {
+                                    ct.ThrowIfCancellationRequested();
                                     var seenInventoryLocation = seenInventoryLocations.First();
                                     if (slotsAvailable.ContainsKey(seenInventoryLocation))
                                     {
@@ -488,15 +510,17 @@ public class ListFilterService : DisposableMediatorBackgroundService
             Logger.LogTrace(sourceInventories.Count() + " inventories to examine.");
             foreach (var sourceInventory in sourceInventories)
             {
+                ct.ThrowIfCancellationRequested();
                 if (!filteredSources.ContainsKey(sourceInventory.Key))
                 {
                     filteredSources.Add(sourceInventory.Key, new List<FilteredItem>());
                 }
                 foreach (var item in sourceInventory.Value)
                 {
+                    ct.ThrowIfCancellationRequested();
                     if (item != null)
                     {
-                        var filteredItem = filter.FilterItem(_filterService.AvailableFilters, item);
+                        var filteredItem = filter.FilterItem(filtersWithValues, item);
                         if (filteredItem != null)
                         {
                             filteredSources[sourceInventory.Key].Add(filteredItem);
@@ -508,8 +532,10 @@ public class ListFilterService : DisposableMediatorBackgroundService
             {
                 foreach (var filteredSource in filteredSources)
                 {
+                    ct.ThrowIfCancellationRequested();
                     foreach (var item in filteredSource.Value)
                     {
+                        ct.ThrowIfCancellationRequested();
                         var hashCode = item.Item.GenerateHashCode(filter.IgnoreHQWhenSorting ?? false);
                         if (distinctItems.Contains(hashCode))
                         {
@@ -528,8 +554,10 @@ public class ListFilterService : DisposableMediatorBackgroundService
 
             foreach (var filteredSource in filteredSources)
             {
+                ct.ThrowIfCancellationRequested();
                 foreach (var filteredItem in filteredSource.Value)
                 {
+                    ct.ThrowIfCancellationRequested();
                     var item = filteredItem.Item;
                     if (filter.DuplicatesOnly.HasValue && filter.DuplicatesOnly == true)
                     {
@@ -553,87 +581,40 @@ public class ListFilterService : DisposableMediatorBackgroundService
         }
         else if(filter.FilterType == FilterType.HistoryFilter)
         {
+            var currentScopes = _sourceInventoriesFilter.CurrentValue(filter);
+
             var history = _inventoryHistory.GetHistory();
             var matchedItems = new List<InventoryChange>();
-            foreach (var item in history)
+            if (currentScopes != null)
             {
-                var wasMatched = false;
-                if (item.FromItem != null)
+                foreach (var item in history)
                 {
-                    var characterId = item.FromItem.RetainerId;
-                    var inventoryCategory = item.FromItem.SortedCategory;
-                    wasMatched = MatchHistoryItem(item, characterId, inventoryCategory);
-                }
-
-                if (item.ToItem != null)
-                {
-                    if (!wasMatched)
+                    ct.ThrowIfCancellationRequested();
+                    var wasMatched = false;
+                    if (item.FromItem != null)
                     {
-                        var characterIdTo = item.ToItem.RetainerId;
-                        var inventoryCategoryTo = item.ToItem.SortedCategory;
-                        wasMatched = MatchHistoryItem(item, characterIdTo, inventoryCategoryTo);
+                        wasMatched = _inventoryScopeCalculator.Filter(currentScopes, item.FromItem);
+                    }
+
+                    if (item.ToItem != null)
+                    {
+                        if (!wasMatched)
+                        {
+                            wasMatched = _inventoryScopeCalculator.Filter(currentScopes, item.ToItem);
+                        }
+                    }
+
+                    if (wasMatched)
+                    {
+                        matchedItems.Add(item);
                     }
                 }
-
-                if (wasMatched)
-                {
-                    matchedItems.Add(item);
-                }
-            }
-
-            bool MatchHistoryItem(InventoryChange item, ulong characterId, InventoryCategory inventoryCategory)
-            {
-                if (filter.SourceAllRetainers.HasValue && filter.SourceAllRetainers.Value &&
-                    _characterMonitor.IsRetainer(characterId) &&
-                    (displaySourceCrossCharacter || _characterMonitor.BelongsToActiveCharacter(characterId)))
-                {
-                    return true;
-                }
-
-                if (filter.SourceAllFreeCompanies.HasValue && filter.SourceAllFreeCompanies.Value &&
-                    _characterMonitor.IsFreeCompany(characterId) &&
-                    (displaySourceCrossCharacter || _characterMonitor.BelongsToActiveCharacter(characterId)))
-                {
-                    return true;
-                }
-
-                if (filter.SourceAllHouses.HasValue && filter.SourceAllHouses.Value && _characterMonitor.IsHousing(characterId) &&
-                    (displaySourceCrossCharacter || _characterMonitor.BelongsToActiveCharacter(characterId)))
-                {
-                    return true;
-                }
-
-                if (filter.SourceAllCharacters.HasValue && filter.SourceAllCharacters.Value &&
-                    _characterMonitor.IsCharacter(characterId) &&
-                    (displaySourceCrossCharacter || _characterMonitor.ActiveCharacterId == characterId))
-                {
-                    return true;
-                }
-
-                if (filter.SourceInventories.Contains((characterId, inventoryCategory)) &&
-                    (displaySourceCrossCharacter || _characterMonitor.BelongsToActiveCharacter(characterId)))
-                {
-                    return true;
-                }
-
-                if (filter.SourceCategories != null && filter.SourceCategories.Contains(inventoryCategory) &&
-                    (displaySourceCrossCharacter || _characterMonitor.BelongsToActiveCharacter(characterId)))
-                {
-                    return true;
-                }
-
-                if (filter.SourceWorlds != null &&
-                    filter.SourceWorlds.Contains(_characterMonitor.GetCharacterById(characterId)?.WorldId ?? 0))
-                {
-                    return true;
-                }
-
-                return false;
             }
 
             foreach (var change in matchedItems.OrderByDescending(c => c.ChangeDate ?? new DateTime()))
             {
-                if (filter.FilterItem(_filterService.AvailableFilters, change))
+                ct.ThrowIfCancellationRequested();
+                if (filter.FilterItem(filtersWithValues, change))
                 {
                     searchResults.Add(new SearchResult(change));
                 }
@@ -645,6 +626,7 @@ public class ListFilterService : DisposableMediatorBackgroundService
             {
                 foreach (var curatedItem in filter.CuratedItems)
                 {
+                    ct.ThrowIfCancellationRequested();
                     var itemRow = _itemSheet.GetRowOrDefault(curatedItem.ItemId);
                     if (itemRow != null)
                     {
@@ -655,7 +637,8 @@ public class ListFilterService : DisposableMediatorBackgroundService
         }
         else
         {
-            searchResults = _itemSheet.Where(c => filter.FilterItem(_filterService.AvailableFilters, c)).Where(c => c.RowId != 0).Select(c => new SearchResult(c)).ToList();
+            ct.ThrowIfCancellationRequested();
+            searchResults = _itemSheet.Where(c => filter.FilterItem(filtersWithValues, c)).Where(c => c.RowId != 0).Select(c => new SearchResult(c)).ToList();
         }
 
 
@@ -664,80 +647,49 @@ public class ListFilterService : DisposableMediatorBackgroundService
 
     private void GenerateSources(FilterConfiguration filter, List<Inventory> inventories, out Dictionary<(ulong, InventoryType), InventoryItem?[]> sourceInventories)
     {
-        var displaySourceCrossCharacter = filter.SourceIncludeCrossCharacter ?? _configuration.DisplayCrossCharacter;
         sourceInventories = new();
 
-        foreach (var character in inventories)
+        if (filter.FilterType == FilterType.CraftFilter)
         {
-            foreach (var inventory in character.GetAllInventoriesByType())
+            var craftSourceInventories = _craftSourceInventoriesFilter.CurrentValue(filter);
+            if (craftSourceInventories == null)
             {
-                var inventoryKey = (character.CharacterId, inventory.Key);
-                if (filter.SourceAllRetainers.HasValue && filter.SourceAllRetainers.Value &&
-                    _characterMonitor.IsRetainer(character.CharacterId) && (displaySourceCrossCharacter ||
-                                                                            _characterMonitor.BelongsToActiveCharacter(
-                                                                               character.CharacterId)))
+                return;
+            }
+
+            foreach (var character in inventories)
+            {
+                foreach (var inventory in character.GetAllInventoriesByType())
                 {
+                    var inventoryKey = (character.CharacterId, inventory.Key);
+                    if (!_inventoryScopeCalculator.Filter(craftSourceInventories, character.CharacterId, inventory.Key))
+                    {
+                        continue;
+                    }
                     if (!sourceInventories.ContainsKey(inventoryKey))
                     {
                         sourceInventories.Add(inventoryKey, inventory.Value);
                     }
                 }
+            }
+        }
+        else
+        {
+            var sourceScopes = _sourceInventoriesFilter.CurrentValue(filter);
+            if (sourceScopes == null)
+            {
+                return;
+            }
 
-                if (filter.SourceAllFreeCompanies.HasValue && filter.SourceAllFreeCompanies.Value &&
-                    _characterMonitor.IsFreeCompany(character.CharacterId) && (displaySourceCrossCharacter ||
-                                                                               _characterMonitor.BelongsToActiveCharacter(
-                                                                                   character.CharacterId)))
+            foreach (var character in inventories)
+            {
+                foreach (var inventory in character.GetAllInventoriesByType())
                 {
-                    if (!sourceInventories.ContainsKey(inventoryKey))
+                    var inventoryKey = (character.CharacterId, inventory.Key);
+                    if (!_inventoryScopeCalculator.Filter(sourceScopes, character.CharacterId, inventory.Key))
                     {
-                        sourceInventories.Add(inventoryKey, inventory.Value);
+                        continue;
                     }
-                }
-
-                if (filter.SourceAllHouses.HasValue && filter.SourceAllHouses.Value &&
-                    _characterMonitor.IsHousing(character.CharacterId) && (displaySourceCrossCharacter ||
-                                                                           _characterMonitor.BelongsToActiveCharacter(
-                                                                               character.CharacterId)))
-                {
-                    if (!sourceInventories.ContainsKey(inventoryKey))
-                    {
-                        sourceInventories.Add(inventoryKey, inventory.Value);
-                    }
-                }
-
-                if (filter.SourceAllCharacters.HasValue && filter.SourceAllCharacters.Value &&
-                    _characterMonitor.IsCharacter(character.CharacterId) && (displaySourceCrossCharacter ||
-                                                                             _characterMonitor.ActiveCharacterId ==
-                                                                             character.CharacterId))
-                {
-                    if (!sourceInventories.ContainsKey(inventoryKey))
-                    {
-                        sourceInventories.Add(inventoryKey, inventory.Value);
-                    }
-                }
-
-                var inventoryCategory = inventoryKey.Key.ToInventoryCategory();
-                if (filter.SourceInventories.Contains((inventoryKey.CharacterId, inventoryCategory)) &&
-                    (displaySourceCrossCharacter || _characterMonitor.BelongsToActiveCharacter(character.CharacterId)))
-                {
-                    if (!sourceInventories.ContainsKey(inventoryKey))
-                    {
-                        sourceInventories.Add(inventoryKey, inventory.Value);
-                    }
-                }
-
-                if (filter.SourceCategories != null && filter.SourceCategories.Contains(inventoryCategory) &&
-                    (displaySourceCrossCharacter || _characterMonitor.BelongsToActiveCharacter(character.CharacterId)))
-                {
-                    if (!sourceInventories.ContainsKey(inventoryKey))
-                    {
-                        sourceInventories.Add(inventoryKey, inventory.Value);
-                    }
-                }
-
-                if (filter.SourceWorlds != null &&
-                    filter.SourceWorlds.Contains(_characterMonitor.GetCharacterById(character.CharacterId)?.WorldId ?? 0))
-                {
                     if (!sourceInventories.ContainsKey(inventoryKey))
                     {
                         sourceInventories.Add(inventoryKey, inventory.Value);
@@ -750,177 +702,138 @@ public class ListFilterService : DisposableMediatorBackgroundService
     private void GenerateSourceAndDestinations(FilterConfiguration filter, List<Inventory> inventories,
         out Dictionary<(ulong, InventoryType), List<InventoryItem>> sourceInventories, out Dictionary<(ulong, InventoryType), List<InventoryItem>> destinationInventories)
     {
-        var displaySourceCrossCharacter = filter.SourceIncludeCrossCharacter ?? _configuration.DisplayCrossCharacter;
-        var displayDestinationCrossCharacter = filter.DestinationIncludeCrossCharacter ?? _configuration.DisplayCrossCharacter;
-
         sourceInventories = new();
         destinationInventories = new();
-        foreach (var character in inventories)
+
+        if (filter.FilterType == FilterType.CraftFilter)
         {
-            foreach (var inventory in character.GetAllInventoriesByType())
+            var craftSourceInventories = _craftSourceInventoriesFilter.CurrentValue(filter);
+            if (craftSourceInventories == null)
             {
-                var type = inventory.Key;
-                var inventoryKey = (character.CharacterId, type);
-                if (filter.SourceAllRetainers.HasValue && filter.SourceAllRetainers.Value &&
-                    _characterMonitor.IsRetainer(character.CharacterId) && (displaySourceCrossCharacter ||
-                                                                            _characterMonitor
-                                                                               .BelongsToActiveCharacter(
-                                                                                   character.CharacterId)))
+                return;
+            }
+
+            foreach (var character in inventories)
+            {
+                foreach (var inventory in character.GetAllInventoriesByType())
                 {
+                    var type = inventory.Key;
+                    var inventoryKey = (character.CharacterId, inventory.Key);
+                    if (!_inventoryScopeCalculator.Filter(craftSourceInventories, character.CharacterId, inventory.Key))
+                    {
+                        continue;
+                    }
                     if (!sourceInventories.ContainsKey(inventoryKey))
                     {
                         sourceInventories.Add(inventoryKey,
                             inventory.Value.Where(c => c != null && c.SortedContainer == type).ToList()!);
                     }
                 }
+            }
+            var craftDestinationInventories = _craftDestinationInventoriesFilter.CurrentValue(filter);
+            if (craftDestinationInventories == null)
+            {
+                return;
+            }
 
-                if (filter.SourceAllCharacters.HasValue && filter.SourceAllCharacters.Value &&
-                    _characterMonitor.IsCharacter(character.CharacterId) &&
-                    _characterMonitor.ActiveCharacterId == character.CharacterId && (displaySourceCrossCharacter ||
-                        _characterMonitor.BelongsToActiveCharacter(character.CharacterId)))
+            foreach (var character in inventories)
+            {
+                foreach (var inventory in character.GetAllInventoriesByType())
                 {
-                    if (inventoryKey.Item2.ToInventoryCategory() is not InventoryCategory.FreeCompanyBags &&
-                        !sourceInventories.ContainsKey(inventoryKey))
+                    //Ignore these as you can't really store things in them
+                    if (inventory.Key is InventoryType.Currency or InventoryType.RetainerGil or InventoryType.Crystal or InventoryType.RetainerCrystal or InventoryType.RetainerMarket)
                     {
-                        sourceInventories.Add(inventoryKey,
+                        continue;
+                    }
+                    var type = inventory.Key;
+                    var inventoryKey = (character.CharacterId, inventory.Key);
+                    if (!_inventoryScopeCalculator.Filter(craftDestinationInventories, character.CharacterId, inventory.Key))
+                    {
+                        continue;
+                    }
+                    if (!destinationInventories.ContainsKey(inventoryKey))
+                    {
+                        destinationInventories.Add(inventoryKey,
                             inventory.Value.Where(c => c != null && c.SortedContainer == type).ToList()!);
                     }
                 }
+            }
+        }
+        else if(filter.FilterType == FilterType.SortingFilter)
+        {
+            var sourceScopes = _sourceInventoriesFilter.CurrentValue(filter);
+            if (sourceScopes == null)
+            {
+                return;
+            }
 
-                if (filter.SourceAllFreeCompanies.HasValue && filter.SourceAllFreeCompanies.Value &&
-                    _characterMonitor.IsFreeCompany(character.CharacterId) && (displaySourceCrossCharacter ||
-                                                                               _characterMonitor.BelongsToActiveCharacter(
-                                                                                   character.CharacterId)))
+            foreach (var character in inventories)
+            {
+                foreach (var inventory in character.GetAllInventoriesByType())
                 {
+                    var type = inventory.Key;
+                    var inventoryKey = (character.CharacterId, inventory.Key);
+                    if (!_inventoryScopeCalculator.Filter(sourceScopes, character.CharacterId, inventory.Key))
+                    {
+                        continue;
+                    }
                     if (!sourceInventories.ContainsKey(inventoryKey))
                     {
                         sourceInventories.Add(inventoryKey,
                             inventory.Value.Where(c => c != null && c.SortedContainer == type).ToList()!);
                     }
                 }
+            }
+            var destinationScopes = _destinationInventoriesFilter.CurrentValue(filter);
+            if (destinationScopes == null)
+            {
+                return;
+            }
 
-                if (filter.SourceAllHouses.HasValue && filter.SourceAllHouses.Value &&
-                    _characterMonitor.IsHousing(character.CharacterId) && (displaySourceCrossCharacter ||
-                                                                           _characterMonitor.BelongsToActiveCharacter(
-                                                                               character.CharacterId)))
+            foreach (var character in inventories)
+            {
+                foreach (var inventory in character.GetAllInventoriesByType())
                 {
+                    //Ignore these as you can't really store things in them
+                    if (inventory.Key is InventoryType.Currency or InventoryType.RetainerGil or InventoryType.Crystal or InventoryType.RetainerCrystal or InventoryType.RetainerMarket)
+                    {
+                        continue;
+                    }
+                    var type = inventory.Key;
+                    var inventoryKey = (character.CharacterId, inventory.Key);
+                    if (!_inventoryScopeCalculator.Filter(destinationScopes, character.CharacterId, inventory.Key))
+                    {
+                        continue;
+                    }
+                    if (!destinationInventories.ContainsKey(inventoryKey))
+                    {
+                        destinationInventories.Add(inventoryKey,
+                            inventory.Value.Where(c => c != null && c.SortedContainer == type).ToList()!);
+                    }
+                }
+            }
+        }
+        else
+        {
+            var sourceScopes = _sourceInventoriesFilter.CurrentValue(filter);
+            if (sourceScopes == null)
+            {
+                return;
+            }
+
+            foreach (var character in inventories)
+            {
+                foreach (var inventory in character.GetAllInventoriesByType())
+                {
+                    var type = inventory.Key;
+                    var inventoryKey = (character.CharacterId, inventory.Key);
+                    if (!_inventoryScopeCalculator.Filter(sourceScopes, character.CharacterId, inventory.Key))
+                    {
+                        continue;
+                    }
                     if (!sourceInventories.ContainsKey(inventoryKey))
                     {
                         sourceInventories.Add(inventoryKey,
-                            inventory.Value.Where(c => c != null && c.SortedContainer == type).ToList()!);
-                    }
-                }
-
-                if (filter.SourceInventories.Contains((character.CharacterId, inventoryKey.type.ToInventoryCategory())) &&
-                    (displaySourceCrossCharacter ||
-                     _characterMonitor.BelongsToActiveCharacter(character.CharacterId)))
-                {
-                    if (!sourceInventories.ContainsKey(inventoryKey))
-                    {
-                        sourceInventories.Add(inventoryKey,
-                            inventory.Value.Where(c => c != null && c.SortedContainer == type).ToList()!);
-                    }
-                }
-
-                if (filter.SourceCategories != null &&
-                    filter.SourceCategories.Contains(inventoryKey.Item2.ToInventoryCategory()) &&
-                    (displaySourceCrossCharacter ||
-                     _characterMonitor.BelongsToActiveCharacter(character.CharacterId)))
-                {
-                    if (!sourceInventories.ContainsKey(inventoryKey))
-                    {
-                        sourceInventories.Add(inventoryKey,
-                            inventory.Value.Where(c => c != null && c.SortedContainer == type).ToList()!);
-                    }
-                }
-
-                if (filter.SourceWorlds != null &&
-                    filter.SourceWorlds.Contains(_characterMonitor.GetCharacterById(character.CharacterId)?.WorldId ?? 0))
-                {
-                    if (!sourceInventories.ContainsKey(inventoryKey))
-                    {
-                        sourceInventories.Add(inventoryKey,
-                            inventory.Value.Where(c => c != null && c.SortedContainer == type).ToList()!);
-                    }
-                }
-
-                if (inventoryKey.Item2.ToInventoryCategory() is InventoryCategory.CharacterEquipped or InventoryCategory
-                        .RetainerEquipped or InventoryCategory.RetainerMarket or InventoryCategory.Currency
-                    or
-                    InventoryCategory.Crystals)
-                {
-                    continue;
-                }
-
-                if (filter.DestinationAllRetainers.HasValue && filter.DestinationAllRetainers.Value &&
-                    _characterMonitor.IsRetainer(character.CharacterId) && (displayDestinationCrossCharacter ||
-                                                                            _characterMonitor
-                                                                                .BelongsToActiveCharacter(
-                                                                                    character.CharacterId)))
-                {
-                    if (!destinationInventories.ContainsKey(inventoryKey))
-                    {
-                        destinationInventories.Add(inventoryKey,
-                            inventory.Value.Where(c => c != null && c.SortedContainer == type).ToList()!);
-                    }
-                }
-
-                if (filter.DestinationAllFreeCompanies.HasValue && filter.DestinationAllFreeCompanies.Value &&
-                    _characterMonitor.IsFreeCompany(character.CharacterId) &&
-                    (displayDestinationCrossCharacter ||
-                     _characterMonitor.BelongsToActiveCharacter(character.CharacterId)))
-                {
-                    if (!destinationInventories.ContainsKey(inventoryKey))
-                    {
-                        destinationInventories.Add(inventoryKey,
-                            inventory.Value.Where(c => c != null && c.SortedContainer == type).ToList()!);
-                    }
-                }
-
-                if (filter.DestinationAllHouses.HasValue && filter.DestinationAllHouses.Value &&
-                    _characterMonitor.IsHousing(character.CharacterId) &&
-                    (displayDestinationCrossCharacter ||
-                     _characterMonitor.BelongsToActiveCharacter(character.CharacterId)))
-                {
-                    if (!destinationInventories.ContainsKey(inventoryKey))
-                    {
-                        destinationInventories.Add(inventoryKey,
-                            inventory.Value.Where(c => c != null && c.SortedContainer == type).ToList()!);
-                    }
-                }
-
-                if (filter.DestinationAllCharacters.HasValue && filter.DestinationAllCharacters.Value &&
-                    _characterMonitor.ActiveCharacterId == character.CharacterId &&
-                    (displayDestinationCrossCharacter ||
-                     _characterMonitor.BelongsToActiveCharacter(character.CharacterId)))
-                {
-                    if (!destinationInventories.ContainsKey(inventoryKey))
-                    {
-                        destinationInventories.Add(inventoryKey,
-                            inventory.Value.Where(c => c != null && c.SortedContainer == type).ToList()!);
-                    }
-                }
-
-                if (filter.DestinationInventories.Contains((character.CharacterId,
-                        inventoryKey.type.ToInventoryCategory())) &&
-                    (displayDestinationCrossCharacter ||
-                     _characterMonitor.BelongsToActiveCharacter(character.CharacterId)))
-                {
-                    if (!destinationInventories.ContainsKey(inventoryKey))
-                    {
-                        destinationInventories.Add(inventoryKey,
-                            inventory.Value.Where(c => c != null && c.SortedContainer == type).ToList()!);
-                    }
-                }
-
-                if (filter.DestinationCategories != null &&
-                    filter.DestinationCategories.Contains(inventory.Key.ToInventoryCategory()) &&
-                    (displayDestinationCrossCharacter ||
-                     _characterMonitor.BelongsToActiveCharacter(character.CharacterId)))
-                {
-                    if (!destinationInventories.ContainsKey(inventoryKey))
-                    {
-                        destinationInventories.Add(inventoryKey,
                             inventory.Value.Where(c => c != null && c.SortedContainer == type).ToList()!);
                     }
                 }
@@ -935,9 +848,16 @@ public class ListFilterService : DisposableMediatorBackgroundService
             return Task.CompletedTask;
         }
         configuration.Refreshing = true;
-        return FilterQueue.QueueBackgroundWorkItemAsync(token =>
+        return FilterQueue.QueueBackgroundWorkItemAsync(configuration.Key,token =>
         {
-            return Task.Run(() => RefreshList(configuration), token);
+            return Task.Run(() =>
+            {
+                try
+                {
+                    RefreshList(configuration, token);
+                }
+                catch (OperationCanceledException) {}
+            }, token);
         });
     }
 
@@ -957,6 +877,7 @@ public class ListFilterService : DisposableMediatorBackgroundService
             {
                 await workItem(stoppingToken);
             }
+            catch (TaskCanceledException){}
             catch (Exception ex)
             {
                 Logger.LogError(ex,

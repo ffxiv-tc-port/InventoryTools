@@ -8,7 +8,7 @@ using Autofac;
 using CriticalCommonLib.Services;
 using CriticalCommonLib.Services.Mediator;
 using DalaMock.Host.Mediator;
-using ImGuiNET;
+using Dalamud.Bindings.ImGui;
 using InventoryTools.Logic;
 using InventoryTools.Logic.Settings.Abstract;
 using InventoryTools.Ui.MenuItems;
@@ -17,6 +17,7 @@ using OtterGui;
 using Dalamud.Interface.Utility.Raii;
 using Dalamud.Plugin.Services;
 using InventoryTools.Extensions;
+using InventoryTools.Logic.Features;
 using InventoryTools.Mediator;
 using InventoryTools.Services;
 using InventoryTools.Services.Interfaces;
@@ -38,6 +39,7 @@ namespace InventoryTools.Ui
         private readonly IServiceScopeFactory _serviceScopeFactory;
         private readonly SettingPage.Factory _settingPageFactory;
         private readonly FilterConfiguration.Factory _filterConfigurationFactory;
+        private readonly IEnumerable<ISampleFilter> _sampleFilters;
         private readonly Func<Type, IConfigPage> _configPageFactory;
         private readonly Func<FilterConfiguration, FilterPage> _filterPageFactory;
         private readonly IComponentContext _context;
@@ -60,6 +62,7 @@ namespace InventoryTools.Ui
             Func<FilterConfiguration, FilterPage> filterPageFactory,
             SettingPage.Factory settingPageFactory,
             FilterConfiguration.Factory filterConfigurationFactory,
+            IEnumerable<ISampleFilter> sampleFilters,
             IComponentContext context) : base(logger,
             mediator,
             imGuiService,
@@ -74,6 +77,7 @@ namespace InventoryTools.Ui
             _serviceScopeFactory = serviceScopeFactory;
             _settingPageFactory = settingPageFactory;
             _filterConfigurationFactory = filterConfigurationFactory;
+            _sampleFilters = sampleFilters;
             _configPageFactory = configPageFactory;
             _filterPageFactory = filterPageFactory;
             _context = context;
@@ -121,19 +125,38 @@ namespace InventoryTools.Ui
                     new PopupMenu.PopupMenuItemSelectableAskName("History List".Loc(), "af4", "New History Item List".Loc(), AddHistoryFilter, "This will create a list that lets you view historical data of how your inventory has changed.".Loc()),
                 });
 
-            _addSampleMenu = new PopupMenu("addSampleFilter", PopupMenu.PopupMenuButtons.LeftRight,
-                new List<PopupMenu.IPopupMenuItem>()
+            _addSampleMenu = new PopupMenu("addSampleFilter", PopupMenu.PopupMenuButtons.LeftRight, []);
+
+            var sampleId = 0;
+            foreach (var sampleFilter in _sampleFilters)
+            {
+                if (sampleFilter.SampleFilterType == SampleFilterType.Default)
                 {
-                    new PopupMenu.PopupMenuItemSelectableAskName("All".Loc(), "af4", "All".Loc(), AddAllFilter, "This will add a list that will be preconfigured to show items across all inventories.".Loc()),
-                    new PopupMenu.PopupMenuItemSelectableAskName("Player".Loc(), "af5", "Player".Loc(), AddPlayerFilter, "This will add a list that will be preconfigured to show items across all character inventories.".Loc()),
-                    new PopupMenu.PopupMenuItemSelectableAskName("Retainers".Loc(), "af6", "Retainers".Loc(), AddRetainersFilter, "This will add a list that will be preconfigured to show items across all retainer inventories.".Loc()),
-                    new PopupMenu.PopupMenuItemSelectableAskName("Free Company".Loc(), "af7", "Free Company".Loc(), AddFreeCompanyFilter, "This will add a list that will be preconfigured to show items across all free company inventories.".Loc()),
-                    new PopupMenu.PopupMenuItemSelectableAskName("All Game Items".Loc(), "af8", "All Game Items".Loc(), AddAllGameItemsFilter, "This will add a list that will be preconfigured to show all of the game's items.".Loc()),
-                    new PopupMenu.PopupMenuItemSeparator(),
-                    new PopupMenu.PopupMenuItemSelectableAskName("Purchased for less than 100 gil".Loc(), "af9", "Less than 100 gil".Loc(), AddLessThan100GilFilter, "This will add a list that will show all items that can be purchased from gil shops under 100 gil. It will look in both character and retainer inventories.".Loc()),
-                    new PopupMenu.PopupMenuItemSelectableAskName("Put away materials +".Loc(), "af10", "Put away materials".Loc(), AddPutAwayMaterialsFilter, "This will add a list that will be setup to quickly put away any excess materials. It will have all the material categories automatically added. When calculating where to put items it will try to prioritise existing stacks of items.".Loc()),
-                    new PopupMenu.PopupMenuItemSelectableAskName("Duplicated items across characters/retainers +".Loc(), "af11", "Duplicated items".Loc(), AddDuplicatedItemsFilter, "This will add a list that will provide a list of all the distinct stacks that appear in 2 sets of inventories. You can use this to make sure only one retainer has a specific type of item.".Loc())
-                });
+                    _addSampleMenu.Items.Add(new PopupMenu.PopupMenuItemSelectableAskName(sampleFilter.Name,
+                        $"sf{sampleId}", sampleFilter.SampleDefaultName, (newName, id) =>
+                        {
+                            var createdFilter = sampleFilter.AddFilter();
+                            createdFilter.Name = newName;
+                        }, sampleFilter.SampleDescription));
+                    sampleId++;
+                }
+            }
+
+            _addSampleMenu.Items.Add(new PopupMenu.PopupMenuItemSeparator());
+
+            foreach (var sampleFilter in _sampleFilters)
+            {
+                if (sampleFilter.SampleFilterType == SampleFilterType.Sample)
+                {
+                    _addSampleMenu.Items.Add(new PopupMenu.PopupMenuItemSelectableAskName(sampleFilter.Name,
+                        $"sf{sampleId}", sampleFilter.SampleDefaultName, (newName, id) =>
+                        {
+                            var createdFilter = sampleFilter.AddFilter();
+                            createdFilter.Name = newName;
+                        }, sampleFilter.SampleDescription));
+                    sampleId++;
+                }
+            }
 
             _settingsMenu = new PopupMenu("configMenu", PopupMenu.PopupMenuButtons.All,
                 new List<PopupMenu.IPopupMenuItem>()
@@ -147,7 +170,6 @@ namespace InventoryTools.Ui
                     new PopupMenu.PopupMenuItemSelectable("Airships Window".Loc(), "airships", OpenAirshipsWindow,"Open the airships window.".Loc()),
                     new PopupMenu.PopupMenuItemSelectable("Submarines Window".Loc(), "submarines", OpenSubmarinesWindow,"Open the submarines window.".Loc()),
                     new PopupMenu.PopupMenuItemSelectable("Retainer Ventures Window".Loc(), "ventures", OpenRetainerVenturesWindow,"Open the retainer ventures window.".Loc()),
-                    new PopupMenu.PopupMenuItemSelectable("Tetris".Loc(), "tetris", OpenTetrisWindow,"Open the tetris window.".Loc(), () => _configuration.TetrisEnabled),
                     new PopupMenu.PopupMenuItemSeparator(),
                     new PopupMenu.PopupMenuItemSelectable("Help".Loc(), "help", OpenHelpWindow,"Open the help window.".Loc()),
                 });
@@ -255,41 +277,6 @@ namespace InventoryTools.Ui
             MediatorService.Publish(new OpenGenericWindowMessage(typeof(ENpcsWindow)));
         }
 
-        private void OpenTetrisWindow(string obj)
-        {
-            MediatorService.Publish(new OpenGenericWindowMessage(typeof(TetrisWindow)));
-        }
-
-        private void AddAllGameItemsFilter(string arg1, string arg2)
-        {
-            _pluginLogic.AddAllGameItemsFilter(arg1);
-            SetNewFilterActive();
-        }
-
-        private void AddFreeCompanyFilter(string arg1, string arg2)
-        {
-            _pluginLogic.AddFreeCompanyFilter(arg1);
-            SetNewFilterActive();
-        }
-
-        private void AddRetainersFilter(string arg1, string arg2)
-        {
-            _pluginLogic.AddRetainerFilter(arg1);
-            SetNewFilterActive();
-        }
-
-        private void AddPlayerFilter(string arg1, string arg2)
-        {
-            _pluginLogic.AddPlayerFilter(arg1);
-            SetNewFilterActive();
-        }
-
-        private void AddAllFilter(string arg1, string arg2)
-        {
-            _pluginLogic.AddAllFilter(arg1);
-            SetNewFilterActive();
-        }
-
         private Dictionary<FilterConfiguration, PopupMenu> _popupMenus = new();
         public PopupMenu GetFilterMenu(FilterConfiguration configuration)
         {
@@ -352,24 +339,6 @@ namespace InventoryTools.Ui
                 _listService.DuplicateList(existingFilter, filterName);
                 SetNewFilterActive();
             }
-        }
-
-        private void AddDuplicatedItemsFilter(string newName, string id)
-        {
-            _pluginLogic.AddSampleFilterDuplicatedItems(newName);
-            SetNewFilterActive();
-        }
-
-        private void AddPutAwayMaterialsFilter(string newName, string id)
-        {
-            _pluginLogic.AddSampleFilterMaterials(newName);
-            SetNewFilterActive();
-        }
-
-        private void AddLessThan100GilFilter(string newName, string id)
-        {
-            _pluginLogic.AddSampleFilter100Gil(newName);
-            SetNewFilterActive();
         }
 
         private void AddSearchFilter(string newName, string id)
@@ -736,7 +705,7 @@ namespace InventoryTools.Ui
                     float height = ImGui.GetWindowSize().Y;
                     ImGui.SetCursorPosY(height - 24 * ImGui.GetIO().FontGlobalScale);
 
-                    if(_addIcon.Draw(ImGuiService.GetIconTexture(66315).ImGuiHandle, "addFilter"))
+                    if(_addIcon.Draw(ImGuiService.GetIconTexture(66315).Handle, "addFilter"))
                     {
 
                     }
@@ -747,7 +716,7 @@ namespace InventoryTools.Ui
                     ImGui.SetCursorPosY(height - 24 * ImGui.GetIO().FontGlobalScale);
                     ImGui.SetCursorPosX(26 * ImGui.GetIO().FontGlobalScale);
 
-                    if (_lightBulbIcon.Draw(ImGuiService.GetIconTexture(66318).ImGuiHandle,"addSample"))
+                    if (_lightBulbIcon.Draw(ImGuiService.GetIconTexture(66318).Handle,"addSample"))
                     {
 
                     }
@@ -761,7 +730,7 @@ namespace InventoryTools.Ui
                     ImGui.SetCursorPosY(height - 24 * ImGui.GetIO().FontGlobalScale);
                     ImGui.SetCursorPosX(width);
 
-                    if (_menuIcon.Draw(ImGuiService.GetImageTexture("menu").ImGuiHandle, "openMenu"))
+                    if (_menuIcon.Draw(ImGuiService.GetImageTexture("menu").Handle, "openMenu"))
                     {
 
                     }
@@ -774,7 +743,7 @@ namespace InventoryTools.Ui
                     ImGui.SetCursorPosY(height - 24 * ImGui.GetIO().FontGlobalScale);
                     ImGui.SetCursorPosX(width);
 
-                    if (_wizardStart.Draw(ImGuiService.GetImageTexture("wizard").ImGuiHandle, "openMenu"))
+                    if (_wizardStart.Draw(ImGuiService.GetImageTexture("wizard").Handle, "openMenu"))
                     {
                         _wizardMenu.Open();
                     }

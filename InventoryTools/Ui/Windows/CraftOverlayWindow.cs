@@ -5,6 +5,7 @@ using System.Numerics;
 using AllaganLib.GameSheets.Caches;
 using AllaganLib.GameSheets.ItemSources;
 using AllaganLib.GameSheets.Sheets;
+using AllaganLib.Monitors.Services;
 using AllaganLib.Shared.Time;
 using CriticalCommonLib.Crafting;
 using CriticalCommonLib.Extensions;
@@ -17,7 +18,7 @@ using Dalamud.Game.Text;
 using Dalamud.Interface;
 using Dalamud.Interface.Colors;
 using Dalamud.Plugin.Services;
-using ImGuiNET;
+using Dalamud.Bindings.ImGui;
 using InventoryTools.Localizers;
 using InventoryTools.Logic;
 using InventoryTools.Logic.Settings;
@@ -49,7 +50,7 @@ public class CraftOverlayWindow : OverlayWindow
     private readonly CraftOverlayRememberStateSetting _rememberStateSetting;
     private readonly CraftOverlayWindowStateSetting _windowStateSetting;
     private readonly CraftOverlayHideSetting _overlayHideSetting;
-    private readonly ShopTrackerService _shopTrackerService;
+    private readonly ShopMonitorService _shopMonitorService;
     private readonly CraftGroupingLocalizer _craftGroupingLocalizer;
     private readonly ISeTime _seTime;
     private readonly MapSheet _mapSheet;
@@ -73,7 +74,7 @@ public class CraftOverlayWindow : OverlayWindow
         CraftOverlayRememberStateSetting rememberStateSetting,
         CraftOverlayWindowStateSetting windowStateSetting,
         CraftOverlayHideSetting overlayHideSetting,
-        ShopTrackerService shopTrackerService,
+        ShopMonitorService shopMonitorService,
         CraftGroupingLocalizer craftGroupingLocalizer,
         ISeTime seTime) : base(logger,
         configuration,
@@ -96,7 +97,7 @@ public class CraftOverlayWindow : OverlayWindow
         _rememberStateSetting = rememberStateSetting;
         _windowStateSetting = windowStateSetting;
         _overlayHideSetting = overlayHideSetting;
-        _shopTrackerService = shopTrackerService;
+        _shopMonitorService = shopMonitorService;
         _craftGroupingLocalizer = craftGroupingLocalizer;
         _seTime = seTime;
     }
@@ -124,7 +125,7 @@ public class CraftOverlayWindow : OverlayWindow
 
     public override void Draw()
     {
-        if (ImGui.GetWindowPos() != CurrentPosition)
+        if (ImGui.GetWindowPos() != CurrentPosition && ImGui.GetWindowPos() != Vector2.Zero)
         {
             CurrentPosition = ImGui.GetWindowPos();
         }
@@ -383,7 +384,7 @@ public class CraftOverlayWindow : OverlayWindow
 
                             ImGui.TableNextRow();
                             ImGui.TableNextColumn();
-                            if (ImGui.ImageButton(ImGuiService.GetIconTexture(currentItem.Item.Icon).ImGuiHandle, new Vector2(16,16) * ImGui.GetIO().FontGlobalScale))
+                            if (ImGui.ImageButton(ImGuiService.GetIconTexture(currentItem.Item.Icon).Handle, new Vector2(16,16) * ImGui.GetIO().FontGlobalScale))
                             {
                                 this.MediatorService.Publish(new OpenUintWindowMessage(typeof(ItemWindow), currentItem.ItemId));
                             }

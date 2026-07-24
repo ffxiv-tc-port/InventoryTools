@@ -6,7 +6,7 @@ using CriticalCommonLib.Services.Mediator;
 using DalaMock.Host.Mediator;
 using DalaMock.Shared.Interfaces;
 using Dalamud.Interface;
-using ImGuiNET;
+using Dalamud.Bindings.ImGui;
 using InventoryTools.Logic.Columns.Abstract;
 using InventoryTools.Services;
 using Microsoft.Extensions.Logging;
@@ -69,6 +69,10 @@ namespace InventoryTools.Logic.Columns
                                 }
 
                                 var number = searchResult.CraftItem.GetRoundedQuantity((uint)parsedNumber);
+                                if (parsedNumber != 0 && number == 0)
+                                {
+                                    number = searchResult.CraftItem.Yield;
+                                }
                                 if (number != searchResult.CraftItem.QuantityRequired &&
                                     configuration.CraftList.BeenGenerated && configuration.CraftList.BeenUpdated)
                                 {

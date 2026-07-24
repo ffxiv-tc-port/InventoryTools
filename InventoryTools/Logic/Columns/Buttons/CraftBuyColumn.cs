@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Numerics;
 using AllaganLib.GameSheets.Caches;
 using AllaganLib.GameSheets.ItemSources;
 using AllaganLib.GameSheets.Model;
@@ -11,10 +12,11 @@ using CriticalCommonLib.Services.Mediator;
 using DalaMock.Host.Mediator;
 using Dalamud.Interface.Utility;
 using Dalamud.Interface.Utility.Raii;
-using ImGuiNET;
+using Dalamud.Bindings.ImGui;
 using InventoryTools.Logic.Columns.Abstract;
 using InventoryTools.Mediator;
 using InventoryTools.Services;
+using ImGuiTable = Dalamud.Interface.Utility.ImGuiTable;
 
 namespace InventoryTools.Logic.Columns.Buttons;
 
@@ -159,7 +161,7 @@ public class CraftBuyColumn : ButtonColumn
             }
 
             ImGui.SameLine(0, 0);
-            if (ImGui.ArrowButton("select##" + rowIndex, ImGuiDir.Down))
+            if (ImGuiP.ArrowButtonEx("select##" + rowIndex, ImGuiDir.Down, new Vector2(24,24)))
             {
                 ImGui.OpenPopup("buyLocations" + rowIndex);
             }
