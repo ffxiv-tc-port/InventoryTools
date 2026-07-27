@@ -1,6 +1,6 @@
 [submodule "CriticalCommonLib"]
 	path = CriticalCommonLib
-	url = https://github.com/Lother/CriticalCommonLib.git
+	url = https://github.com/ffxiv-tc-port/CriticalCommonLib.git
 [submodule "OtterGui"]
 	path = OtterGui
-	url = https://github.com/Lother/OtterGui.git
+	url = https://github.com/ffxiv-tc-port/OtterGui.git
