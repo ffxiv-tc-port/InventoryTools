@@ -38,7 +38,7 @@ public abstract class ItemHouseSourceRenderer<T> : ItemInfoRenderer<T> where T :
         }
         else
         {
-            ImGui.Text("Default in " + setName);
+            ImGui.Text("Default in ".Loc() + setName);
         }
     };
 
@@ -59,11 +59,11 @@ public abstract class ItemHouseSourceRenderer<T> : ItemInfoRenderer<T> where T :
         var setName = asSource.HousingPreset.Value.Singular.ExtractText();
         if (setName == string.Empty)
         {
-           return "Not default in any house.";
+           return "Not default in any house.".Loc();
         }
         else
         {
-            return "Default in " + setName;
+            return "Default in ".Loc() + setName;
         }
     };
 }

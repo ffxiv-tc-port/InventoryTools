@@ -75,8 +75,8 @@ public class ItemCollectablesShopSourceRenderer : ItemInfoRenderer<ItemCollectab
     {
         var asSource = AsSource(source);
 
-        DrawItems("Costs: ", asSource.CostItems);
-        DrawItems("Rewards: ", asSource.RewardItems);
+        DrawItems("Costs: ".Loc(), asSource.CostItems);
+        DrawItems("Rewards: ".Loc(), asSource.RewardItems);
 
         DrawMaps(source);
     };

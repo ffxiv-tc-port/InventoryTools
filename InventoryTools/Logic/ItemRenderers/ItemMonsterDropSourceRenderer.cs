@@ -42,7 +42,7 @@ public class ItemMonsterDropSourceRenderer : ItemInfoRenderer<ItemMonsterDropSou
     public override Action<ItemSource> DrawTooltip => source =>
     {
         var asSource = AsSource(source);
-        ImGui.Text("Monster: " + asSource.MobDrop.BNpcName.Value.Singular.ExtractText().ToTitleCase());
+        ImGui.Text("Monster: ".Loc() + asSource.MobDrop.BNpcName.Value.Singular.ExtractText().ToTitleCase());
 
         ImGui.Text("Locations: ".Loc());
         using (ImRaii.PushIndent())

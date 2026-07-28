@@ -56,20 +56,20 @@ public class ItemBuddySourceRenderer : ItemInfoRenderer<ItemBuddySource>
 
         if (usedField)
         {
-            name.Add("battle");
+            name.Add("battle".Loc());
         }
 
         if (usedTraining)
         {
-            name.Add("training");
+            name.Add("training".Loc());
         }
 
         if (usedDyeing)
         {
-            name.Add("dyeing");
+            name.Add("dyeing".Loc());
         }
 
-        return "chocobo " + string.Join(", ", name);
+        return "chocobo ".Loc() + string.Join(", ", name);
     };
 
     public override Func<ItemSource, int> GetIcon => _ => Icons.ChocoboIcon;
@@ -84,19 +84,19 @@ public class ItemBuddySourceRenderer : ItemInfoRenderer<ItemBuddySource>
 
         if (usedField)
         {
-            name.Add("battle");
+            name.Add("battle".Loc());
         }
 
         if (usedTraining)
         {
-            name.Add("training");
+            name.Add("training".Loc());
         }
 
         if (usedDyeing)
         {
-            name.Add("dyeing");
+            name.Add("dyeing".Loc());
         }
 
-        return "Used for " + string.Join(", ", name);
+        return "Used for ".Loc() + string.Join(", ", name);
     };
 }

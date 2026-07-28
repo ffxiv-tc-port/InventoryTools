@@ -121,7 +121,7 @@ namespace InventoryTools.Logic
                                         ImGuiUtil.RightAlign("?", SortColumn == index ? 8 : 0);
                                     }
 
-                                    ImGuiUtil.HoverTooltip(column.Column.HelpText);
+                                    ImGuiUtil.HoverTooltip(column.Column.HelpText.Loc());
                                 }
 
                                 if (refresh && !Refreshing)
@@ -195,7 +195,7 @@ namespace InventoryTools.Logic
                                     ImGuiUtil.RightAlign("?", SortColumn == index ? 8 : 0);
                                 }
 
-                                ImGuiUtil.HoverTooltip(column.Column.HelpText);
+                                ImGuiUtil.HoverTooltip(column.Column.HelpText.Loc());
                             }
 
                             if (refresh && !Refreshing)

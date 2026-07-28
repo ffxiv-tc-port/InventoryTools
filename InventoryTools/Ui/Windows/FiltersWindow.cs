@@ -941,7 +941,7 @@ namespace InventoryTools.Ui
                                     {
                                         if (defaultFilter.SampleFilterType == SampleFilterType.Default)
                                         {
-                                            if (ImGui.MenuItem(defaultFilter.Name))
+                                            if (ImGui.MenuItem(defaultFilter.Name.Loc()))
                                             {
                                                 _popupService.AddPopup(new NamePopup(GetType(), "addDefault" + defaultFilter.Name, defaultFilter.SampleDefaultName, result =>
                                                 {
@@ -957,7 +957,7 @@ namespace InventoryTools.Ui
                                                 }));
                                             }
 
-                                            ImGuiUtil.HoverTooltip(defaultFilter.SampleDescription);
+                                            ImGuiUtil.HoverTooltip(defaultFilter.SampleDescription.Loc());
                                         }
                                     }
                                 }

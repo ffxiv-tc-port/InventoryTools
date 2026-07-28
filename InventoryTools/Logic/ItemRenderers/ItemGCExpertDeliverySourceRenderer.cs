@@ -26,7 +26,7 @@ public class ItemGcExpertDeliverySourceRenderer : ItemInfoRenderer<ItemGCExpertD
     {
         var asSource = AsSource(source);
         var sealsRewarded = asSource.SealsRewarded;
-        ImGui.Text("Seals rewarded: " + sealsRewarded);
+        ImGui.Text("Seals rewarded: ".Loc() + sealsRewarded);
     };
 
     public override Func<ItemSource, string> GetName => _ =>

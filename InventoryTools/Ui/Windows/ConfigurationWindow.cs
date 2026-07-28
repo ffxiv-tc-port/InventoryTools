@@ -132,12 +132,12 @@ namespace InventoryTools.Ui
             {
                 if (sampleFilter.SampleFilterType == SampleFilterType.Default)
                 {
-                    _addSampleMenu.Items.Add(new PopupMenu.PopupMenuItemSelectableAskName(sampleFilter.Name,
+                    _addSampleMenu.Items.Add(new PopupMenu.PopupMenuItemSelectableAskName(sampleFilter.Name.Loc(),
                         $"sf{sampleId}", sampleFilter.SampleDefaultName, (newName, id) =>
                         {
                             var createdFilter = sampleFilter.AddFilter();
                             createdFilter.Name = newName;
-                        }, sampleFilter.SampleDescription));
+                        }, sampleFilter.SampleDescription.Loc()));
                     sampleId++;
                 }
             }
@@ -148,12 +148,12 @@ namespace InventoryTools.Ui
             {
                 if (sampleFilter.SampleFilterType == SampleFilterType.Sample)
                 {
-                    _addSampleMenu.Items.Add(new PopupMenu.PopupMenuItemSelectableAskName(sampleFilter.Name,
+                    _addSampleMenu.Items.Add(new PopupMenu.PopupMenuItemSelectableAskName(sampleFilter.Name.Loc(),
                         $"sf{sampleId}", sampleFilter.SampleDefaultName, (newName, id) =>
                         {
                             var createdFilter = sampleFilter.AddFilter();
                             createdFilter.Name = newName;
-                        }, sampleFilter.SampleDescription));
+                        }, sampleFilter.SampleDescription.Loc()));
                     sampleId++;
                 }
             }

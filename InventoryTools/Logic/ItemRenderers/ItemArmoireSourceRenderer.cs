@@ -25,14 +25,14 @@ public class ItemArmoireSourceRenderer : ItemInfoRenderer<ItemArmoireSource>
     public override Action<ItemSource> DrawTooltip => source =>
     {
         var asSource = AsSource(source);
-        ImGui.Text("Category: " +
-                   (asSource.Cabinet.CabinetCategory?.Base.Category.Value.Text.ExtractText() ?? "Unknown"));
+        ImGui.Text("Category: ".Loc() +
+                   (asSource.Cabinet.CabinetCategory?.Base.Category.Value.Text.ExtractText() ?? "Unknown".Loc()));
     };
     public override Func<ItemSource, string> GetName => source =>
     {
         var asSource = AsSource(source);
 
-        return "Category: " + asSource.Cabinet.CabinetCategory?.Base.Category.Value.Text.ExtractText();
+        return "Category: ".Loc() + asSource.Cabinet.CabinetCategory?.Base.Category.Value.Text.ExtractText();
     };
 
     public override Func<ItemSource, int> GetIcon => _ => Icons.ArmoireIcon;

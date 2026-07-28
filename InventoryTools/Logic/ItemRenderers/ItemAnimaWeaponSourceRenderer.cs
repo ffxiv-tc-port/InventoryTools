@@ -19,15 +19,15 @@ public class ItemAnimaWeaponSourceRenderer : ItemInfoRenderer<ItemAnimaWeaponSou
 
     public override RendererType RendererType => RendererType.Use;
     public override ItemInfoType Type => ItemInfoType.AnimaWeapon;
-    public override string SingularName => "Anima Weapon";
+    public override string SingularName => "Anima Weapon".Loc();
     public override string HelpText => "Is this a Anima Weapon?";
     public override bool ShouldGroup => false;
 
     public override Action<ItemSource> DrawTooltip => source =>
     {
         var asSource = this.AsSource(source);
-        ImGui.TextUnformatted("Class: " + asSource.ClassJob.Base.Name.ToImGuiString().ToTitleCase());
-        this.DrawItems("Forms:", asSource.RewardItems);
+        ImGui.TextUnformatted("Class: ".Loc() + asSource.ClassJob.Base.Name.ToImGuiString().ToTitleCase());
+        this.DrawItems("Forms:".Loc(), asSource.RewardItems);
     };
     public override Func<ItemSource, string> GetName => source =>
     {

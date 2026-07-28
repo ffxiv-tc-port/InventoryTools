@@ -66,7 +66,7 @@ public class ItemCompanyCraftRequirementSourceRenderer : ItemInfoRenderer<ItemCo
     public override Func<ItemSource, string> GetName => source =>
     {
         var asSource = AsSource(source);
-        return asSource.Item.NameString + " (" + (asSource.CompanyCraftSequence.Base.CompanyCraftType.ValueNullable?.Name.ExtractText() ?? "Unknown") + ")";
+        return asSource.Item.NameString + " (" + (asSource.CompanyCraftSequence.Base.CompanyCraftType.ValueNullable?.Name.ExtractText() ?? "Unknown".Loc()) + ")";
     };
 
     public override Func<ItemSource, int> GetIcon => _ => Icons.CraftIcon;
@@ -75,7 +75,7 @@ public class ItemCompanyCraftRequirementSourceRenderer : ItemInfoRenderer<ItemCo
     {
         var asSource = AsSource(source);
         return asSource.Item.NameString + " (" +
-               (asSource.CompanyCraftSequence.Base.CompanyCraftType.ValueNullable?.Name.ExtractText() ?? "Unknown") +
+               (asSource.CompanyCraftSequence.Base.CompanyCraftType.ValueNullable?.Name.ExtractText() ?? "Unknown".Loc()) +
                ")";
     };
 }

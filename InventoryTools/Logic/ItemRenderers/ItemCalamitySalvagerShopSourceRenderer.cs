@@ -71,9 +71,9 @@ public class ItemCalamitySalvagerShopSourceRenderer : ItemInfoRenderer<ItemCalam
         var firstItem = asSources[0];
 
         var costItems = asSources.SelectMany(c => c.CostItems).DistinctBy(d => d.ItemId).ToList();
-        DrawItems("Costs: ", costItems);
+        DrawItems("Costs: ".Loc(), costItems);
         var rewardItems = asSources.SelectMany(c => c.RewardItems).DistinctBy(d => d.ItemId).ToList();
-        DrawItems("Rewards: ", rewardItems);
+        DrawItems("Rewards: ".Loc(), rewardItems);
 
         if (firstItem.GilShopItem.Base.AchievementRequired.RowId != 0)
         {
@@ -97,8 +97,8 @@ public class ItemCalamitySalvagerShopSourceRenderer : ItemInfoRenderer<ItemCalam
     {
         var asSource = AsSource(source);
 
-        DrawItems("Costs: ", asSource.CostItems);
-        DrawItems("Rewards: ", asSource.RewardItems);
+        DrawItems("Costs: ".Loc(), asSource.CostItems);
+        DrawItems("Rewards: ".Loc(), asSource.RewardItems);
 
         if (asSource.GilShopItem.Base.AchievementRequired.RowId != 0)
         {

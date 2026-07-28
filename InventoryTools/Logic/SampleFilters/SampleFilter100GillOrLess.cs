@@ -40,7 +40,7 @@ public class SampleFilter100GillOrLess : BooleanSetting, ISampleFilter
     public string SampleDefaultName => "100 gil or less";
 
     public string SampleDescription =>
-        "This will add a list that will show all items that can be purchased from gil shops under 100 gil. It will look in both character and retainer inventories.";
+        "This will add a list that will show all items that can be purchased from gil shops under 100 gil. It will look in both character and retainer inventories.".Loc();
 
     public SampleFilterType SampleFilterType => SampleFilterType.Sample;
     public override string HelpText { get; set; } = "Shows you any items that sell for under 100 gil at shops.";

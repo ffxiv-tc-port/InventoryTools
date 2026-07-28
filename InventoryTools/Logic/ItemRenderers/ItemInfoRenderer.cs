@@ -43,7 +43,7 @@ public abstract class ItemInfoRenderer<T> : IItemInfoRenderer where T : ItemSour
         {
             return;
         }
-        ImGui.TextUnformatted(sectionName);
+        ImGui.TextUnformatted(sectionName.Loc());
         using (ImRaii.PushIndent())
         {
             foreach (var itemInfo in items)
@@ -59,11 +59,11 @@ public abstract class ItemInfoRenderer<T> : IItemInfoRenderer where T : ItemSour
                 ImGui.SameLine();
                 if (itemInfo.Count == null)
                 {
-                    ImGui.TextUnformatted($"{item.NameString}" + (itemInfo.IsOptional ?? false ? " (Optional)" : ""));
+                    ImGui.TextUnformatted($"{item.NameString}" + (itemInfo.IsOptional ?? false ? " (Optional)".Loc() : ""));
                 }
                 else
                 {
-                    ImGui.TextUnformatted($"{item.NameString} x {itemInfo.Count}" + (itemInfo.IsOptional ?? false ? " (Optional)" : ""));
+                    ImGui.TextUnformatted($"{item.NameString} x {itemInfo.Count}" + (itemInfo.IsOptional ?? false ? " (Optional)".Loc() : ""));
                 }
                 if (itemInfo.Min != null && itemInfo.Max != null)
                 {
@@ -74,7 +74,7 @@ public abstract class ItemInfoRenderer<T> : IItemInfoRenderer where T : ItemSour
                     }
                     else
                     {
-                        ImGui.Text("(Drops " + itemInfo.Min.Value + " - " + itemInfo.Max.Value + ")");
+                        ImGui.Text("(Drops ".Loc() + itemInfo.Min.Value + " - " + itemInfo.Max.Value + ")");
                     }
                 }
             }
@@ -87,7 +87,7 @@ public abstract class ItemInfoRenderer<T> : IItemInfoRenderer where T : ItemSour
         {
             return;
         }
-        ImGui.TextUnformatted(sectionName);
+        ImGui.TextUnformatted(sectionName.Loc());
         using (ImRaii.PushIndent())
         {
             foreach (var itemInfo in items)
@@ -154,7 +154,7 @@ public abstract class ItemInfoRenderer<T> : IItemInfoRenderer where T : ItemSour
 
     public void DrawLocations(string sectionName, List<ILocation> locations)
     {
-        ImGui.TextUnformatted(sectionName);
+        ImGui.TextUnformatted(sectionName.Loc());
         using (ImRaii.PushIndent())
         {
             foreach (var groupedMaps in locations.DistinctBy(c => (c.Map.RowId, c.Map, c.MapY)).GroupBy(c => c.Map.RowId))
@@ -187,7 +187,7 @@ public abstract class ItemInfoRenderer<T> : IItemInfoRenderer where T : ItemSour
             return;
         }
 
-        ImGui.TextUnformatted(sectionName);
+        ImGui.TextUnformatted(sectionName.Loc());
         using (ImRaii.PushIndent())
         {
             foreach (var item in items)

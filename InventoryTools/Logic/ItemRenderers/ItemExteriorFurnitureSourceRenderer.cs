@@ -37,6 +37,6 @@ public class ItemExteriorFurnitureSourceRenderer : ItemInfoRenderer<ItemExterior
     public override Func<ItemSource, string> GetDescription => source =>
     {
         var asSource = AsSource(source);
-        return "Can be placed outside a house.";
+        return "Can be placed outside a house.".Loc();
     };
 }

@@ -81,7 +81,7 @@ public class CharacterScopePickerColumnSetting : ColumnSetting<List<CharacterSea
             {
                 ImGui.Text("?");
             }
-            ImGuiUtil.HoverTooltip(helpText);
+            ImGuiUtil.HoverTooltip(helpText.Loc());
         }
 
         var currentValue = CurrentValue(configuration);

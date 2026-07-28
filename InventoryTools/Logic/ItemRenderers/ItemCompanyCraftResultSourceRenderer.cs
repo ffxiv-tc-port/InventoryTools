@@ -37,14 +37,14 @@ public class ItemCompanyCraftResultSourceRenderer : ItemInfoRenderer<ItemCompany
         var asSource = AsSource(source);
         ImGui.Text("Craft Type: ??".Loc(asSource.CompanyCraftSequence.Base.CompanyCraftType.Value.Name));
         ImGui.Text("Parts: ??".Loc(asSource.CompanyCraftSequence.CompanyCraftParts.Length));
-        DrawItems("Ingredients: ", asSource.CostItems);
+        DrawItems("Ingredients: ".Loc(), asSource.CostItems);
     };
 
     public override Func<ItemSource, string> GetName => source =>
     {
         var asSource = AsSource(source);
         return asSource.Item.Base.Name.ExtractText() + "(" +
-               (asSource.CompanyCraftSequence.Base.CompanyCraftType.ValueNullable?.Name.ExtractText() ?? "Unknown") +
+               (asSource.CompanyCraftSequence.Base.CompanyCraftType.ValueNullable?.Name.ExtractText() ?? "Unknown".Loc()) +
                ")";
     };
 

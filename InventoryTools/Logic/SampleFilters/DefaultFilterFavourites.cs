@@ -32,11 +32,11 @@ public class DefaultFilterFavourites : ISampleFilter
         return allItemsFilter;
     }
 
-    public string Name => "Favourites";
+    public string Name => "Favourites".Loc();
     public string SampleDefaultName => "Favourites";
 
     public string SampleDescription =>
-        "This will show all the items you have favourited.";
+        "This will show all the items you have favourited.".Loc();
 
     public SampleFilterType SampleFilterType => SampleFilterType.Default;
 }

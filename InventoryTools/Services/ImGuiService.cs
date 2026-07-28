@@ -217,7 +217,7 @@ public class ImGuiService : AllaganLib.Interface.Services.ImGuiService
                 if (tooltip)
                 {
                     ImGui.PushTextWrapPos(ImGui.GetFontSize() * 35.0f);
-                    ImGui.TextUnformatted(helpText);
+                    ImGui.TextUnformatted(helpText.Loc());
                     ImGui.PopTextWrapPos();
                     if (imagePath != null)
                     {

@@ -39,11 +39,11 @@ public class DefaultFilterHistory : ISampleFilter
         return allItemsFilter;
     }
 
-    public string Name => "History";
+    public string Name => "History".Loc();
     public string SampleDefaultName => "History";
 
     public string SampleDescription =>
-        "This will add a list that shows you the movement of items in your inventories. History tracking must be enabled for this to function.";
+        "This will add a list that shows you the movement of items in your inventories. History tracking must be enabled for this to function.".Loc();
 
     public SampleFilterType SampleFilterType => SampleFilterType.Default;
 }

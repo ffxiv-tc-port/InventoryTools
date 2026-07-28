@@ -47,7 +47,7 @@ public class ItemCashShopSourceRenderer : ItemInfoRenderer<ItemCashShopSource>
     public override Func<ItemSource, string> GetName => source =>
     {
         var asSource = AsSource(source);
-        return (asSource.FittingShopItemSetRow?.Base.Unknown6.ExtractText() ?? "Not in a set");
+        return (asSource.FittingShopItemSetRow?.Base.Unknown6.ExtractText() ?? "Not in a set".Loc());
     };
 
     public override Func<ItemSource, int> GetIcon => source => Icons.BagStar;
