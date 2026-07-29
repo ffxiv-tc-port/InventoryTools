@@ -252,6 +252,11 @@ namespace InventoryTools
                         _configuration.HistoryTrackReasons.Distinct().ToHashSet());
                 }
             }
+
+            if (_hostedInventoryHistory.MaxEntries != _configuration.HistoryMaxEntries)
+            {
+                _hostedInventoryHistory.MaxEntries = _configuration.HistoryMaxEntries;
+            }
         }
 
         public void LoadDefaultData()

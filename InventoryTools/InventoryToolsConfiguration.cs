@@ -58,6 +58,7 @@ namespace InventoryTools
         private int _marketSaleHistoryLimit = 7;
         private bool _showItemNumberRetainerList = true;
         private bool _historyEnabled;
+        private int _historyMaxEntries = 50000;
         private bool _addTitleMenuButton;
 
         private Vector4 _tabHighlightColor = new (0.007f, 0.008f,
@@ -181,6 +182,22 @@ namespace InventoryTools
             set
             {
                 _historyEnabled = value;
+                IsDirty = true;
+            }
+        }
+
+        /// <summary>
+        /// Maximum number of item history entries to retain. Once exceeded, the oldest entries are
+        /// dropped first (both in memory and the next time history.csv is saved). Defaults to 50,000 to
+        /// keep history.csv - which is fully read/written on every plugin start/stop - from growing
+        /// without bound. Set to 0 or a negative value to disable the limit entirely.
+        /// </summary>
+        public int HistoryMaxEntries
+        {
+            get => _historyMaxEntries;
+            set
+            {
+                _historyMaxEntries = value;
                 IsDirty = true;
             }
         }
