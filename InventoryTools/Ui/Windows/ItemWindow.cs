@@ -343,56 +343,8 @@ namespace InventoryTools.Ui
                     }
                 }
 
-                if (ImGui.ImageButton(ImGuiService.GetImageTexture("garlandtools").Handle,
-                        new Vector2(32, 32) * ImGui.GetIO().FontGlobalScale))
-                {
-                    $"https://www.garlandtools.org/db/#item/{Item.GarlandToolsId}".OpenBrowser();
-                }
-                ImGuiUtil.HoverTooltip("Open in Garland Tools".Loc());
-                ImGui.SameLine();
-
-                if (ImGui.ImageButton(ImGuiService.GetImageTexture("teamcraft").Handle,
-                        new Vector2(32, 32) * ImGui.GetIO().FontGlobalScale))
-                {
-                    $"https://ffxivteamcraft.com/db/en/item/{_itemId}".OpenBrowser();
-                }
-                ImGuiUtil.HoverTooltip("Open in Teamcraft".Loc());
-                ImGui.SameLine();
-
-                if (ImGui.ImageButton(ImGuiService.GetImageTexture("universalis").Handle,
-                        new Vector2(32, 32) * ImGui.GetIO().FontGlobalScale))
-                {
-                    $"https://universalis.app/market/{_itemId}".OpenBrowser();
-                }
-                ImGuiUtil.HoverTooltip("Open in Universalis".Loc());
-                ImGui.SameLine();
-
-                if (ImGui.ImageButton(ImGuiService.GetImageTexture("gamerescape").Handle,
-                        new Vector2(32, 32) * ImGui.GetIO().FontGlobalScale))
-                {
-                    var name = Item.NameString.Replace(' ', '_');
-                    name = name.Replace('–', '-');
-
-                    if (name.StartsWith("_")) // "level sync" icon
-                        name = name.Substring(2);
-                    $"https://ffxiv.gamerescape.com/wiki/{HttpUtility.UrlEncode(name)}?useskin=Vector".OpenBrowser();
-                }
-                ImGuiUtil.HoverTooltip("Open in Gamer Escape".Loc());
-                ImGui.SameLine();
-
-                if (ImGui.ImageButton(ImGuiService.GetImageTexture("consolegameswiki").Handle,
-                        new Vector2(32, 32) * ImGui.GetIO().FontGlobalScale))
-                {
-                    var name = Item.NameString.Replace("#"," ").Replace("  ", " ").Replace(' ', '_');
-                    name = name.Replace('–', '-');
-
-                    if (name.StartsWith("_")) // "level sync" icon
-                        name = name.Substring(2);
-                    $"https://ffxiv.consolegameswiki.com/wiki/{HttpUtility.UrlEncode(name)}".OpenBrowser();
-                }
-                ImGuiUtil.HoverTooltip("Open in Console Games Wiki".Loc());
-                ImGui.SameLine();
-
+                // 英文外站按鈕(Garland/Teamcraft/Universalis/GamerEscape/ConsoleGamesWiki)
+                // 依使用者需求自介面移除,只保留灰機wiki;外掛自身資料功能不受影響。
                 if (ImGui.ImageButton(ImGuiService.GetImageTexture("huijiwiki").Handle,
                         new Vector2(32, 32) * ImGui.GetIO().FontGlobalScale))
                 {

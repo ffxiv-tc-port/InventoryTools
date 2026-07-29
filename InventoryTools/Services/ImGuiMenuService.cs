@@ -250,36 +250,7 @@ public class ImGuiMenuService
     {
         ImGui.Text(searchResult.Item.NameString);
         ImGui.Separator();
-        if (ImGui.MenuItem("Open in Garland Tools".Loc()))
-        {
-            $"https://www.garlandtools.org/db/#item/{searchResult.Item.GarlandToolsId}".OpenBrowser();
-        }
-        if (ImGui.MenuItem("Open in Teamcraft".Loc()))
-        {
-            $"https://ffxivteamcraft.com/db/en/item/{searchResult.Item.RowId}".OpenBrowser();
-        }
-        if (ImGui.MenuItem("Open in Universalis".Loc()))
-        {
-            $"https://universalis.app/market/{searchResult.Item.RowId}".OpenBrowser();
-        }
-        if (ImGui.MenuItem("Open in Gamer Escape".Loc()))
-        {
-            var name = searchResult.Item.NameString.Replace(' ', '_');
-            name = name.Replace('–', '-');
-
-            if (name.StartsWith("_")) // "level sync" icon
-                name = name.Substring(2);
-            $"https://ffxiv.gamerescape.com/wiki/{HttpUtility.UrlEncode(name)}?useskin=Vector".OpenBrowser();
-        }
-        if (ImGui.MenuItem("Open in Console Games Wiki".Loc()))
-        {
-            var name = searchResult.Item.NameString.Replace("#"," ").Replace("  ", " ").Replace(' ', '_');
-            name = name.Replace('–', '-');
-
-            if (name.StartsWith("_")) // "level sync" icon
-                name = name.Substring(2);
-            $"https://ffxiv.consolegameswiki.com/wiki/{HttpUtility.UrlEncode(name)}".OpenBrowser();
-        }
+        // 英文外站選項依使用者需求移除,只保留灰機wiki。
         if (ImGui.MenuItem("Open in Huiji Wiki".Loc()))
         {
             $"https://ff14.huijiwiki.com/index.php?search={HttpUtility.UrlEncode(searchResult.Item.NameString)}&ns220=1".OpenBrowser();
