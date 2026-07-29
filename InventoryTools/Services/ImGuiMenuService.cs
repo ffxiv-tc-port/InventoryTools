@@ -280,6 +280,10 @@ public class ImGuiMenuService
                 name = name.Substring(2);
             $"https://ffxiv.consolegameswiki.com/wiki/{HttpUtility.UrlEncode(name)}".OpenBrowser();
         }
+        if (ImGui.MenuItem("Open in Huiji Wiki".Loc()))
+        {
+            $"https://ff14.huijiwiki.com/index.php?search={HttpUtility.UrlEncode(searchResult.Item.NameString)}&ns220=1".OpenBrowser();
+        }
         ImGui.Separator();
         if (ImGui.MenuItem("Copy Name".Loc()))
         {

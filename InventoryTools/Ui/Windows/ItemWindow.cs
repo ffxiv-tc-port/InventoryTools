@@ -391,6 +391,14 @@ namespace InventoryTools.Ui
                     $"https://ffxiv.consolegameswiki.com/wiki/{HttpUtility.UrlEncode(name)}".OpenBrowser();
                 }
                 ImGuiUtil.HoverTooltip("Open in Console Games Wiki".Loc());
+                ImGui.SameLine();
+
+                if (ImGui.ImageButton(ImGuiService.GetImageTexture("huijiwiki").Handle,
+                        new Vector2(32, 32) * ImGui.GetIO().FontGlobalScale))
+                {
+                    $"https://ff14.huijiwiki.com/index.php?search={HttpUtility.UrlEncode(Item.NameString)}&ns220=1".OpenBrowser();
+                }
+                ImGuiUtil.HoverTooltip("Open in Huiji Wiki".Loc());
 
                 if (Item.CanOpenCraftingLog)
                 {
