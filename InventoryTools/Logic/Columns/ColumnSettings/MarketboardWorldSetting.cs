@@ -3,6 +3,7 @@ using System.Linq;
 using CriticalCommonLib.Models;
 using Dalamud.Plugin.Services;
 using InventoryTools.Logic.Columns.Abstract.ColumnSettings;
+using InventoryTools.Misc;
 using InventoryTools.Services;
 using Lumina.Excel;
 using Lumina.Excel.Sheets;
@@ -75,7 +76,7 @@ public class MarketboardWorldSetting : ChoiceColumnSetting<(uint,string)?>
     public override (uint,string)? DefaultValue { get; set; } = null;
     public override List<(uint,string)?> GetChoices(ColumnConfiguration configuration)
     {
-        List<(uint RowId, string FormattedName)?> worlds = _worldSheet.Where(c => c.IsPublic).Select(c =>((uint, string)?)(c.RowId, c.Name.ExtractText())).ToList();
+        List<(uint RowId, string FormattedName)?> worlds = _worldSheet.Where(c => c.IsPublicWorld()).Select(c =>((uint, string)?)(c.RowId, c.Name.ExtractText())).ToList();
         worlds.Insert(0,(0,"Active World"));
         return worlds;
     }

@@ -8,6 +8,7 @@ using CriticalCommonLib.Services;
 using Dalamud.Interface.Utility.Raii;
 using Dalamud.Bindings.ImGui;
 using InventoryTools;
+using InventoryTools.Misc;
 using InventoryTools.Services;
 using InventoryTools.Ui.Widgets;
 using Lumina.Excel;
@@ -582,7 +583,7 @@ public class CharacterScopePicker
                                         {
                                             if (worldSelector)
                                             {
-                                                foreach (var world in _worldSheet.Where(c => c.IsPublic))
+                                                foreach (var world in _worldSheet.Where(c => c.IsPublicWorld()))
                                                 {
                                                     if (ImGui.Selectable(world.Name.ExtractText()))
                                                     {

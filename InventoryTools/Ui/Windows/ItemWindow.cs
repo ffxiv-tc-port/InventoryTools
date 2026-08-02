@@ -22,6 +22,7 @@ using Dalamud.Game.Text;
 using Dalamud.Bindings.ImGui;
 using InventoryTools.Extensions;
 using InventoryTools.Logic;
+using InventoryTools.Misc;
 
 using OtterGui;
 using Dalamud.Interface.Utility.Raii;
@@ -135,7 +136,7 @@ namespace InventoryTools.Ui
             base.Initialize(itemId);
              Flags = ImGuiWindowFlags.NoSavedSettings;
             _itemId = itemId;
-            var worlds = _worldSheet.Where(c => c.IsPublic).ToList();
+            var worlds = _worldSheet.Where(c => c.IsPublicWorld()).ToList();
             _picker = new WorldPicker(worlds, true, _otterLogger);
             MediatorService.Subscribe<MarketCacheUpdatedMessage>(this, MarketCacheUpdated);
             if (Item != null)

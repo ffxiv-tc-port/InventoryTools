@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using InventoryTools.Logic.Settings.Abstract;
+using InventoryTools.Misc;
 using InventoryTools.Services;
 using Lumina.Excel;
 using Lumina.Excel.Sheets;
@@ -39,7 +40,7 @@ public class MarketBoardExtraWorldsSetting : MultipleChoiceSetting<uint>
     {
         if (_worldNames == null)
         {
-            _worldNames = _worldSheet.Where(c => c.IsPublic).OrderBy(c => c.Name.ExtractText())
+            _worldNames = _worldSheet.Where(c => c.IsPublicWorld()).OrderBy(c => c.Name.ExtractText())
                 .ToDictionary(c => c.RowId, c => c.Name.ExtractText());
         }
 
