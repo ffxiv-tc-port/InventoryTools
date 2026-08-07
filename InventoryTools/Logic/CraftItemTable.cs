@@ -87,10 +87,10 @@ namespace InventoryTools.Logic
                         var groupedCrafts = CraftGroups;
                         if (groupedCrafts.Count == 0)
                         {
-                            using var tabItem = ImRaii.TabItem("No Items");
+                            using var tabItem = ImRaii.TabItem("No Items".Loc());
                             if (!tabItem.Success) return messages;
                             ImGui.TextWrapped(
-                                "No items have been added to the list. Add items via the search menu button at the top right of the screen or by right clicking on an item anywhere within the plugin.");
+                                "No items have been added to the list. Add items via the search menu button at the top right of the screen or by right clicking on an item anywhere within the plugin.".Loc());
                         }
                         else
                         {
@@ -215,7 +215,7 @@ namespace InventoryTools.Logic
                                     if (columnIndex == 1)
                                     {
                                         ImGui.TextWrapped(
-                                            "No items have been added to the list. Add items via the search menu button at the top right of the screen or by right clicking on an item anywhere within the plugin.");
+                                            "No items have been added to the list. Add items via the search menu button at the top right of the screen or by right clicking on an item anywhere within the plugin.".Loc());
                                     }
                                 }
                             }

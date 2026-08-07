@@ -129,7 +129,7 @@ namespace InventoryTools.Logic.Filters
         {
             base.DrawButtons(configuration, item, index);
             ImGui.SameLine();
-            if (ImGui.Button("Edit##Column" + index))
+            if (ImGui.Button("Edit".Loc() + "##Column" + index))
             {
                 EditItem(configuration, item.Key);
             }

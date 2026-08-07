@@ -121,7 +121,7 @@ namespace InventoryTools.Logic.Columns.Buttons
                 ImGui.TableNextColumn();
                 if (ImGui.TableGetColumnFlags().HasFlag(ImGuiTableColumnFlags.IsEnabled))
                 {
-                    if (ImGui.Button("Teleport##" + tuple.shop.RowId + "_" + tuple.npc.RowId + "_" +
+                    if (ImGui.Button("Teleport".Loc() + "##" + tuple.shop.RowId + "_" + tuple.npc.RowId + "_" +
                                      tuple.location.Map.RowId))
                     {
                         var nearestAetheryte = _teleporterService.GetNearestAetheryte(tuple.location);
@@ -189,7 +189,7 @@ namespace InventoryTools.Logic.Columns.Buttons
                     {
                         using (ImRaii.PushColor(ImGuiCol.Text, ImGuiColors.DalamudRed))
                         {
-                            ImGui.Text(" (Up in " +
+                            ImGui.Text(" (Up in ".Loc() +
                                        TimeInterval.DurationString(firstUptime.Value.Start, TimeStamp.UtcNow,
                                            true) + ")");
                         }
@@ -198,7 +198,7 @@ namespace InventoryTools.Logic.Columns.Buttons
                     {
                         using (ImRaii.PushColor(ImGuiCol.Text, ImGuiColors.HealerGreen))
                         {
-                            ImGui.Text(" (Up for " +
+                            ImGui.Text(" (Up for ".Loc() +
                                        TimeInterval.DurationString(firstUptime.Value.End, TimeStamp.UtcNow,
                                            true) + ")");
                         }
@@ -224,7 +224,7 @@ namespace InventoryTools.Logic.Columns.Buttons
                                     {
                                         using (ImRaii.PushColor(ImGuiCol.Text, ImGuiColors.DalamudRed))
                                         {
-                                            ImGui.Text( " (Up in " +
+                                            ImGui.Text( " (Up in ".Loc() +
                                                         TimeInterval.DurationString(nextUptime.Item2.Start, TimeStamp.UtcNow,
                                                             true) + ")");
                                         }
@@ -233,7 +233,7 @@ namespace InventoryTools.Logic.Columns.Buttons
                                     {
                                         using (ImRaii.PushColor(ImGuiCol.Text, ImGuiColors.HealerGreen))
                                         {
-                                            ImGui.Text(" (Up for " +
+                                            ImGui.Text(" (Up for ".Loc() +
                                                        TimeInterval.DurationString(nextUptime.Item2.End, TimeStamp.UtcNow,
                                                            true) + ")");
                                         }
@@ -255,7 +255,7 @@ namespace InventoryTools.Logic.Columns.Buttons
                 {
                     ImGui.SameLine();
                 }
-                if (ImGui.Button("Gather##Gather" + rowIndex))
+                if (ImGui.Button("Gather".Loc() + "##Gather" + rowIndex))
                 {
                     _commandManager.ProcessCommand("/gather " + searchResult.Item.Base.Name.ExtractText());
                 }
@@ -268,7 +268,7 @@ namespace InventoryTools.Logic.Columns.Buttons
                 {
                     ImGui.SameLine();
                 }
-                if (ImGui.Button("Gather##Gather" + rowIndex))
+                if (ImGui.Button("Gather".Loc() + "##Gather" + rowIndex))
                 {
                     _commandManager.ProcessCommand("/gatherfish " + searchResult.Item.Base.Name.ExtractText());
                 }
@@ -289,7 +289,7 @@ namespace InventoryTools.Logic.Columns.Buttons
                     ImGui.SameLine();
                 }
                 ImGui.PushStyleVar(ImGuiStyleVar.FrameRounding, 0.0f);
-                if (ImGui.Button("Buy##Buy" + rowIndex))
+                if (ImGui.Button("Buy".Loc() + "##Buy" + rowIndex))
                 {
                     uint? umapId = item.CraftItem?.MapId ?? null;
                     int mapId = umapId == null ? -1 : (int)umapId;
@@ -306,7 +306,7 @@ namespace InventoryTools.Logic.Columns.Buttons
 
                         List<string?> stringParts = new()
                         {
-                            vendor.location + " - Buy ",
+                            vendor.location + " - Buy ".Loc(),
                             item.CraftItem?.QuantityMissingOverall.ToString() ?? null,
                             item.Item.NameString,
                             npcName != null ? $" from {npcName}" : null
@@ -319,7 +319,7 @@ namespace InventoryTools.Logic.Columns.Buttons
                     else
                     {
                         var shopName = vendor.shop.Name;
-                        _chatUtilities.Print("No location available. Shop is called " + shopName);
+                        _chatUtilities.Print("No location available. Shop is called ".Loc() + shopName);
                     }
                 }
 
@@ -341,7 +341,7 @@ namespace InventoryTools.Logic.Columns.Buttons
                                     {
                                         DrawSupplierRow(item.Item, tuple, messages);
                                     }, ImGuiTableFlags.None,
-                                    new[] { "Shop Name", "NPC", "Location", "" });
+                                    new[] { "Shop Name".Loc(), "NPC".Loc(), "Location".Loc(), "" });
                             }
                         }
                     }

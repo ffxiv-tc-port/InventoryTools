@@ -963,23 +963,23 @@ namespace InventoryTools.Ui
                                 }
                             }
 
-                            using (var addMenu = ImRaii.Menu("Import/Export"))
+                            using (var addMenu = ImRaii.Menu("Import/Export".Loc()))
                             {
                                 if (addMenu)
                                 {
-                                    if (ImGui.MenuItem("Export Current List (Share Code)"))
+                                    if (ImGui.MenuItem("Export Current List (Share Code)".Loc()))
                                     {
                                         if (SelectedConfiguration != null)
                                         {
                                             var base64 = _importExportService.ToBase64(SelectedConfiguration);
                                             _clipboardService.CopyToClipboard(base64);
-                                            _chatUtilities.PrintClipboardMessage("[Export] ", "Filter Configuration");
+                                            _chatUtilities.PrintClipboardMessage("[Export] ", "Filter Configuration".Loc());
                                         }
                                     }
 
-                                    if (ImGui.MenuItem("Import List (Share Code)"))
+                                    if (ImGui.MenuItem("Import List (Share Code)".Loc()))
                                     {
-                                        _popupService.AddPopup(new MultiLineTextPopup(GetType(), "addSearchList", "Please enter a valid share code for a list below and then hit ok to import it.", result =>
+                                        _popupService.AddPopup(new MultiLineTextPopup(GetType(), "addSearchList", "Please enter a valid share code for a list below and then hit ok to import it.".Loc(), result =>
                                         {
                                             if (result.Item1)
                                             {

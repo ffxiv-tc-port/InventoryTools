@@ -45,7 +45,7 @@ namespace InventoryTools.Logic.Filters.Abstract
             if (value == null)
             {
                 var isChecked = false;
-                if (ImGui.Checkbox("Override Color##" + Key + "ColorEnable", ref isChecked))
+                if (ImGui.Checkbox("Override Color".Loc() + "##" + Key + "ColorEnable", ref isChecked))
                 {
                     if (isChecked)
                     {
