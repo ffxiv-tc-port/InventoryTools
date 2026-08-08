@@ -933,7 +933,7 @@ namespace InventoryTools.Ui
                                 }
                             }
 
-                            using (var addMenu = ImRaii.Menu("Add (Preconfigured)"))
+                            using (var addMenu = ImRaii.Menu("Add (Preconfigured)".Loc()))
                             {
                                 if (addMenu)
                                 {

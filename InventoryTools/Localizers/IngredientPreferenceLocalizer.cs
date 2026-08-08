@@ -16,6 +16,22 @@ public class IngredientPreferenceLocalizer
         _craftTypeSheet = craftTypeSheet;
     }
 
+    // AllaganLib's ItemSheet.GetRow does NOT return null for a missing row: it fabricates an
+    // empty ItemRow, caches it, and hands it back. The null-conditional therefore never short
+    // circuits, and ItemRow.NameString goes on to read ItemRow.Base, which is a plain Lumina
+    // ExcelSheet<Item>.GetRow and throws ArgumentOutOfRangeException when the row is absent.
+    // IngredientPreference item ids survive a round trip through the saved list configuration
+    // and can also arrive from an imported list string, so they are not guaranteed to exist on
+    // this client (TC ships Item rows 0..49200). Throwing here would take out the whole ImGui
+    // draw path. GetRowOrDefault does the HasRow check and really can return null; it also
+    // avoids poisoning the sheet's row cache, which is a SingleInstance shared with every other
+    // GetRowOrDefault caller (e.g. CraftSettingsColumn) for the lifetime of the plugin.
+    private string ItemName(uint itemId)
+    {
+        return _itemSheet.GetRowOrDefault(itemId)?.NameString
+               ?? ("Unknown Item".Loc() + " (#" + itemId + ")");
+    }
+
     public string FormattedName(IngredientPreference ingredientPreference)
     {
         switch (ingredientPreference.Type)
@@ -30,21 +46,15 @@ public class IngredientPreferenceLocalizer
                         if (ingredientPreference.LinkedItem3Id != null &&
                             ingredientPreference.LinkedItem3Quantity != null)
                         {
-                            itemName3 =
-                                (_itemSheet.GetRow(ingredientPreference.LinkedItem3Id.Value)
-                                    ?.NameString ?? "Unknown Item".Loc()) + " - " +
-                                ingredientPreference.LinkedItem3Quantity.Value;
+                            itemName3 = ItemName(ingredientPreference.LinkedItem3Id.Value) + " - " +
+                                        ingredientPreference.LinkedItem3Quantity.Value;
                         }
 
-                        itemName2 =
-                            (_itemSheet.GetRow(ingredientPreference.LinkedItem2Id.Value)
-                                ?.NameString ?? "Unknown Item".Loc()) + " - " +
-                            ingredientPreference.LinkedItem2Quantity.Value;
+                        itemName2 = ItemName(ingredientPreference.LinkedItem2Id.Value) + " - " +
+                                    ingredientPreference.LinkedItem2Quantity.Value;
                     }
 
-                    var itemName =
-                        _itemSheet.GetRow(ingredientPreference.LinkedItemId.Value)?.NameString ??
-                        "Unknown Item".Loc();
+                    var itemName = ItemName(ingredientPreference.LinkedItemId.Value);
                     if (itemName3 != null)
                     {
                         itemName = itemName + "," + itemName2 + "," + itemName3;
@@ -61,9 +71,7 @@ public class IngredientPreferenceLocalizer
             case IngredientPreferenceType.Reduction:
                 if (ingredientPreference.LinkedItemId != null && ingredientPreference.LinkedItemQuantity != null)
                 {
-                    var itemName =
-                        _itemSheet.GetRow(ingredientPreference.LinkedItemId.Value)?.NameString ??
-                        "Unknown Item".Loc();
+                    var itemName = ItemName(ingredientPreference.LinkedItemId.Value);
                     return "Reduction (".Loc() + itemName + " - " + ingredientPreference.LinkedItemQuantity.Value + ")";
                 }
 
@@ -71,9 +79,7 @@ public class IngredientPreferenceLocalizer
             case IngredientPreferenceType.Desynthesis:
                 if (ingredientPreference.LinkedItemId != null && ingredientPreference.LinkedItemQuantity != null)
                 {
-                    var itemName =
-                        _itemSheet.GetRow(ingredientPreference.LinkedItemId.Value)?.NameString ??
-                        "Unknown Item".Loc();
+                    var itemName = ItemName(ingredientPreference.LinkedItemId.Value);
                     return "Desynthesis (".Loc() + itemName + " - " + ingredientPreference.LinkedItemQuantity.Value + ")";
                 }
 
