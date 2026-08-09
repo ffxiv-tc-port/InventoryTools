@@ -11,11 +11,12 @@ namespace InventoryTools.Logic.Settings;
 /// Turns the "which classes/jobs are the contents for" tooltip line on.
 /// </summary>
 /// <remarks>
-/// Default off, like every other optional tooltip module in this plugin. Note this rides on
+/// Default on. Note this rides on
 /// <see cref="InventoryToolsConfiguration.Get(string,bool?)"/>, the generic key/value store, not
 /// on a dedicated property: the default is supplied at the call site and a key that is absent
 /// from the json simply returns it, so the DefaultValueHandling.IgnoreAndPopulate trap that bites
-/// dedicated properties does not apply here.
+/// dedicated properties does not apply here - flipping the call-site default reaches existing users
+/// whose key was never written.
 /// </remarks>
 public class TooltipDisplayCofferContentsSetting : GenericBooleanSetting
 {
@@ -24,7 +25,7 @@ public class TooltipDisplayCofferContentsSetting : GenericBooleanSetting
         "TooltipDisplayCofferContents",
         "Add Coffer Contents (Classes/Jobs)".Loc(),
         "When hovering a coffer, a weapon box, a treasure map reward or anything else that contains other items, adds a line listing which classes and jobs the contents are for. Where the game has its own name for that exact set of jobs it is used instead of a list.".Loc(),
-        false,
+        true,
         SettingCategory.ToolTips,
         SettingSubCategory.CofferContents,
         "1.12.0.11",

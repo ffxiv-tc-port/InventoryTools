@@ -11,9 +11,10 @@ namespace InventoryTools.Logic.Settings;
 /// Turns the recolouring of the game's own "crafting material" line on.
 /// </summary>
 /// <remarks>
-/// Default off. This one changes text the game wrote rather than adding text of its own, so it is
-/// the tweak most likely to surprise someone who did not ask for it. Stored in the generic
-/// key/value store, so an absent key returns the default handed in here.
+/// Default on. This one changes text the game wrote rather than adding text of its own, but users
+/// reported the feature felt absent because it shipped off and they never toggled it. Stored in the
+/// generic key/value store, so an absent key returns the default handed in here - flipping the
+/// call-site default therefore reaches existing users whose key was never written.
 /// </remarks>
 public class TooltipCraftingMaterialHighlightSetting : GenericBooleanSetting
 {
@@ -22,7 +23,7 @@ public class TooltipCraftingMaterialHighlightSetting : GenericBooleanSetting
         "TooltipCraftingMaterialHighlight",
         "Highlight Crafting Material".Loc(),
         "Colours the game's own 'crafting material' line in the item tooltip so it is easier to spot. This changes text the game already displays rather than adding a line.".Loc(),
-        false,
+        true,
         SettingCategory.ToolTips,
         SettingSubCategory.CraftingMaterialHighlight,
         "1.12.0.11",
