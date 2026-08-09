@@ -192,6 +192,23 @@ namespace InventoryTools
         /// keep history.csv - which is fully read/written on every plugin start/stop - from growing
         /// without bound. Set to 0 or a negative value to disable the limit entirely.
         /// </summary>
+        // 🔴 The attribute and the field initialiser DISAGREE ON PURPOSE - do not
+        // "tidy" this into agreement and do not delete either half. It is a grandfather clause.
+        //
+        // The config is read back with DefaultValueHandling.IgnoreAndPopulate, so this
+        // attribute is what an EXISTING user with no HistoryMaxEntries key gets, while the
+        // field initialiser is what a BRAND NEW install gets - no json file at all means the
+        // populate path never runs and the constructor value survives untouched.
+        //
+        // Those two populations need different answers. 0 means "no limit" (TrimHistory only
+        // trims `if (_maxEntries > 0 ...)`), and anyone who has been running without the key
+        // has been accumulating history unbounded on that basis. Populating 50000 into them
+        // would call TrimHistory() on the very next load and PERMANENTLY drop everything past
+        // the cap - one real history.csv measured while writing this held 221,304 entries, so
+        // that is a silent one-way deletion of ~170,000 rows. A new install has nothing to
+        // lose and gets the author's 50,000 cap, which is what stops history.csv growing
+        // without bound in the first place.
+        [DefaultValue(0)]
         public int HistoryMaxEntries
         {
             get => _historyMaxEntries;
