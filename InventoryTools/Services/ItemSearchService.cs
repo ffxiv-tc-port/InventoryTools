@@ -14,6 +14,7 @@ using Dalamud.Game.Text.SeStringHandling;
 using Dalamud.Game.Text.SeStringHandling.Payloads;
 using Dalamud.Plugin.Services;
 using FFXIVClientStructs.FFXIV.Client.Game;
+using InventoryTools.Extensions;
 using InventoryTools.Logic.Editors;
 using InventoryTools.Mediator;
 using Lumina.Excel.Sheets;
@@ -93,7 +94,7 @@ public class ItemSearchService(MediatorService mediatorService, IClientState cli
 
                 normalTotal = (uint)(normalTotal + normalQuantity);
                 hqTotal = (uint)(hqTotal + hqQuantity);
-                searchResults.Add($"    {(normalQuantity != 0 ? normalQuantity.ToString() :  "")}{(hqQuantity != 0 ? (normalQuantity != 0 ? "," : "") + hqQuantity + "\uE03c" : "")} found in {itemByCategory.Key.FormattedName()}");
+                searchResults.Add($"    {(normalQuantity != 0 ? normalQuantity.ToString() :  "")}{(hqQuantity != 0 ? (normalQuantity != 0 ? "," : "") + hqQuantity + "\uE03c" : "")} found in {itemByCategory.Key.LocalizedName()}");
             }
         }
 

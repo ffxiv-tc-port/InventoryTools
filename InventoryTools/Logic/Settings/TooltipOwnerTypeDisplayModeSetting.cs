@@ -8,7 +8,7 @@ namespace InventoryTools.Logic.Settings;
 public class TooltipOwnerTypeDisplayModeSetting : ChoiceSetting<TooltipOwnerTypeDisplayMode>
 {
     public override TooltipOwnerTypeDisplayMode DefaultValue { get; set; } =
-        TooltipOwnerTypeDisplayMode.WhenAmbiguous;
+        TooltipOwnerTypeDisplayMode.Never;
 
     public override TooltipOwnerTypeDisplayMode CurrentValue(InventoryToolsConfiguration configuration)
     {
@@ -27,7 +27,7 @@ public class TooltipOwnerTypeDisplayModeSetting : ChoiceSetting<TooltipOwnerType
     public override string WizardName { get; } = "Owner Type".Loc();
 
     public override string HelpText { get; set; } =
-        "Retainers can be given the same name as a character, a free company or a house, in which case the item locations in the tooltip cannot tell you which inventory an item is actually in. This affixes the kind of owner to the name. This requires 'Add Item Locations?' to be on.";
+        "Retainer containers are already named apart from the character ones, so you should not normally need this. It is here for what that cannot cover: currency and crystals are one category for characters and retainers alike, and a free company or a house may itself be named after one of your characters. This affixes the kind of owner to the name. This requires 'Add Item Locations?' to be on.";
 
     public override SettingCategory SettingCategory { get; set; } = SettingCategory.ToolTips;
     public override SettingSubCategory SettingSubCategory { get; } = SettingSubCategory.AddItemLocations;
@@ -38,9 +38,9 @@ public class TooltipOwnerTypeDisplayModeSetting : ChoiceSetting<TooltipOwnerType
         {
             return new Dictionary<TooltipOwnerTypeDisplayMode, string>()
             {
+                { TooltipOwnerTypeDisplayMode.Never, "Never".Loc() },
                 { TooltipOwnerTypeDisplayMode.WhenAmbiguous, "Only when the name is ambiguous".Loc() },
                 { TooltipOwnerTypeDisplayMode.Always, "Always".Loc() },
-                { TooltipOwnerTypeDisplayMode.Never, "Never".Loc() },
             };
         }
     }

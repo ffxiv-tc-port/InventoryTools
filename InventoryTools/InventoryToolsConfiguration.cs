@@ -379,7 +379,7 @@ namespace InventoryTools
         private int _tooltipHeaderLines;
         private int _tooltipFooterLines;
         private TooltipLocationDisplayMode _tooltipLocationDisplayMode = TooltipLocationDisplayMode.CharacterCategoryQuantityQuality;
-        private TooltipOwnerTypeDisplayMode _tooltipOwnerTypeDisplayMode = TooltipOwnerTypeDisplayMode.WhenAmbiguous;
+        private TooltipOwnerTypeDisplayMode _tooltipOwnerTypeDisplayMode = TooltipOwnerTypeDisplayMode.Never;
         private WindowLayout _craftWindowLayout =  WindowLayout.Tabs;
         private WindowLayout _filtersLayout = WindowLayout.Tabs;
         private uint? _tooltipColor;
@@ -550,7 +550,7 @@ namespace InventoryTools
         // back with DefaultValueHandling.IgnoreAndPopulate, which overwrites the backing field's
         // initializer with default(T) for any property missing from the json - and this property
         // is missing from every existing user's json.
-        [DefaultValue(Logic.Settings.TooltipOwnerTypeDisplayMode.WhenAmbiguous)]
+        [DefaultValue(Logic.Settings.TooltipOwnerTypeDisplayMode.Never)]
         public TooltipOwnerTypeDisplayMode TooltipOwnerTypeDisplayMode
         {
             get => _tooltipOwnerTypeDisplayMode;

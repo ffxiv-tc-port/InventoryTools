@@ -1,5 +1,6 @@
 using CriticalCommonLib.Extensions;
 using CriticalCommonLib.Services;
+using InventoryTools.Extensions;
 using InventoryTools.Localizers;
 using InventoryTools.Logic.Columns.Abstract;
 using InventoryTools.Services;
@@ -40,7 +41,7 @@ namespace InventoryTools.Logic.Columns
                         ? _characterMonitor.Characters[searchResult.SortingResult.DestinationRetainerId.Value].FormattedName
                         : ""
                     : "Unknown";
-                var destinationBag = searchResult.SortingResult.DestinationBag?.ToInventoryCategory().FormattedName() ??
+                var destinationBag = searchResult.SortingResult.DestinationBag?.ToInventoryCategory().LocalizedName() ??
                                      "";
                 return destination + " - " + destinationBag;
             }

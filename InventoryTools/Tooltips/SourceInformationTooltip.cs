@@ -119,7 +119,7 @@ public class SourceInformationTooltip : BaseTooltip
             var newText = "";
             if (textLines.Count != 0)
             {
-                newText = "\nSources: " + string.Join(", ", textLines.Distinct());
+                newText = "\n" + "Sources: ??".Loc(string.Join(", ", textLines.Distinct()));
             }
 
             newText = newText.TrimEnd('\n');

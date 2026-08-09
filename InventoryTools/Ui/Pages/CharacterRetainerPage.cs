@@ -10,6 +10,7 @@ using CriticalCommonLib.Services.Mediator;
 using DalaMock.Host.Mediator;
 using Dalamud.Interface.Utility.Raii;
 using Dalamud.Bindings.ImGui;
+using InventoryTools.Extensions;
 using InventoryTools.Mediator;
 using InventoryTools.Services;
 using InventoryTools.Ui.Widgets;
@@ -470,7 +471,7 @@ namespace InventoryTools.Ui.Pages
                                         foreach (var category in categories)
                                         {
                                             var inventoryWidth = 5;
-                                            using (var tabItem = ImRaii.TabItem(category.Key.FormattedName()))
+                                            using (var tabItem = ImRaii.TabItem(category.Key.LocalizedName()))
                                             {
                                                 if (tabItem.Success)
                                                 {

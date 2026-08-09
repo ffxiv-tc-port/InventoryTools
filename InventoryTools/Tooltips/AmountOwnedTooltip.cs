@@ -9,6 +9,7 @@ using Dalamud.Game.Text.SeStringHandling.Payloads;
 using Dalamud.Plugin;
 using Dalamud.Plugin.Services;
 using FFXIVClientStructs.FFXIV.Component.GUI;
+using InventoryTools.Extensions;
 using InventoryTools.Localizers;
 using InventoryTools.Logic.Editors;
 using InventoryTools.Logic.Settings;
@@ -121,7 +122,7 @@ public class AmountOwnedTooltip : BaseTooltip
             else if(sortMode == TooltipAmountOwnedSort.Categorically)
             {
                 var characterNames = _characterMonitor.Characters.OrderBy(c => c.Value.FormattedName).ToList();
-                enumerable = enumerable.OrderBy(c => c.SortedCategory.FormattedName()).ThenBy(c => characterNames.IndexOf(d => d.Key == c.RetainerId));
+                enumerable = enumerable.OrderBy(c => c.SortedCategory.LocalizedName()).ThenBy(c => characterNames.IndexOf(d => d.Key == c.RetainerId));
             }
             else if(sortMode == TooltipAmountOwnedSort.Quantity)
             {
@@ -214,7 +215,7 @@ public class AmountOwnedTooltip : BaseTooltip
                         typeIcon = "\uE03d";
                     }
 
-                    locations.Add($"{name} - {oGroup.Key.SortedCategory.FormattedName()} - " + quantity + " " + typeIcon);
+                    locations.Add($"{name} - {oGroup.Key.SortedCategory.LocalizedName()} - " + quantity + " " + typeIcon);
                 }
                 if (groupedItems.Count > Configuration.TooltipLocationLimit)
                 {

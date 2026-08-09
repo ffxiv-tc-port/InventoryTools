@@ -5,6 +5,7 @@ using CriticalCommonLib.Models;
 using CriticalCommonLib.Services;
 using Dalamud.Interface.Colors;
 using Dalamud.Bindings.ImGui;
+using InventoryTools.Extensions;
 using InventoryTools.Lists;
 using InventoryTools.Logic.Editors;
 using InventoryTools.Logic.Filters.Abstract;
@@ -76,7 +77,7 @@ namespace InventoryTools.Logic.Filters
                         }
                         if (_scopeCalculator.Filter(sourceInventories, retainer.Key, category))
                         {
-                            var formattedName = retainer.Value.FormattedName + " - " + category.FormattedName();
+                            var formattedName = retainer.Value.FormattedName + " - " + category.LocalizedName();
                             sources.Add(formattedName);
                         }
                     }
@@ -113,7 +114,7 @@ namespace InventoryTools.Logic.Filters
                         }
                         if (_scopeCalculator.Filter(sourceInventories, retainer.Key, category))
                         {
-                            var formattedName = retainer.Value.FormattedName + " - " + category.FormattedName();
+                            var formattedName = retainer.Value.FormattedName + " - " + category.LocalizedName();
                             sources.Add(formattedName);
                         }
                     }
@@ -150,7 +151,7 @@ namespace InventoryTools.Logic.Filters
                         }
                         if (_scopeCalculator.Filter(sourceInventories, retainer.Key, category))
                         {
-                            var formattedName = retainer.Value.FormattedName + " - " + category.FormattedName();
+                            var formattedName = retainer.Value.FormattedName + " - " + category.LocalizedName();
                             sources.Add(formattedName);
                         }
                     }
@@ -188,7 +189,7 @@ namespace InventoryTools.Logic.Filters
                         }
                         if (_scopeCalculator.Filter(sourceInventories, retainer.Key, category))
                         {
-                            var formattedName = retainer.Value.FormattedName + " - " + category.FormattedName();
+                            var formattedName = retainer.Value.FormattedName + " - " + category.LocalizedName();
                             sources.Add(formattedName);
                         }
                     }

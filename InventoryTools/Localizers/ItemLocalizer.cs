@@ -86,207 +86,241 @@ public class ItemLocalizer
         return SortedContainerName(inventoryItem) + " - " + (inventoryItem.SortedSlotIndex + 1);
     }
 
+    /// <summary>
+    /// The display name of the container an item sits in.
+    /// </summary>
+    /// <remarks>
+    /// Retainer containers get names of their own rather than sharing the character ones. A
+    /// retainer may be given the same name as a character, so "Foo - Bag 1" was genuinely
+    /// ambiguous: it read identically whether the item was in the character's first bag or in the
+    /// same-named retainer's. The five retainer bags, retainer equipped gear, retainer gil and
+    /// retainer crystals are the containers that collided; the retainer market always had a name
+    /// of its own and is left alone.
+    /// Retainer bag 5 has no character counterpart to collide with, but it is renamed alongside
+    /// the other four regardless - "Retainer Bag 1..4" next to a bare "Bag 5" would read as a
+    /// character bag.
+    /// </remarks>
     public string SortedContainerName(InventoryItem inventoryItem)
     {
-        if(inventoryItem.SortedContainer is InventoryType.Bag0 or InventoryType.RetainerBag0)
+        if(inventoryItem.SortedContainer is InventoryType.Bag0)
         {
-            return "Bag 1";
+            return "Bag 1".Loc();
         }
-        if(inventoryItem.SortedContainer is InventoryType.Bag1 or InventoryType.RetainerBag1)
+        if(inventoryItem.SortedContainer is InventoryType.Bag1)
         {
-            return "Bag 2";
+            return "Bag 2".Loc();
         }
-        if(inventoryItem.SortedContainer is InventoryType.Bag2 or InventoryType.RetainerBag2)
+        if(inventoryItem.SortedContainer is InventoryType.Bag2)
         {
-            return "Bag 3";
+            return "Bag 3".Loc();
         }
-        if(inventoryItem.SortedContainer is InventoryType.Bag3 or InventoryType.RetainerBag3)
+        if(inventoryItem.SortedContainer is InventoryType.Bag3)
         {
-            return "Bag 4";
+            return "Bag 4".Loc();
+        }
+        if(inventoryItem.SortedContainer is InventoryType.RetainerBag0)
+        {
+            return "Retainer Bag 1".Loc();
+        }
+        if(inventoryItem.SortedContainer is InventoryType.RetainerBag1)
+        {
+            return "Retainer Bag 2".Loc();
+        }
+        if(inventoryItem.SortedContainer is InventoryType.RetainerBag2)
+        {
+            return "Retainer Bag 3".Loc();
+        }
+        if(inventoryItem.SortedContainer is InventoryType.RetainerBag3)
+        {
+            return "Retainer Bag 4".Loc();
         }
         if(inventoryItem.SortedContainer is InventoryType.RetainerBag4)
         {
-            return "Bag 5";
+            return "Retainer Bag 5".Loc();
         }
         if(inventoryItem.SortedContainer is InventoryType.SaddleBag0)
         {
-            return "Saddlebag Left";
+            return "Saddlebag Left".Loc();
         }
         if(inventoryItem.SortedContainer is InventoryType.SaddleBag1)
         {
-            return "Saddlebag Right";
+            return "Saddlebag Right".Loc();
         }
         if(inventoryItem.SortedContainer is InventoryType.PremiumSaddleBag0)
         {
-            return "Premium Saddlebag Left";
+            return "Premium Saddlebag Left".Loc();
         }
         if(inventoryItem.SortedContainer is InventoryType.PremiumSaddleBag1)
         {
-            return "Premium Saddlebag Right";
+            return "Premium Saddlebag Right".Loc();
         }
         if(inventoryItem.SortedContainer is InventoryType.ArmoryBody)
         {
-            return "Armory - Body";
+            return "Armory - Body".Loc();
         }
         if(inventoryItem.SortedContainer is InventoryType.ArmoryEar)
         {
-            return "Armory - Ear";
+            return "Armory - Ear".Loc();
         }
         if(inventoryItem.SortedContainer is InventoryType.ArmoryFeet)
         {
-            return "Armory - Feet";
+            return "Armory - Feet".Loc();
         }
         if(inventoryItem.SortedContainer is InventoryType.ArmoryHand)
         {
-            return "Armory - Hand";
+            return "Armory - Hand".Loc();
         }
         if(inventoryItem.SortedContainer is InventoryType.ArmoryHead)
         {
-            return "Armory - Head";
+            return "Armory - Head".Loc();
         }
         if(inventoryItem.SortedContainer is InventoryType.ArmoryLegs)
         {
-            return "Armory - Legs";
+            return "Armory - Legs".Loc();
         }
         if(inventoryItem.SortedContainer is InventoryType.ArmoryMain)
         {
-            return "Armory - Main";
+            return "Armory - Main".Loc();
         }
         if(inventoryItem.SortedContainer is InventoryType.ArmoryNeck)
         {
-            return "Armory - Neck";
+            return "Armory - Neck".Loc();
         }
         if(inventoryItem.SortedContainer is InventoryType.ArmoryOff)
         {
-            return "Armory - Offhand";
+            return "Armory - Offhand".Loc();
         }
         if(inventoryItem.SortedContainer is InventoryType.ArmoryRing)
         {
-            return "Armory - Ring";
+            return "Armory - Ring".Loc();
         }
         if(inventoryItem.SortedContainer is InventoryType.ArmoryWaist)
         {
-            return "Armory - Waist";
+            return "Armory - Waist".Loc();
         }
         if(inventoryItem.SortedContainer is InventoryType.ArmoryWrist)
         {
-            return "Armory - Wrist";
+            return "Armory - Wrist".Loc();
         }
         if(inventoryItem.SortedContainer is InventoryType.ArmorySoulCrystal)
         {
-            return "Armory - Soul Crystal";
+            return "Armory - Soul Crystal".Loc();
         }
         if(inventoryItem.SortedContainer is InventoryType.GearSet0)
         {
-            return "Equipped Gear";
+            return "Equipped Gear".Loc();
         }
         if(inventoryItem.SortedContainer is InventoryType.RetainerEquippedGear)
         {
-            return "Equipped Gear";
+            return "Retainer Equipped Gear".Loc();
         }
         if(inventoryItem.SortedContainer is InventoryType.FreeCompanyBag0)
         {
-            return "Free Company Chest - 1";
+            return "Free Company Chest".Loc() + " - 1";
         }
         if(inventoryItem.SortedContainer is InventoryType.FreeCompanyBag1)
         {
-            return "Free Company Chest - 2";
+            return "Free Company Chest".Loc() + " - 2";
         }
         if(inventoryItem.SortedContainer is InventoryType.FreeCompanyBag2)
         {
-            return "Free Company Chest - 3";
+            return "Free Company Chest".Loc() + " - 3";
         }
         if(inventoryItem.SortedContainer is InventoryType.FreeCompanyBag3)
         {
-            return "Free Company Chest - 4";
+            return "Free Company Chest".Loc() + " - 4";
         }
         if(inventoryItem.SortedContainer is InventoryType.FreeCompanyBag4)
         {
-            return "Free Company Chest - 5";
+            return "Free Company Chest".Loc() + " - 5";
         }
         if(inventoryItem.SortedContainer is InventoryType.FreeCompanyBag5)
         {
-            return "Free Company Chest - 6";
+            return "Free Company Chest".Loc() + " - 6";
         }
         if(inventoryItem.SortedContainer is InventoryType.FreeCompanyBag6)
         {
-            return "Free Company Chest - 7";
+            return "Free Company Chest".Loc() + " - 7";
         }
         if(inventoryItem.SortedContainer is InventoryType.FreeCompanyBag7)
         {
-            return "Free Company Chest - 8";
+            return "Free Company Chest".Loc() + " - 8";
         }
         if(inventoryItem.SortedContainer is InventoryType.FreeCompanyBag8)
         {
-            return "Free Company Chest - 9";
+            return "Free Company Chest".Loc() + " - 9";
         }
         if(inventoryItem.SortedContainer is InventoryType.FreeCompanyBag9)
         {
-            return "Free Company Chest - 10";
+            return "Free Company Chest".Loc() + " - 10";
         }
         if(inventoryItem.SortedContainer is InventoryType.FreeCompanyBag10)
         {
-            return "Free Company Chest - 11";
+            return "Free Company Chest".Loc() + " - 11";
         }
         if(inventoryItem.SortedContainer is InventoryType.RetainerMarket)
         {
-            return "Market";
+            return "Market".Loc();
         }
         if(inventoryItem.SortedContainer is InventoryType.GlamourChest)
         {
-            return "Glamour Chest";
+            return "Glamour Chest".Loc();
         }
         if(inventoryItem.SortedContainer is InventoryType.Armoire)
         {
-            return "Armoire - " + CabinetName(inventoryItem);
+            return "Armoire".Loc() + " - " + CabinetName(inventoryItem);
         }
         if(inventoryItem.SortedContainer is InventoryType.Currency)
         {
-            return "Currency";
+            return "Currency".Loc();
         }
         if(inventoryItem.SortedContainer is InventoryType.FreeCompanyGil)
         {
-            return "Free Company - Gil";
+            return "Free Company - Gil".Loc();
         }
         if(inventoryItem.SortedContainer is InventoryType.RetainerGil)
         {
-            return "Currency";
+            return "Retainer Currency".Loc();
         }
         if(inventoryItem.SortedContainer is InventoryType.FreeCompanyCrystal)
         {
-            return "Free Company - Crystals";
+            return "Free Company - Crystals".Loc();
         }
         if(inventoryItem.SortedContainer is InventoryType.FreeCompanyCurrency)
         {
-            return "Free Company - Currency";
+            return "Free Company - Currency".Loc();
         }
-        if(inventoryItem.SortedContainer is InventoryType.Crystal or InventoryType.RetainerCrystal)
+        if(inventoryItem.SortedContainer is InventoryType.RetainerCrystal)
         {
-            return "Crystals";
+            return "Retainer Crystals".Loc();
+        }
+        if(inventoryItem.SortedContainer is InventoryType.Crystal)
+        {
+            return "Crystals".Loc();
         }
         if(inventoryItem.SortedContainer is InventoryType.HousingExteriorAppearance)
         {
-            return "Housing Exterior Appearance";
+            return "Housing Exterior Appearance".Loc();
         }
         if(inventoryItem.SortedContainer is InventoryType.HousingInteriorAppearance)
         {
-            return "Housing Interior Appearance";
+            return "Housing Interior Appearance".Loc();
         }
         if(inventoryItem.SortedContainer is InventoryType.HousingExteriorStoreroom)
         {
-            return "Housing Exterior Storeroom";
+            return "Housing Exterior Storeroom".Loc();
         }
         if(inventoryItem.SortedContainer is InventoryType.HousingInteriorStoreroom1 or InventoryType.HousingInteriorStoreroom2 or InventoryType.HousingInteriorStoreroom2 or InventoryType.HousingInteriorStoreroom3 or InventoryType.HousingInteriorStoreroom4 or InventoryType.HousingInteriorStoreroom5 or InventoryType.HousingInteriorStoreroom6 or InventoryType.HousingInteriorStoreroom7 or InventoryType.HousingInteriorStoreroom8)
         {
-            return "Housing Interior Storeroom";
+            return "Housing Interior Storeroom".Loc();
         }
         if(inventoryItem.SortedContainer is InventoryType.HousingInteriorPlacedItems1 or InventoryType.HousingInteriorPlacedItems2 or InventoryType.HousingInteriorPlacedItems2 or InventoryType.HousingInteriorPlacedItems3 or InventoryType.HousingInteriorPlacedItems4 or InventoryType.HousingInteriorPlacedItems5 or InventoryType.HousingInteriorPlacedItems6 or InventoryType.HousingInteriorPlacedItems7 or InventoryType.HousingInteriorPlacedItems8)
         {
-            return "Housing Interior Placed Items";
+            return "Housing Interior Placed Items".Loc();
         }
         if(inventoryItem.SortedContainer is InventoryType.HousingExteriorPlacedItems)
         {
-            return "Housing Exterior Placed Items";
+            return "Housing Exterior Placed Items".Loc();
         }
 
         return inventoryItem.SortedContainer.ToString();
