@@ -27,36 +27,25 @@ public class CraftingMaterialHighlightTooltip : BaseTooltip
 {
     /// <summary>
     /// Addon row holding the "crafting material" phrase. Verified against the TC 7.20 Addon sheet
-    /// dump (2026-08-09): row 996 = "\n製作用素材".
+    /// dump (2026-08-09): row 996 = "\n製作用素材". Row 997 is the matching "\n製作用觸媒"
+    /// (crafting catalyst) and both sit in the run of item-tooltip attribute lines around
+    /// 991 效果 / 995 簡易修理, which is why the leading newline is there: the game appends them
+    /// to an existing field rather than giving them one of their own.
     /// </summary>
     private const uint CraftingMaterialAddonRow = 996;
 
     /// <summary>
-    /// String array fields to search, in order. The phrase is composed into the tooltip by the
-    /// game rather than stored in Item.Description, and which field it lands in is not something
-    /// this plugin can pin down offline, so the whole plausible set is searched and the first
-    /// field that actually contains it is the one rewritten. A field that is absent or too short
-    /// is handled by GetTooltipString, which bounds-checks and returns null.
+    /// Field 0 is the item name and field 1 the glamour name; recolouring either would be wrong,
+    /// so the scan starts after them.
     /// </summary>
-    private static readonly TooltipService.ItemTooltipField[] CandidateFields =
-    [
-        TooltipService.ItemTooltipField.ItemUiCategory,
-        TooltipService.ItemTooltipField.ItemDescription,
-        TooltipService.ItemTooltipField.Effects,
-        TooltipService.ItemTooltipField.ExtractableProjectableDesynthesizable,
-        TooltipService.ItemTooltipField.Param0,
-        TooltipService.ItemTooltipField.Param1,
-        TooltipService.ItemTooltipField.Param2,
-        TooltipService.ItemTooltipField.Param3,
-        TooltipService.ItemTooltipField.Param4,
-        TooltipService.ItemTooltipField.Param5,
-        TooltipService.ItemTooltipField.ControlsDisplay,
-    ];
+    private const int FirstScannedField = 2;
 
     private readonly TooltipCraftingMaterialHighlightColorSetting _colorSetting;
     private readonly TooltipCraftingMaterialHighlightSetting _enabledSetting;
     private readonly ShowTooltipsSetting _showTooltipsSetting;
     private readonly string _needle;
+    private bool _loggedActive;
+    private bool _loggedMatch;
 
     public CraftingMaterialHighlightTooltip(ILogger<CraftingMaterialHighlightTooltip> logger,
         TooltipCraftingMaterialHighlightColorSetting colorSetting,
@@ -73,8 +62,10 @@ public class CraftingMaterialHighlightTooltip : BaseTooltip
         _showTooltipsSetting = showTooltipsSetting;
         _needle = addonSheet.GetRowOrDefault(CraftingMaterialAddonRow)?.Text.ExtractText().Trim() ?? "";
 
-        // Information, not Debug: this is the one fact needed to tell "the setting is off" apart
-        // from "the phrase never resolved", and users run at log level 2.
+        // Information, not Debug: users run at log level 2. Note this fires from the constructor,
+        // which happens whether or not the setting is on - so on its own it only proves the Addon
+        // row resolved, NOT that the tweak ever ran. The pair of one-shot logs below is what
+        // distinguishes those two.
         if (_needle.Length == 0)
         {
             logger.LogInformation(
@@ -98,7 +89,25 @@ public class CraftingMaterialHighlightTooltip : BaseTooltip
         if (!ShouldShow()) return;
         if (HoverItem == null) return;
 
-        foreach (var field in CandidateFields)
+        // TooltipService.ItemTooltipField is byte-backed and SetTooltipString only accepts it, so
+        // the scan cannot go past 255 without the cast wrapping around and writing to the wrong
+        // field. The item tooltip's array is far smaller than that, but silently corrupting a
+        // different string is not a failure worth risking on an assumption.
+        var fieldCount = System.Math.Min(stringArrayData->AtkArrayData.Size, 256);
+
+        // Diagnostic one of two. Fires the first time the tweak actually runs, which only happens
+        // once both the master tooltip switch and this module's own setting are on. If this line
+        // is absent from a log, the module was never enabled and nothing below is worth
+        // investigating.
+        if (!_loggedActive)
+        {
+            _loggedActive = true;
+            Logger.LogInformation(
+                "CraftingMaterialHighlightTooltip: active, scanning tooltip string fields {First}..{Last} for {Needle}.",
+                FirstScannedField, fieldCount - 1, _needle);
+        }
+
+        for (var field = FirstScannedField; field < fieldCount; field++)
         {
             var seStr = GetTooltipString(stringArrayData, field);
             if (seStr == null || seStr.Payloads.Count == 0)
@@ -108,7 +117,8 @@ public class CraftingMaterialHighlightTooltip : BaseTooltip
 
             // Idempotence marker, the same one the appending tweaks use: the detour runs the
             // whole tweak list every time a tooltip is generated, and without this a second pass
-            // would split the phrase out of its own payload and wrap it again.
+            // would split the phrase out of its own payload and wrap it again. Checked before the
+            // phrase test because after a rewrite the field still contains the phrase.
             if (seStr.Payloads.Any(payload =>
                     payload is DalamudLinkPayload linkPayload && linkPayload.CommandId == TooltipIdentifier))
             {
@@ -120,9 +130,21 @@ public class CraftingMaterialHighlightTooltip : BaseTooltip
                 continue;
             }
 
+            // Diagnostic two of two. Fires once, on the first item that actually carries the
+            // phrase, and names the field it was in. "active" without this line means the scan
+            // is running but never matching; both lines present means the rewrite happened and
+            // anything still wrong is visual.
+            if (!_loggedMatch)
+            {
+                _loggedMatch = true;
+                Logger.LogInformation(
+                    "CraftingMaterialHighlightTooltip: found {Needle} in tooltip string field {Field}; recolouring it from here on.",
+                    _needle, field);
+            }
+
             rewritten.Payloads.Add(GetLinkPayload());
             rewritten.Payloads.Add(RawPayload.LinkTerminator);
-            SetTooltipString(stringArrayData, field, rewritten);
+            SetTooltipString(stringArrayData, (TooltipService.ItemTooltipField)field, rewritten);
             return;
         }
     }
