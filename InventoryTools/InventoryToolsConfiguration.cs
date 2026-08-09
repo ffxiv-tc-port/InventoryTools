@@ -363,8 +363,11 @@ namespace InventoryTools
         }
 
         public int SelectedConfigurationPage { get; set; }
+        [DefaultValue(true)]
         public bool ShowFilterTab { get; set; } = true;
+        [DefaultValue(true)]
         public bool SwitchFiltersAutomatically { get; set; } = true;
+        [DefaultValue(true)]
         public bool SwitchCraftListsAutomatically { get; set; } = true;
         private bool _tooltipCurrentCharacter;
         private bool _tooltipDisplayAmountOwned = true;
@@ -407,6 +410,7 @@ namespace InventoryTools
             }
         }
 
+        [Vector4Default("0, 0.8, 0.1333333, 1")]
         public Vector4 RetainerListColor
         {
             get => _retainerListColor;
@@ -428,6 +432,7 @@ namespace InventoryTools
             }
         }
 
+        [DefaultValue(true)]
         public bool DisplayCrossCharacter
         {
             get => _displayCrossCharacter;
@@ -438,6 +443,7 @@ namespace InventoryTools
             }
         }
 
+        [DefaultValue(true)]
         public bool DisplayTooltip
         {
             get => _displayTooltip;
@@ -458,6 +464,7 @@ namespace InventoryTools
             }
         }
 
+        [DefaultValue(true)]
         public bool TooltipDisplayAmountOwned
         {
             get => _tooltipDisplayAmountOwned;
@@ -506,6 +513,7 @@ namespace InventoryTools
             }
         }
 
+        [DefaultValue(true)]
         public bool TooltipDisplayMarketLowestPrice
         {
             get => _tooltipDisplayMarketLowestPrice;
@@ -536,6 +544,7 @@ namespace InventoryTools
                 IsDirty = true;
             }
         }
+        [DefaultValue(Logic.Settings.TooltipLocationDisplayMode.CharacterCategoryQuantityQuality)]
         public TooltipLocationDisplayMode TooltipLocationDisplayMode
         {
             get => _tooltipLocationDisplayMode;
@@ -560,6 +569,7 @@ namespace InventoryTools
                 IsDirty = true;
             }
         }
+        [DefaultValue(WindowLayout.Tabs)]
         public WindowLayout CraftWindowLayout
         {
             get => _craftWindowLayout;
@@ -569,6 +579,7 @@ namespace InventoryTools
                 IsDirty = true;
             }
         }
+        [DefaultValue(WindowLayout.Tabs)]
         public WindowLayout FiltersLayout
         {
             get => _filtersLayout;
@@ -621,6 +632,7 @@ namespace InventoryTools
             }
         }
 
+        [DefaultValue(true)]
         public bool ColorRetainerList
         {
             get => _colorRetainerList;
@@ -631,6 +643,7 @@ namespace InventoryTools
             }
         }
 
+        [DefaultValue(true)]
         public bool ShowItemNumberRetainerList
         {
             get => _showItemNumberRetainerList;
@@ -641,6 +654,7 @@ namespace InventoryTools
             }
         }
 
+        [DefaultValue(true)]
         public bool InvertHighlighting
         {
             get => _invertHighlighting;
@@ -856,7 +870,9 @@ namespace InventoryTools
         #if DEBUG
         public int SelectedDebugPage { get; set; }
         #endif
+        [DefaultValue(true)]
         public bool AutoSave { get; set; } = true;
+        [DefaultValue(10)]
         public int AutoSaveMinutes { get; set; } = 10;
         public int InternalVersion { get; set; } = 0;
         public int Version { get; set; }
@@ -980,6 +996,7 @@ namespace InventoryTools
             }
         }
 
+        [DefaultValue(Microsoft.Extensions.Logging.LogLevel.Information)]
         public LogLevel LogLevel { get; set; } = LogLevel.Information;
 
         public Dictionary<string, bool> BooleanSettings
