@@ -31,5 +31,6 @@ namespace InventoryTools.Logic.Settings.Abstract
         AcquisitionTracker,
         IngredientPatch,
         CofferContents,
+        CraftingMaterialHighlight,
     }
 }
