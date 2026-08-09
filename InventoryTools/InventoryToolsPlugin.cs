@@ -198,6 +198,7 @@ namespace InventoryTools
             builder.RegisterSingletonSelfAndInterfaces<AllaganDebugWindow>();
             builder.RegisterSingletonSelfAndInterfaces<ChangelogService>();
             builder.RegisterSingletonSelfAndInterfaces<CharacterMonitor>();
+            builder.RegisterSingletonSelfAndInterfaces<CharacterLocalizer>();
             builder.RegisterSingletonSelfAndInterfaces<CharacterRetainerPage>();
             builder.RegisterSingletonSelfAndInterfaces<CharacterScopeCalculator>();
             builder.RegisterSingletonSelfAndInterfaces<ChatUtilities>();

@@ -379,6 +379,7 @@ namespace InventoryTools
         private int _tooltipHeaderLines;
         private int _tooltipFooterLines;
         private TooltipLocationDisplayMode _tooltipLocationDisplayMode = TooltipLocationDisplayMode.CharacterCategoryQuantityQuality;
+        private TooltipOwnerTypeDisplayMode _tooltipOwnerTypeDisplayMode = TooltipOwnerTypeDisplayMode.WhenAmbiguous;
         private WindowLayout _craftWindowLayout =  WindowLayout.Tabs;
         private WindowLayout _filtersLayout = WindowLayout.Tabs;
         private uint? _tooltipColor;
@@ -541,6 +542,21 @@ namespace InventoryTools
             set
             {
                 _tooltipLocationDisplayMode = value;
+                IsDirty = true;
+            }
+        }
+
+        // The DefaultValue attribute is load bearing, not decoration: the configuration is read
+        // back with DefaultValueHandling.IgnoreAndPopulate, which overwrites the backing field's
+        // initializer with default(T) for any property missing from the json - and this property
+        // is missing from every existing user's json.
+        [DefaultValue(Logic.Settings.TooltipOwnerTypeDisplayMode.WhenAmbiguous)]
+        public TooltipOwnerTypeDisplayMode TooltipOwnerTypeDisplayMode
+        {
+            get => _tooltipOwnerTypeDisplayMode;
+            set
+            {
+                _tooltipOwnerTypeDisplayMode = value;
                 IsDirty = true;
             }
         }
