@@ -199,6 +199,7 @@ namespace InventoryTools
             builder.RegisterSingletonSelfAndInterfaces<ChangelogService>();
             builder.RegisterSingletonSelfAndInterfaces<CharacterMonitor>();
             builder.RegisterSingletonSelfAndInterfaces<CharacterLocalizer>();
+            builder.RegisterSingletonSelfAndInterfaces<CofferContentLocalizer>();
             builder.RegisterSingletonSelfAndInterfaces<CharacterRetainerPage>();
             builder.RegisterSingletonSelfAndInterfaces<CharacterScopeCalculator>();
             builder.RegisterSingletonSelfAndInterfaces<ChatUtilities>();
