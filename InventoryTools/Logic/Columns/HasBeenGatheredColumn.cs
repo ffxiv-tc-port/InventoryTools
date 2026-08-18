@@ -25,8 +25,7 @@ public class HasBeenGatheredColumn : CheckboxColumn
     public override string RenderName => "Logged?".Loc();
     public override float Width { get; set; } = 80;
 
-    public override string HelpText { get; set; } =
-        "Has this gathering item been gathered at least once by the currently logged in character? This only supports mining and botany at present.";
+    public override string HelpText { get; set; } = SharedText.HasBeenGathered.Loc();
 
     public override bool HasFilter { get; set; } = true;
     public override ColumnFilterType FilterType { get; set; } = ColumnFilterType.Boolean;

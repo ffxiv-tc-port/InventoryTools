@@ -15,8 +15,7 @@ namespace InventoryTools.Logic.Filters
         public override string Key { get; set; } = "HighlightDestinationColor";
         public override string Name { get; set; } = "Highlight Destination Color".Loc();
 
-        public override string HelpText { get; set; } =
-            "The color to set any items in the destination that match your source filter(assuming highlight destination duplicates is on).";
+        public override string HelpText { get; set; } = SharedText.HighlightDestinationColour.Loc();
 
         public override FilterCategory FilterCategory { get; set; } = FilterCategory.Display;
 

@@ -45,4 +45,10 @@ public static class SharedText {
     public const string ClipboardImported = "The contents of your clipboard were imported.";
     public const string GetStartedAddCraftList = "Get started by adding a craft list by hitting the + button on the bottom left.";
     public const string SubmarineExplorationPointIdPrefix = "Submarine Exploration Point with the ID ";
+
+    // 以下三組原本是「一邊有 .Loc() 一邊沒有」:ini 裡三句都已經有繁中翻譯,
+    // 但沒被 .Loc() 包住的那一份永遠顯示英文,看起來像漏翻。補上之後一併收斂。
+    public const string ExpertDeliverySealCount = "The number of seals that are rewarded when handing this item in as an expert delivery.";
+    public const string HasBeenGathered = "Has this gathering item been gathered at least once by the currently logged in character? This only supports mining and botany at present.";
+    public const string HighlightDestinationColour = "The color to set any items in the destination that match your source filter(assuming highlight destination duplicates is on).";
 }

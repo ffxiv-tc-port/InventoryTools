@@ -20,7 +20,7 @@ namespace InventoryTools.Logic.Settings
 
         public override string Key { get; set; } = "DestinationHighlightColour";
         public override string Name { get; set; } = "Destination Highlight Colour".Loc();
-        public override string HelpText { get; set; } = "The color to set any items in the destination that match your source filter(assuming highlight destination duplicates is on).".Loc();
+        public override string HelpText { get; set; } = SharedText.HighlightDestinationColour.Loc();
         public override SettingCategory SettingCategory { get; set; } = SettingCategory.Highlighting;
         public override SettingSubCategory SettingSubCategory { get; } = SettingSubCategory.Colours;
         public override string Version => "1.7.0.0";
