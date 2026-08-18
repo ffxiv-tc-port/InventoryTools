@@ -48,7 +48,7 @@ namespace InventoryTools.Ui.Pages
                         new Widgets.PopupMenu.PopupMenuItemSelectable("Export Configuration".Loc(), "ef_" + configuration.Key,ExportList, "Exports the list.".Loc()),
                         new Widgets.PopupMenu.PopupMenuItemSelectable( "Move Up".Loc(), "mu_" + configuration.Key, MoveListUp,  "Move the list up.".Loc()),
                         new Widgets.PopupMenu.PopupMenuItemSelectable( "Move Down".Loc(), "md_" + configuration.Key, MoveListDown, "Move the list down.".Loc()),
-                        new Widgets.PopupMenu.PopupMenuItemSelectableConfirm("Remove".Loc(), "rf_" + configuration.Key, "Are you sure you want to remove this list?".Loc(), RemoveList, "Remove the list.".Loc()),
+                        new Widgets.PopupMenu.PopupMenuItemSelectableConfirm("Remove".Loc(), "rf_" + configuration.Key, SharedText.ConfirmRemoveList.Loc(), RemoveList, "Remove the list.".Loc()),
                     }
                 );
             }

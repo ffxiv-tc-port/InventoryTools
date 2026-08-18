@@ -37,7 +37,7 @@ public class ItemGilShopUseRenderer : ItemGilShopSourceRenderer
             ? new List<string>()
             : shopSource.MapIds.Select(c => _mapSheet.GetRow(c).FormattedName)).Distinct().ToList();
 
-        ImGui.Text("?? items available for purchase with gil in ?? zones".Loc(allGilShops.Count, maps.Count));
+        ImGui.Text(SharedText.GilShopSourceSummary.Loc(allGilShops.Count, maps.Count));
     };
 
     public override RendererType RendererType => RendererType.Use;

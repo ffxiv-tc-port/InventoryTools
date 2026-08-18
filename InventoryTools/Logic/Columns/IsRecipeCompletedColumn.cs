@@ -35,5 +35,5 @@ public class IsRecipeCompletedColumn : CheckboxColumn
 
     public override string Name { get; set; } = "Are Recipes Completed?".Loc();
     public override float Width { get; set; } = 100;
-    public override string HelpText { get; set; } = "Have the recipes that make this item been completed?".Loc();
+    public override string HelpText { get; set; } = SharedText.RecipeCompleted.Loc();
 }

@@ -13,7 +13,7 @@ public class IsRecipeCompletedFilter : BooleanFilter
     private readonly IQuestManagerService _questManagerService;
     public override string Key { get; set; } = "IsRecipeCompleted";
     public override string Name { get; set; } = "Are Recipes Completed?".Loc();
-    public override string HelpText { get; set; } = "Have the recipes that make this item been completed?".Loc();
+    public override string HelpText { get; set; } = SharedText.RecipeCompleted.Loc();
     public override FilterCategory FilterCategory { get; set; } = FilterCategory.Crafting;
 
     public IsRecipeCompletedFilter(ILogger<IsRecipeCompletedFilter> logger, ImGuiService imGuiService, IQuestManagerService questManagerService) : base(logger, imGuiService)

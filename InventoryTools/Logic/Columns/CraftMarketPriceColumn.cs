@@ -64,7 +64,7 @@ public class CraftMarketPriceColumn : GilColumn
                         ImGui.SameLine();
                         ImGui.Image(ImGuiService.GetIconTexture(Icons.QuestionMarkIcon).Handle, new Vector2(16, 16));
                         ImGuiUtil.HoverTooltip(
-                            "The market price of this item is cheaper than buying it from a vendor and you prefer vendors over the current ingredient preference.".Loc());
+                            SharedText.MarketCheaperThanVendor.Loc());
                     }
                 }
             }

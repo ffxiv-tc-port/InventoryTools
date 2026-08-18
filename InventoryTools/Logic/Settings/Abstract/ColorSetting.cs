@@ -24,7 +24,7 @@ namespace InventoryTools.Logic.Settings.Abstract
             if (HasValueSet(configuration) && value.W == 0)
             {
                 ImGui.SameLine();
-                ImGui.TextColored(ImGuiColors.DalamudRed, "The alpha is currently set to 0, this will be invisible.".Loc());
+                ImGui.TextColored(ImGuiColors.DalamudRed, SharedText.AlphaIsZero.Loc());
             }
             ImGui.SameLine();
             if (disableColouring != true && HasValueSet(configuration))

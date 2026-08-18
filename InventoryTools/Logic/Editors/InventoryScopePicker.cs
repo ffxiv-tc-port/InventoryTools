@@ -161,7 +161,7 @@ public class InventoryScopePicker
                             {
                                 if (searchScopes.Count == 0)
                                 {
-                                    ImGui.TextWrapped("No scopes defined yet. Press add to start.".Loc());
+                                    ImGui.TextWrapped(SharedText.NoScopesDefined.Loc());
                                 }
 
                                 for (var index = 0; index < searchScopes.Count; index++)
@@ -255,7 +255,7 @@ public class InventoryScopePicker
                                         _selectedScope.CharacterId = 0;
                                     }
                                     ImGui.SameLine();
-                                    _imGuiService.HelpMarker("Match against a specific character(player character, retainer, free company, etc)".Loc());
+                                    _imGuiService.HelpMarker(SharedText.ScopeSpecificCharacter.Loc());
 
                                     if (_selectedScope.CharacterId != null)
                                     {
@@ -427,7 +427,7 @@ public class InventoryScopePicker
                                             }
                                         }
                                         ImGui.SameLine();
-                                        _imGuiService.HelpMarker("When 'All' or 'World' is selected, choose the types of characters you want to filter against. Select an item again to unselect it.".Loc());
+                                        _imGuiService.HelpMarker(SharedText.ScopeCharacterTypes.Loc());
                                     }
 
                                     ImGui.Separator();
@@ -440,7 +440,7 @@ public class InventoryScopePicker
                                     }
 
                                     ImGui.SameLine();
-                                    _imGuiService.HelpMarker("When checked, match against the opposite of what is selected.".Loc());
+                                    _imGuiService.HelpMarker(SharedText.ScopeInvertMatch.Loc());
                                 }
                             }
 

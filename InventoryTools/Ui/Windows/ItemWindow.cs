@@ -362,7 +362,7 @@ namespace InventoryTools.Ui
                         var result = _gameInterface.OpenCraftingLog(_itemId);
                         if (!result)
                         {
-                            _chatUtilities.PrintError("Could not open the crafting log, you are currently crafting.".Loc());
+                            _chatUtilities.PrintError(SharedText.CraftingLogBusy.Loc());
                         }
                     }
 

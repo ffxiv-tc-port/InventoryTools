@@ -345,7 +345,7 @@ public class EquipmentSuggestSelectedItemColumn  : StringFormField<EquipmentSugg
         return "";
     }
 
-    public override string HelpText { get; set; } = "The item you've selected from the list of recommendations".Loc();
+    public override string HelpText { get; set; } = SharedText.EquipmentSuggestSelectedItem.Loc();
     public override string Version { get; } = "1.12.0.10";
 
     public string? CurrentValue(EquipmentSuggestItem item)

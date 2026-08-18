@@ -182,7 +182,7 @@ public class ConfigurationWizard : GenericWindow
                                     _configuration.ShowWizardNewFeatures = true;
                                 }
 
-                                if (ImGui.Button("Close (and show next time the plugin loads)".Loc()))
+                                if (ImGui.Button(SharedText.CloseAndShowNextLoad.Loc()))
                                 {
                                     Close();
                                     _configuration.ShowWizardNewFeatures = true;
@@ -203,7 +203,7 @@ public class ConfigurationWizard : GenericWindow
                                     _configuration.ShowWizardNewFeatures = false;
                                 }
 
-                                if (ImGui.Button("Close (and show next time the plugin loads)".Loc()))
+                                if (ImGui.Button(SharedText.CloseAndShowNextLoad.Loc()))
                                 {
                                     Close();
                                     _configuration.ShowWizardNewFeatures = true;

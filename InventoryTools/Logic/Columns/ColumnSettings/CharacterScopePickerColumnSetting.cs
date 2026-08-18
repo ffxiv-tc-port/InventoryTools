@@ -98,7 +98,7 @@ public class CharacterScopePickerColumnSetting : ColumnSetting<List<CharacterSea
         if (_characters is not null && currentValue is not null)
         {
             ImGui.Separator();
-            ImGui.Text("The following characters will be searched in: ".Loc());
+            ImGui.Text(SharedText.CharactersSearchedIn.Loc());
             foreach (var s in _characters)
             {
                 ImGui.TextUnformatted(s.Name);

@@ -65,7 +65,7 @@ namespace InventoryTools.Ui
         {
             if (RetainerTask == null)
             {
-                ImGui.TextUnformatted("Submarine Exploration Point with the ID ".Loc() + _retainerTaskId + " could not be found.".Loc());
+                ImGui.TextUnformatted(SharedText.SubmarineExplorationPointIdPrefix.Loc() + _retainerTaskId + " could not be found.".Loc());
             }
             else
             {

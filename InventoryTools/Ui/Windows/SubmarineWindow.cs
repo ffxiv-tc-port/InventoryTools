@@ -65,7 +65,7 @@ namespace InventoryTools.Ui
         {
             if (SubmarineExploration == null)
             {
-                ImGui.TextUnformatted("Submarine Exploration Point with the ID ".Loc() + _submarineExplorationPointId + " could not be found.".Loc());
+                ImGui.TextUnformatted(SharedText.SubmarineExplorationPointIdPrefix.Loc() + _submarineExplorationPointId + " could not be found.".Loc());
             }
             else
             {

@@ -146,7 +146,7 @@ namespace InventoryTools
                 activeCraftList.CraftList.MarkCrafted(itemid, flags, quantity);
                 if (activeCraftList is { IsEphemeralCraftList: true, CraftList.IsCompleted: true })
                 {
-                    _chatUtilities.Print("Ephemeral craft list '??' completed. List has been removed.".Loc(activeCraftList.Name));
+                    _chatUtilities.Print(SharedText.EphemeralCraftListCompleted.Loc(activeCraftList.Name));
                     _listService.RemoveList(activeCraftList);
                 }
                 else
@@ -384,7 +384,7 @@ namespace InventoryTools
                 activeCraftList.CraftList.MarkCrafted(itemId, itemFlags, (uint)qtyIncrease);
                 if (activeCraftList is { IsEphemeralCraftList: true, CraftList.IsCompleted: true })
                 {
-                    _chatUtilities.Print("Ephemeral craft list '??' completed. List has been removed.".Loc(activeCraftList.Name));
+                    _chatUtilities.Print(SharedText.EphemeralCraftListCompleted.Loc(activeCraftList.Name));
                     _listService.RemoveList(activeCraftList);
                 }
                 else

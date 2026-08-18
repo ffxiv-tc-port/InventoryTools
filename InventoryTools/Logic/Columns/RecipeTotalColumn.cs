@@ -19,5 +19,5 @@ public class RecipeTotalColumn : IntegerColumn
 
     public override string Name { get; set; } = "Recipe Total Count".Loc();
     public override float Width { get; set; } = 100;
-    public override string HelpText { get; set; } = "The number of recipes the item is a component of.".Loc();
+    public override string HelpText { get; set; } = SharedText.RecipeTotal.Loc();
 }
