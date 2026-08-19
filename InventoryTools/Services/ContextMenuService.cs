@@ -351,9 +351,23 @@ public class ContextMenuService : DisposableMediatorSubscriberBase, IHostedServi
 
     private unsafe IntPtr AgentById(AgentId id)
     {
-        var uiModule = (UIModule*)_gameGui.GetUIModule().Address;
-        var agents   = uiModule->GetAgentModule();
-        var agent    = agents->GetAgentByInternalId(id);
+        // 🔴 這條鏈原本三層全裸。`_gameGui.GetUIModule()` 是 Dalamud 的服務包裝（UIModulePtr），
+        // 它包的就是 `(nint)UIModule.Instance()` —— **`.Address` 合法為 0**
+        //（UIModule.Instance() 內部是 `Framework.Instance() == null ? null : ...`）。
+        // 把 0 轉型成 UIModule* 再 `->GetAgentModule()` 就是 AccessViolationException，
+        // 而 AVE 是 corrupted-state exception，try/catch 一律攔不到。
+        // 中間每一跳都是獨立的 null 路徑，所以三跳都要各自判。
+        // 呼叫端一律走 `GetObjectItemId(IntPtr, int)`，它已經檢查 `agent != IntPtr.Zero`，
+        // 因此回 IntPtr.Zero 就是正確的 fail-closed 值（選單項目不出現），不需要改呼叫端。
+        var uiModuleAddress = _gameGui.GetUIModule().Address;
+        if (uiModuleAddress == nint.Zero)
+            return IntPtr.Zero;
+
+        var agents = ((UIModule*)uiModuleAddress)->GetAgentModule();
+        if (agents == null)
+            return IntPtr.Zero;
+
+        var agent = agents->GetAgentByInternalId(id);
         return (IntPtr)agent;
     }
 
