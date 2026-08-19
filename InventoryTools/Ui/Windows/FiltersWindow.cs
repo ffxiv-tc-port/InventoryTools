@@ -580,7 +580,7 @@ namespace InventoryTools.Ui
                                 "https://github.com/Critical-Impact/InventoryTools".OpenBrowser();
                             }
 
-                            if (ImGui.MenuItem("Ko-Fi"))
+                            if (ImGui.MenuItem("Ko-Fi".Loc()))
                             {
                                 "https://ko-fi.com/critical_impact".OpenBrowser();
                             }
