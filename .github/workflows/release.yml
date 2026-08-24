@@ -1,3 +1,4 @@
+# 2026-08-24 repo 重建後 touch：dispatch-only workflow 不會自動重新註冊，需一個觸及本檔的 commit
 name: Release
 
 on:
