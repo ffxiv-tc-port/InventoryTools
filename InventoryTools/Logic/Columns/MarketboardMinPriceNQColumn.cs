@@ -99,7 +99,8 @@ namespace InventoryTools.Logic.Columns
                 }
             }
 
-            return Loading;
+            // 台服沒有 universalis 資料來源:畫成 EmptyText(N/A),不要永遠停在 loading...
+            return _marketCache.MarketDataAvailable ? Loading : null;
         }
         public override string Name { get; set; } = "Market Board Minimum Price NQ".Loc();
         public override string RenderName => "MB Min. Price NQ".Loc();

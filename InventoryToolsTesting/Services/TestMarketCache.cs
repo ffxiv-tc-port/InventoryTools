@@ -11,6 +11,11 @@ public class TestMarketCache : IMarketCache
 
     }
 
+    /// <summary>
+    /// 測試環境維持既有行為(視為有市場資料來源),不套用台服偵測。
+    /// </summary>
+    public bool MarketDataAvailable => true;
+
     public int AutomaticCheckTime { get; set; }
     public int AutomaticSaveTime { get; set; }
     public int CacheTimeHours { get; set; }

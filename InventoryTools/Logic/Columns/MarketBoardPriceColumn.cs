@@ -97,7 +97,9 @@ namespace InventoryTools.Logic.Columns
                                 var selectedWorldId =
                                     MarketboardWorldSetting.SelectedWorldId(columnConfiguration, activeCharacter);
                                 var pricing = _marketCache.GetPricing(searchResult.Item.RowId, selectedWorldId, false);
-                                if (pricing is { recentHistory: null, listings: null })
+                                // 台服的 pricing 恆為 null(查價已停用),不能讓 tooltip 開出來
+                                // 卻是空的。非台服的判斷式維持原樣。
+                                if (!_marketCache.MarketDataAvailable || pricing is { recentHistory: null, listings: null })
                                 {
                                     ImGui.Text("No data available".Loc());
                                 }
@@ -143,6 +145,13 @@ namespace InventoryTools.Logic.Columns
             if (!searchResult.Item.CanBeTraded)
             {
                 return (Untradable, Untradable);
+            }
+
+            // 台服沒有 universalis 資料來源:回 null 讓欄位畫成 EmptyText(N/A),而不是永遠停在
+            // 「loading...」,也不要畫成會誤導人的 0。
+            if (!_marketCache.MarketDataAvailable)
+            {
+                return null;
             }
 
             var activeCharacter = _characterMonitor.ActiveCharacter;
