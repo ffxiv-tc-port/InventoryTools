@@ -103,7 +103,7 @@ namespace InventoryTools.Logic.Columns
         public override string RenderName => "MB Avg. Price HQ".Loc();
         public override float Width { get; set; } = 250.0f;
         public override string HelpText { get; set; } =
-            "Shows the average price of the HQ form of the item. If no world is selected, your home world is used. This data is sourced from universalis.";
+            "Shows the average price of the HQ form of the item. If no world is selected, your home world is used. 此資料原本來自 universalis；台服無此服務，故此欄位無市場資料。";
         public override bool HasFilter { get; set; } = true;
         public override ColumnFilterType FilterType { get; set; } = ColumnFilterType.Text;
     }

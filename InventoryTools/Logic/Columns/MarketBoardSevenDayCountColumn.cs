@@ -110,7 +110,7 @@ namespace InventoryTools.Logic.Columns
         {
             get =>
                 "Shows the number of sales over a " + +_configuration.MarketSaleHistoryLimit +
-                " day period for the item. If no world is selected, your home world is used. This data is sourced from universalis.";
+                " day period for the item. If no world is selected, your home world is used. 此資料原本來自 universalis；台服無此服務，故此欄位無市場資料。";
             set { }
         }
 

@@ -21,7 +21,7 @@ namespace InventoryTools.Logic.Columns
         public override ColumnCategory ColumnCategory => ColumnCategory.Market;
 
         public override string HelpText { get; set; } =
-            "Shows the minimum price of both the NQ and HQ form of the item. If no world is selected, your home world is used. This data is sourced from universalis.";
+            "Shows the minimum price of both the NQ and HQ form of the item. If no world is selected, your home world is used. 此資料原本來自 universalis；台服無此服務，故此欄位無市場資料。";
 
         public override (int, int)? CurrentValue(ColumnConfiguration columnConfiguration, SearchResult searchResult)
         {
