@@ -123,6 +123,30 @@ namespace InventoryTools
 
             builder.Register(c => new HttpClient()).As<HttpClient>();
 
+            // API13：IClientState.LocalContentId 過時，替代品 IPlayerState.ContentId。
+            // CriticalCommonLib 需要 IPlayerState，但 DalaMock 的 HostedPlugin 沒有把它註冊進容器
+            // （見 PlayerStateProvider 的說明），因此在這裡透過 PluginInterface.Create 取得後補註冊。
+            // Mock 模式下取不到屬預期（CharacterMonitor 被 mock 取代，不會解析 IPlayerState）。
+            if (PluginInterface != null)
+            {
+                try
+                {
+                    var playerStateProvider = PluginInterface.Create<PlayerStateProvider>();
+                    if (playerStateProvider?.PlayerState != null)
+                    {
+                        builder.RegisterInstance(playerStateProvider.PlayerState).As<IPlayerState>();
+                    }
+                    else
+                    {
+                        _pluginLog.Warning("IPlayerState 無法取得，CriticalCommonLib 的 IPlayerState 相依將無法解析（Mock 模式屬預期）。");
+                    }
+                }
+                catch (Exception ex)
+                {
+                    _pluginLog.Warning(ex, "註冊 IPlayerState 時發生例外（Mock 模式屬預期）。");
+                }
+            }
+
             //Register all classes that are singletons and implement a particular interface/class
             builder.RegisterSingletonsSelfAndInterfaces<IHotkey>(dataAccess);
             builder.RegisterSingletonsSelfAndInterfaces<BaseTooltip>(dataAccess);
