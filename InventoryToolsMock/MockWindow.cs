@@ -18,6 +18,7 @@ using Dalamud.Interface.ImGuiFileDialog;
 using Dalamud.Bindings.ImGui;
 using InventoryTools;
 using InventoryTools.Logic;
+using InventoryTools.Misc;
 using InventoryTools.Ui;
 using LuminaSupplemental.Excel.Model;
 using Newtonsoft.Json;
@@ -81,8 +82,8 @@ public class MockWindow : GenericWindow
         WindowName = "Mock Tools";
         Key = "mock";
         _rng = new Random();
-        _activeWorldPicker = new WorldPicker(_worldSheet.Where(c => c.IsPublic).ToList(), false, _otterLogger);
-        _homeWorldPicker = new WorldPicker(_worldSheet.Where(c => c.IsPublic).ToList(), false, _otterLogger);
+        _activeWorldPicker = new WorldPicker(_worldSheet.Where(c => c.IsPublicWorld()).ToList(), false, _otterLogger);
+        _homeWorldPicker = new WorldPicker(_worldSheet.Where(c => c.IsPublicWorld()).ToList(), false, _otterLogger);
     }
 
 

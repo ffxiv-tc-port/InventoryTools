@@ -19,15 +19,15 @@ public class ItemZodiacWeaponSourceRenderer : ItemInfoRenderer<ItemZodiacWeaponS
 
     public override RendererType RendererType => RendererType.Use;
     public override ItemInfoType Type => ItemInfoType.ZodiacWeapon;
-    public override string SingularName => "Zodiac Weapon";
+    public override string SingularName => "Zodiac Weapon".Loc();
     public override string HelpText => "Is this a Zodiac Weapon?";
     public override bool ShouldGroup => false;
 
     public override Action<ItemSource> DrawTooltip => source =>
     {
         var asSource = this.AsSource(source);
-        ImGui.TextUnformatted("Class: " + asSource.ClassJob.Base.Name.ToImGuiString().ToTitleCase());
-        this.DrawItems("Forms:", asSource.RewardItems);
+        ImGui.TextUnformatted("Class: ".Loc() + asSource.ClassJob.Base.Name.ToImGuiString().ToTitleCase());
+        this.DrawItems("Forms:".Loc(), asSource.RewardItems);
     };
     public override Func<ItemSource, string> GetName => source =>
     {

@@ -9,6 +9,7 @@ using CriticalCommonLib.Models;
 using Dalamud.Bindings.ImGui;
 using InventoryTools.Extensions;
 using InventoryTools.Logic.Filters.Abstract;
+using InventoryTools.Misc;
 using InventoryTools.Services;
 using Lumina.Excel;
 using Lumina.Excel.Sheets;
@@ -156,7 +157,7 @@ public class CraftWorldPricePreference : SortedListFilter<uint, uint>
             }
             if (_searchWorlds == null)
             {
-                _searchWorlds = _worldSheet.Where(c => c.IsPublic && c.Name.ExtractText().ToParseable().PassesFilter(SearchString.ToParseable())).Take(100).ToList();
+                _searchWorlds = _worldSheet.Where(c => c.IsPublicWorld() && c.Name.ExtractText().ToParseable().PassesFilter(SearchString.ToParseable())).Take(100).ToList();
             }
 
             return _searchWorlds;

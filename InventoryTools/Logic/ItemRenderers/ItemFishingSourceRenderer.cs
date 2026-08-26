@@ -36,7 +36,7 @@ public class ItemFishingSourceRenderer : ItemInfoRenderer<ItemFishingSource>
         var asSources = AsSource(sources);
 
         var level = asSources.First().FishParameter.Base.GatheringItemLevel.Value.GatheringItemLevel;
-        ImGui.Text("Level:" + (level == 0 ? "N/A" : level));
+        ImGui.Text("Level:".Loc() + (level == 0 ? "N/A".Loc() : level));
 
         DrawMaps(sources);
     };
@@ -46,7 +46,7 @@ public class ItemFishingSourceRenderer : ItemInfoRenderer<ItemFishingSource>
         var asSource = AsSource(source);
 
         var level = asSource.FishParameter.Base.GatheringItemLevel.Value.GatheringItemLevel;
-        ImGui.Text("Level:" + (level == 0 ? "N/A" : level));
+        ImGui.Text("Level:".Loc() + (level == 0 ? "N/A".Loc() : level));
 
         DrawMaps(source);
     };
@@ -65,6 +65,6 @@ public class ItemFishingSourceRenderer : ItemInfoRenderer<ItemFishingSource>
         var level = asSource.FishParameter.Base.GatheringItemLevel.Value.GatheringItemLevel;
         var fishingType = asSource.FishParameter.FishRecordType;
 
-        return $"Level {(level == 0 ? "N/A" : level)} {fishingType} spot";
+        return $"Level {(level == 0 ? "N/A".Loc() : level)} {fishingType} spot";
     };
 }

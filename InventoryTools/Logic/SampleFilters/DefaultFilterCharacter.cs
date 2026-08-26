@@ -39,11 +39,11 @@ public class DefaultFilterCharacter : ISampleFilter
         return allItemsFilter;
     }
 
-    public string Name => "Character";
+    public string Name => "Character".Loc();
     public string SampleDefaultName => "Character";
 
     public string SampleDescription =>
-        "This will add a list that will be preconfigured to show the items in your character's bags.";
+        "This will add a list that will be preconfigured to show the items in your character's bags.".Loc();
 
     public SampleFilterType SampleFilterType => SampleFilterType.Default;
 }

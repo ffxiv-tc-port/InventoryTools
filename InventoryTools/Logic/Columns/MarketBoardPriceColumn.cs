@@ -97,7 +97,9 @@ namespace InventoryTools.Logic.Columns
                                 var selectedWorldId =
                                     MarketboardWorldSetting.SelectedWorldId(columnConfiguration, activeCharacter);
                                 var pricing = _marketCache.GetPricing(searchResult.Item.RowId, selectedWorldId, false);
-                                if (pricing is { recentHistory: null, listings: null })
+                                // 台服的 pricing 恆為 null(查價已停用),不能讓 tooltip 開出來
+                                // 卻是空的。非台服的判斷式維持原樣。
+                                if (!_marketCache.MarketDataAvailable || pricing is { recentHistory: null, listings: null })
                                 {
                                     ImGui.Text("No data available".Loc());
                                 }
@@ -145,6 +147,13 @@ namespace InventoryTools.Logic.Columns
                 return (Untradable, Untradable);
             }
 
+            // 台服沒有 universalis 資料來源:回 null 讓欄位畫成 EmptyText(N/A),而不是永遠停在
+            // 「loading...」,也不要畫成會誤導人的 0。
+            if (!_marketCache.MarketDataAvailable)
+            {
+                return null;
+            }
+
             var activeCharacter = _characterMonitor.ActiveCharacter;
             if (activeCharacter != null)
             {
@@ -164,7 +173,7 @@ namespace InventoryTools.Logic.Columns
         public override string Name { get; set; } = "Market Board Average Price NQ/HQ".Loc();
         public override string RenderName => "MB Avg. Price NQ/HQ".Loc();
         public override string HelpText { get; set; } =
-            "Shows the average price of both the NQ and HQ form of the item. If no world is selected, your home world is used. This data is sourced from universalis.";
+            "Shows the average price of both the NQ and HQ form of the item. If no world is selected, your home world is used. 此資料原本來自 universalis；台服無此服務，故此欄位無市場資料。";
         public override float Width { get; set; } = 200.0f;
         public override bool HasFilter { get; set; } = true;
         public override ColumnFilterType FilterType { get; set; } = ColumnFilterType.Text;

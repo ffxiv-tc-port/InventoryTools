@@ -53,7 +53,7 @@ namespace InventoryTools.Logic.Filters.Abstract
 
         public virtual string GetHelpText(FilterConfiguration configuration)
         {
-            return HelpText;
+            return HelpText.Loc();
         }
 
         public virtual FilterType AvailableIn { get; set; } =

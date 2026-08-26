@@ -18,7 +18,7 @@ public class HasBeenGatheredFilter : BooleanFilter
     }
     public override string Key { get; set; } = "HasBeenGathered";
     public override string Name { get; set; } = "Has been gathered before?".Loc();
-    public override string HelpText { get; set; } = "Has this gathering item been gathered at least once by the currently logged in character? This only supports mining and botany at present.".Loc();
+    public override string HelpText { get; set; } = SharedText.HasBeenGathered.Loc();
     public override FilterCategory FilterCategory { get; set; } = FilterCategory.Gathering;
 
     public override bool? FilterItem(FilterConfiguration configuration, InventoryItem item)

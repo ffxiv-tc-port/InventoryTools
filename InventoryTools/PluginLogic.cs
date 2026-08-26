@@ -146,7 +146,7 @@ namespace InventoryTools
                 activeCraftList.CraftList.MarkCrafted(itemid, flags, quantity);
                 if (activeCraftList is { IsEphemeralCraftList: true, CraftList.IsCompleted: true })
                 {
-                    _chatUtilities.Print("Ephemeral craft list '" + activeCraftList.Name + "' completed. List has been removed.");
+                    _chatUtilities.Print(SharedText.EphemeralCraftListCompleted.Loc(activeCraftList.Name));
                     _listService.RemoveList(activeCraftList);
                 }
                 else
@@ -251,6 +251,11 @@ namespace InventoryTools
                     _hostedInventoryHistory.SetChangeReasonsToLog(
                         _configuration.HistoryTrackReasons.Distinct().ToHashSet());
                 }
+            }
+
+            if (_hostedInventoryHistory.MaxEntries != _configuration.HistoryMaxEntries)
+            {
+                _hostedInventoryHistory.MaxEntries = _configuration.HistoryMaxEntries;
             }
         }
 
@@ -379,7 +384,7 @@ namespace InventoryTools
                 activeCraftList.CraftList.MarkCrafted(itemId, itemFlags, (uint)qtyIncrease);
                 if (activeCraftList is { IsEphemeralCraftList: true, CraftList.IsCompleted: true })
                 {
-                    _chatUtilities.Print("Ephemeral craft list '" + activeCraftList.Name + "' completed. List has been removed.");
+                    _chatUtilities.Print(SharedText.EphemeralCraftListCompleted.Loc(activeCraftList.Name));
                     _listService.RemoveList(activeCraftList);
                 }
                 else

@@ -119,7 +119,7 @@ public class UseInformationTooltip : BaseTooltip
             var newText = "";
             if (textLines.Count != 0)
             {
-                newText = "\nUses: " + string.Join(", ", textLines.Distinct());
+                newText = "\n" + "Uses: ??".Loc(string.Join(", ", textLines.Distinct()));
             }
 
             newText = newText.TrimEnd('\n');

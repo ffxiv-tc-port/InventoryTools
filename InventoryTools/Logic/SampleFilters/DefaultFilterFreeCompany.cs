@@ -39,11 +39,11 @@ public class DefaultFilterFreeCompany : ISampleFilter
         return allItemsFilter;
     }
 
-    public string Name => "Free Company";
+    public string Name => "Free Company".Loc();
     public string SampleDefaultName => "Free Company";
 
     public string SampleDescription =>
-        "This will add a list that will be preconfigured to show all the items in your free company chest for your active character.";
+        "This will add a list that will be preconfigured to show all the items in your free company chest for your active character.".Loc();
 
     public SampleFilterType SampleFilterType => SampleFilterType.Default;
 }

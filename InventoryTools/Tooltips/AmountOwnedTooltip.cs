@@ -9,6 +9,7 @@ using Dalamud.Game.Text.SeStringHandling.Payloads;
 using Dalamud.Plugin;
 using Dalamud.Plugin.Services;
 using FFXIVClientStructs.FFXIV.Component.GUI;
+using InventoryTools.Extensions;
 using InventoryTools.Localizers;
 using InventoryTools.Logic.Editors;
 using InventoryTools.Logic.Settings;
@@ -25,16 +26,38 @@ public class AmountOwnedTooltip : BaseTooltip
     private readonly IInventoryMonitor _inventoryMonitor;
     private readonly InventoryScopeCalculator _inventoryScopeCalculator;
     private readonly ItemLocalizer _itemLocalizer;
+    private readonly CharacterLocalizer _characterLocalizer;
 
-    public AmountOwnedTooltip(ILogger<AmountOwnedTooltip> logger, TooltipAmountOwnedColorSetting colorSetting, ItemSheet itemSheet, InventoryToolsConfiguration configuration, IGameGui gameGui, ICharacterMonitor characterMonitor, IInventoryMonitor inventoryMonitor, InventoryScopeCalculator inventoryScopeCalculator, IChatGui chatGui, ItemLocalizer itemLocalizer) : base(6900, logger, itemSheet, configuration, gameGui, chatGui)
+    public AmountOwnedTooltip(ILogger<AmountOwnedTooltip> logger, TooltipAmountOwnedColorSetting colorSetting, ItemSheet itemSheet, InventoryToolsConfiguration configuration, IGameGui gameGui, ICharacterMonitor characterMonitor, IInventoryMonitor inventoryMonitor, InventoryScopeCalculator inventoryScopeCalculator, IChatGui chatGui, ItemLocalizer itemLocalizer, CharacterLocalizer characterLocalizer) : base(6900, logger, itemSheet, configuration, gameGui, chatGui)
     {
         _colorSetting = colorSetting;
         _characterMonitor = characterMonitor;
         _inventoryMonitor = inventoryMonitor;
         _inventoryScopeCalculator = inventoryScopeCalculator;
         _itemLocalizer = itemLocalizer;
+        _characterLocalizer = characterLocalizer;
     }
     private const string indentation = "      ";
+
+    /// <summary>
+    /// The owner's name as it goes on a location line: the name, then the owner type when it is
+    /// needed to tell two same-named owners apart, then the parent character if the user asked
+    /// for it.
+    /// </summary>
+    private string OwnerName(ulong characterId, HashSet<string>? ambiguousNames)
+    {
+        var name = _characterLocalizer.FormattedOwnerName(characterId,
+            Configuration.TooltipOwnerTypeDisplayMode, ambiguousNames);
+
+        if (Configuration.TooltipAddCharacterNameOwned)
+        {
+            var owner = _characterMonitor.GetCharacterNameById(characterId, true);
+            if (owner.Trim().Length != 0)
+                name += " (" + owner + ")";
+        }
+
+        return name;
+    }
 
     public override bool IsEnabled => Configuration.DisplayTooltip && Configuration.TooltipDisplayAmountOwned;
     public override unsafe void OnGenerateItemTooltip(NumberArrayData* numberArrayData, StringArrayData* stringArrayData)
@@ -99,7 +122,7 @@ public class AmountOwnedTooltip : BaseTooltip
             else if(sortMode == TooltipAmountOwnedSort.Categorically)
             {
                 var characterNames = _characterMonitor.Characters.OrderBy(c => c.Value.FormattedName).ToList();
-                enumerable = enumerable.OrderBy(c => c.SortedCategory.FormattedName()).ThenBy(c => characterNames.IndexOf(d => d.Key == c.RetainerId));
+                enumerable = enumerable.OrderBy(c => c.SortedCategory.LocalizedName()).ThenBy(c => characterNames.IndexOf(d => d.Key == c.RetainerId));
             }
             else if(sortMode == TooltipAmountOwnedSort.Quantity)
             {
@@ -114,6 +137,13 @@ public class AmountOwnedTooltip : BaseTooltip
             uint storageCount = 0;
             List<string> locations = new List<string>();
 
+            // Which display names belong to more than one kind of owner. Only needed for the
+            // WhenAmbiguous mode; computed once here rather than per location line.
+            var ambiguousNames =
+                Configuration.TooltipOwnerTypeDisplayMode == TooltipOwnerTypeDisplayMode.WhenAmbiguous
+                    ? _characterLocalizer.GetAmbiguousNames()
+                    : null;
+
             if (Configuration.TooltipLocationDisplayMode ==
                 TooltipLocationDisplayMode.CharacterBagSlotQuality)
             {
@@ -124,14 +154,7 @@ public class AmountOwnedTooltip : BaseTooltip
                     if (locations.Count >= Configuration.TooltipLocationLimit)
                         continue;
 
-                    var name = _characterMonitor.GetCharacterNameById(oItem.RetainerId);
-                    if (Configuration.TooltipAddCharacterNameOwned)
-                    {
-                        var owner = _characterMonitor.GetCharacterNameById(
-                            oItem.RetainerId, true);
-                        if (owner.Trim().Length != 0)
-                            name += " (" + owner + ")";
-                    }
+                    var name = OwnerName(oItem.RetainerId, ambiguousNames);
 
                     var typeIcon = "";
                     if (oItem.IsHQ)
@@ -147,7 +170,7 @@ public class AmountOwnedTooltip : BaseTooltip
                 }
                 if (ownedItems.Count > Configuration.TooltipLocationLimit)
                 {
-                    locations.Add(ownedItems.Count - Configuration.TooltipLocationLimit + " other locations.");
+                    locations.Add("?? other locations.".Loc(ownedItems.Count - Configuration.TooltipLocationLimit));
                 }
             }
             if (Configuration.TooltipLocationDisplayMode ==
@@ -160,20 +183,13 @@ public class AmountOwnedTooltip : BaseTooltip
                     if (locations.Count >= Configuration.TooltipLocationLimit)
                         continue;
 
-                    var name = _characterMonitor.GetCharacterNameById(oItem.RetainerId);
-                    if (Configuration.TooltipAddCharacterNameOwned)
-                    {
-                        var owner = _characterMonitor.GetCharacterNameById(
-                            oItem.RetainerId, true);
-                        if (owner.Trim().Length != 0)
-                            name += " (" + owner + ")";
-                    }
+                    var name = OwnerName(oItem.RetainerId, ambiguousNames);
 
                     locations.Add($"{name} - {_itemLocalizer.FormattedBagLocation(oItem)} - {+ oItem.Quantity} ");
                 }
                 if (ownedItems.Count > Configuration.TooltipLocationLimit)
                 {
-                    locations.Add(ownedItems.Count - Configuration.TooltipLocationLimit + " other locations.");
+                    locations.Add("?? other locations.".Loc(ownedItems.Count - Configuration.TooltipLocationLimit));
                 }
             }
             else if (Configuration.TooltipLocationDisplayMode == TooltipLocationDisplayMode.CharacterCategoryQuantityQuality)
@@ -187,14 +203,7 @@ public class AmountOwnedTooltip : BaseTooltip
                     if (locations.Count >= Configuration.TooltipLocationLimit)
                         continue;
 
-                    var name = _characterMonitor.GetCharacterNameById(oGroup.Key.RetainerId);
-                    if (Configuration.TooltipAddCharacterNameOwned)
-                    {
-                        var owner = _characterMonitor.GetCharacterNameById(
-                            oGroup.Key.RetainerId, true);
-                        if (owner.Trim().Length != 0)
-                            name += " (" + owner + ")";
-                    }
+                    var name = OwnerName(oGroup.Key.RetainerId, ambiguousNames);
 
                     var typeIcon = "";
                     if ((oGroup.Key.Flags & FFXIVClientStructs.FFXIV.Client.Game.InventoryItem.ItemFlags.HighQuality) != 0)
@@ -206,11 +215,11 @@ public class AmountOwnedTooltip : BaseTooltip
                         typeIcon = "\uE03d";
                     }
 
-                    locations.Add($"{name} - {oGroup.Key.SortedCategory.FormattedName()} - " + quantity + " " + typeIcon);
+                    locations.Add($"{name} - {oGroup.Key.SortedCategory.LocalizedName()} - " + quantity + " " + typeIcon);
                 }
                 if (groupedItems.Count > Configuration.TooltipLocationLimit)
                 {
-                    locations.Add(groupedItems.Count - Configuration.TooltipLocationLimit + " other locations.");
+                    locations.Add("?? other locations.".Loc(groupedItems.Count - Configuration.TooltipLocationLimit));
                 }
             }
             else if (Configuration.TooltipLocationDisplayMode == TooltipLocationDisplayMode.CharacterQuantityQuality)
@@ -224,14 +233,7 @@ public class AmountOwnedTooltip : BaseTooltip
                     if (locations.Count >= Configuration.TooltipLocationLimit)
                         continue;
 
-                    var name = _characterMonitor.GetCharacterNameById(oGroup.Key.RetainerId);
-                    if (Configuration.TooltipAddCharacterNameOwned)
-                    {
-                        var owner = _characterMonitor.GetCharacterNameById(
-                            oGroup.Key.RetainerId, true);
-                        if (owner.Trim().Length != 0)
-                            name += " (" + owner + ")";
-                    }
+                    var name = OwnerName(oGroup.Key.RetainerId, ambiguousNames);
 
                     var typeIcon = "";
                     if ((oGroup.Key.Flags & FFXIVClientStructs.FFXIV.Client.Game.InventoryItem.ItemFlags.HighQuality) != 0)
@@ -247,7 +249,7 @@ public class AmountOwnedTooltip : BaseTooltip
                 }
                 if (groupedItems.Count > Configuration.TooltipLocationLimit)
                 {
-                    locations.Add(groupedItems.Count - Configuration.TooltipLocationLimit + " other locations.");
+                    locations.Add("?? other locations.".Loc(groupedItems.Count - Configuration.TooltipLocationLimit));
                 }
             }
 

@@ -42,6 +42,10 @@ public class ServiceConfigurator : IHostedService
     {
         _characterMonitor.LoadExistingRetainers(_configuration.GetSavedRetainers());
         _inventoryMonitor.LoadExistingData(_configurationManagerService.LoadInventory());
+        // Set the cap before loading so an existing over-sized history.csv (from before this limit existed,
+        // or from a lower limit configured previously) gets trimmed immediately rather than only on the
+        // next inventory change.
+        _hostedInventoryHistory.MaxEntries = _configuration.HistoryMaxEntries;
         _hostedInventoryHistory.LoadExistingHistory(_configurationManagerService.LoadHistoryFromCsv(out _));
         var entries = _mobTracker.LoadCsv(_configurationManagerService.MobSpawnFile, out var success);
         if(success)

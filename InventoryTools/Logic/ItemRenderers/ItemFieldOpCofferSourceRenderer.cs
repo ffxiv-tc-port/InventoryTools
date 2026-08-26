@@ -28,7 +28,7 @@ public abstract class ItemFieldOpCofferSourceRenderer<T> : ItemInfoRenderer<T> w
     public override Action<ItemSource> DrawTooltip => source =>
     {
         var asSource = AsSource(source);
-        ImGui.Text("Drops from " + asSource.CofferType + " coffer");
+        ImGui.Text("Drops from ".Loc() + asSource.CofferType + " coffer".Loc());
         if (asSource.Min != null && asSource.Max != null)
         {
             ImGui.SameLine();
@@ -38,7 +38,7 @@ public abstract class ItemFieldOpCofferSourceRenderer<T> : ItemInfoRenderer<T> w
             }
             else
             {
-                ImGui.Text("(Drops " + asSource.Min.Value + " - " + asSource.Max.Value + ")");
+                ImGui.Text("(Drops ".Loc() + asSource.Min.Value + " - " + asSource.Max.Value + ")");
             }
         }
 
@@ -56,7 +56,7 @@ public abstract class ItemFieldOpCofferSourceRenderer<T> : ItemInfoRenderer<T> w
     public override Func<ItemSource, string> GetDescription => source =>
     {
         var asSource = AsSource(source);
-        return asSource.CofferType + " coffer";
+        return asSource.CofferType + " coffer".Loc();
     };
 }
 

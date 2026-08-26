@@ -47,6 +47,6 @@ public class ItemGlamourReadySetSourceRenderer : ItemInfoRenderer<ItemGlamourRea
     public override Func<ItemSource, string> GetDescription => source =>
     {
         var asSource = AsSource(source);
-        return "Contains " + string.Join(", ", asSource.SetItems.Select(c => c.NameString));
+        return "Contains ".Loc() + string.Join(", ", asSource.SetItems.Select(c => c.NameString));
     };
 }

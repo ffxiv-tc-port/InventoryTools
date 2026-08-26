@@ -39,11 +39,11 @@ public class DefaultFilterHousing : ISampleFilter
         return allItemsFilter;
     }
 
-    public string Name => "Housing";
+    public string Name => "Housing".Loc();
     public string SampleDefaultName => "Housing";
 
     public string SampleDescription =>
-        "This will add a list that will be preconfigured to show all items stored in the houses your character owns.";
+        "This will add a list that will be preconfigured to show all items stored in the houses your character owns.".Loc();
 
     public SampleFilterType SampleFilterType => SampleFilterType.Default;
 }

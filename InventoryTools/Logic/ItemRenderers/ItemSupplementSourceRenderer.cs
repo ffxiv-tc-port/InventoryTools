@@ -368,7 +368,7 @@ public abstract class ItemSupplementUseRenderer<T> : ItemSupplementSourceRendere
                 }
                 else
                 {
-                    ImGui.Text("(Drops " + source.Supplement.Min.Value + " - " + source.Supplement.Max.Value + ")");
+                    ImGui.Text("(Drops ".Loc() + source.Supplement.Min.Value + " - " + source.Supplement.Max.Value + ")");
                 }
             }
 
@@ -395,7 +395,7 @@ public abstract class ItemSupplementUseRenderer<T> : ItemSupplementSourceRendere
             }
             else
             {
-                ImGui.Text("(Drops " + asSource.Supplement.Min.Value + " - " + asSource.Supplement.Max.Value + ")");
+                ImGui.Text("(Drops ".Loc() + asSource.Supplement.Min.Value + " - " + asSource.Supplement.Max.Value + ")");
             }
         }
 
@@ -436,8 +436,8 @@ public abstract class ItemSupplementSourceRenderer<T> : ItemInfoRenderer<T> wher
     {
         var asSource = AsSource(source);
 
-        this.DrawItems("Reward Items: ", asSource.RewardItems);
-        this.DrawItems("Required Items: ", asSource.CostItems);
+        this.DrawItems("Reward Items: ".Loc(), asSource.RewardItems);
+        this.DrawItems("Required Items: ".Loc(), asSource.CostItems);
 
         if (asSource.Supplement.Probability != null)
         {

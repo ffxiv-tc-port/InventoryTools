@@ -11,6 +11,7 @@ using DalaMock.Host.Mediator;
 using Dalamud.Game.Text;
 using Dalamud.Bindings.ImGui;
 using InventoryTools.Logic.Columns.Abstract;
+using InventoryTools.Misc;
 using InventoryTools.Ui.Widgets;
 using Dalamud.Interface.Utility.Raii;
 using InventoryTools.Localizers;
@@ -632,7 +633,7 @@ public class CraftSettingsColumn : IColumn
                         configuration.NotifyConfigurationChange();
                         return true;
                     }
-                    var worlds = _worldSheet.Where(c => c.IsPublic).OrderBy(c => c.Name.ExtractText()).ToList();
+                    var worlds = _worldSheet.Where(c => c.IsPublicWorld()).OrderBy(c => c.Name.ExtractText()).ToList();
                     foreach (var world in worlds)
                     {
                         if (ImGui.Selectable(world.Name.ExtractText()))

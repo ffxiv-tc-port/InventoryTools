@@ -69,7 +69,7 @@ public abstract class CharacterScopeFilter : Filter<List<CharacterSearchScope>?>
 
         var currentValue = CurrentValue(configuration);
         using var disabled = ImRaii.Disabled(currentValue == null);
-        if (ImGui.Button("Test Scopes"))
+        if (ImGui.Button("Test Scopes".Loc()))
         {
             if (currentValue != null)
             {
@@ -81,7 +81,7 @@ public abstract class CharacterScopeFilter : Filter<List<CharacterSearchScope>?>
         if (_characters is not null && currentValue is not null)
         {
             ImGui.Separator();
-            ImGui.Text("The following characters will be searched in: ");
+            ImGui.Text(SharedText.CharactersSearchedIn.Loc());
             foreach (var s in _characters)
             {
                 ImGui.TextUnformatted(s.Name);

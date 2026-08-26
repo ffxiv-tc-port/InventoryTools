@@ -241,6 +241,20 @@ public class ContextMenuService : DisposableMediatorSubscriberBase, IHostedServi
         var addonPtr = this._gameGui.GetAddonByName(addonName);
         if (addonPtr == IntPtr.Zero) return null;
         var addon = (AtkUnitBase*)addonPtr.Address;
+
+        // 🔴 原本這裡是無界讀。`AtkValues` 是 [FieldOffset(0x178)] 的**指標欄位** ——
+        //    視窗剛做完 setup、值還沒填進去時是 null，解參考 null+索引就是
+        //    AccessViolationException（corrupted-state exception，try/catch 攔不到）。
+        //    `AtkValuesCount`（ushort）也可能遠小於 aktValue：呼叫端傳進來的索引是**寫死的**，
+        //    而寫死的版面索引在台服一律要假設是錯的，而且錯法是安靜的 —— 讀到陣列外的記憶體，
+        //    型別碰巧對上就會回一個看起來很正常的道具 id，讓使用者查到完全無關的東西。
+        //    三重守衛（null / 負索引 / 上界）都取不到就回 null，與這個方法既有的失敗形式一致
+        //    （呼叫端已經處理 null＝不掛選單項目）。
+        if (addon->AtkValues == null || aktValue < 0 || aktValue >= addon->AtkValuesCount)
+        {
+            return null;
+        }
+
         var atkValue = addon->AtkValues[aktValue];
         if (atkValue.Type is ValueType.Null or ValueType.Undefined)
         {
@@ -351,9 +365,23 @@ public class ContextMenuService : DisposableMediatorSubscriberBase, IHostedServi
 
     private unsafe IntPtr AgentById(AgentId id)
     {
-        var uiModule = (UIModule*)_gameGui.GetUIModule().Address;
-        var agents   = uiModule->GetAgentModule();
-        var agent    = agents->GetAgentByInternalId(id);
+        // 🔴 這條鏈原本三層全裸。`_gameGui.GetUIModule()` 是 Dalamud 的服務包裝（UIModulePtr），
+        // 它包的就是 `(nint)UIModule.Instance()` —— **`.Address` 合法為 0**
+        //（UIModule.Instance() 內部是 `Framework.Instance() == null ? null : ...`）。
+        // 把 0 轉型成 UIModule* 再 `->GetAgentModule()` 就是 AccessViolationException，
+        // 而 AVE 是 corrupted-state exception，try/catch 一律攔不到。
+        // 中間每一跳都是獨立的 null 路徑，所以三跳都要各自判。
+        // 呼叫端一律走 `GetObjectItemId(IntPtr, int)`，它已經檢查 `agent != IntPtr.Zero`，
+        // 因此回 IntPtr.Zero 就是正確的 fail-closed 值（選單項目不出現），不需要改呼叫端。
+        var uiModuleAddress = _gameGui.GetUIModule().Address;
+        if (uiModuleAddress == nint.Zero)
+            return IntPtr.Zero;
+
+        var agents = ((UIModule*)uiModuleAddress)->GetAgentModule();
+        if (agents == null)
+            return IntPtr.Zero;
+
+        var agent = agents->GetAgentByInternalId(id);
         return (IntPtr)agent;
     }
 

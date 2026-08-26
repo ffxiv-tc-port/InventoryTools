@@ -27,12 +27,12 @@ public class CraftButtonColumn : ButtonColumn
         ImGui.TableNextColumn();
         if (ImGui.TableGetColumnFlags().HasFlag(ImGuiTableColumnFlags.IsEnabled))
         {
-            if (searchResult.Item.CanBeCrafted && ImGui.Button("Craft##" + rowIndex + "_" + columnIndex))
+            if (searchResult.Item.CanBeCrafted && ImGui.Button("Craft".Loc() + "##" + rowIndex + "_" + columnIndex))
             {
                 var result = _gameInterface.OpenCraftingLog(searchResult.Item.RowId);
                 if (!result)
                 {
-                    _chatUtilities.PrintError("Could not open the crafting log, you are currently crafting.".Loc());
+                    _chatUtilities.PrintError(SharedText.CraftingLogBusy.Loc());
                 }
             }
         }

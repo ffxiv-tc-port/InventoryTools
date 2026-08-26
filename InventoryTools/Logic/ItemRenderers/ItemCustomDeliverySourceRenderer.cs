@@ -32,10 +32,10 @@ public class ItemCustomDeliverySourceRenderer : ItemInfoRenderer<ItemCustomDeliv
             var collectabilityLow = asSource.SupplyRow.Base.CollectabilityLow;
             var collectabilityMid = asSource.SupplyRow.Base.CollectabilityMid;
             var collectabilityHigh = asSource.SupplyRow.Base.CollectabilityHigh;
-            ImGui.Text("NPC: " + eNpcResident.Value.Singular.ExtractText());
-            ImGui.Text("Collectability (Low): " + collectabilityLow);
-            ImGui.Text("Collectability (Mid): " + collectabilityMid);
-            ImGui.Text("Collectability (High): " + collectabilityHigh);
+            ImGui.Text("NPC: ".Loc() + eNpcResident.Value.Singular.ExtractText());
+            ImGui.Text("Collectability (Low): ".Loc() + collectabilityLow);
+            ImGui.Text("Collectability (Mid): ".Loc() + collectabilityMid);
+            ImGui.Text("Collectability (High): ".Loc() + collectabilityHigh);
         }
         else
         {
@@ -69,6 +69,6 @@ public class ItemCustomDeliverySourceRenderer : ItemInfoRenderer<ItemCustomDeliv
             return $"{eNpcResident.Value.Singular.ExtractText()} ({collectabilityLow}, {collectabilityMid}, {collectabilityHigh})";
         }
 
-        return "Unknown NPC";
+        return "Unknown NPC".Loc();
     };
 }

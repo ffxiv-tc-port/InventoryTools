@@ -63,6 +63,10 @@ namespace InventoryTools.Extensions
                     return "Acquisition Tracker".Loc();
                 case SettingSubCategory.IngredientPatch:
                     return "Ingredient Patch".Loc();
+                case SettingSubCategory.CofferContents:
+                    return "Coffer Contents".Loc();
+                case SettingSubCategory.CraftingMaterialHighlight:
+                    return "Crafting Material Highlight".Loc();
             }
             return settingSubCategory.ToString().Loc();
         }

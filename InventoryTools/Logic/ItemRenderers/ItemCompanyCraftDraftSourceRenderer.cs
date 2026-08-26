@@ -34,8 +34,8 @@ public class ItemCompanyCraftDraftSourceRenderer : ItemInfoRenderer<ItemCompanyC
         var asSource = AsSource(source);
         ImGui.Text("Name: ??".Loc(asSource.CompanyCraftDraft.Value.Name.ExtractText()));
 
-        DrawItems("Possible Reward Items: ", asSource.RewardItems);
-        DrawItems("Ingredients: ", asSource.CostItems);
+        DrawItems("Possible Reward Items: ".Loc(), asSource.RewardItems);
+        DrawItems("Ingredients: ".Loc(), asSource.CostItems);
     };
 
     public override Func<ItemSource, string> GetName => source =>

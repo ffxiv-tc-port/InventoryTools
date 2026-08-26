@@ -8,6 +8,7 @@ using CriticalCommonLib.Services;
 using Dalamud.Interface.Utility.Raii;
 using Dalamud.Bindings.ImGui;
 using InventoryTools;
+using InventoryTools.Misc;
 using InventoryTools.Services;
 using InventoryTools.Ui.Widgets;
 using Lumina.Excel;
@@ -356,32 +357,32 @@ public class CharacterScopePicker
         var scopeName = "";
         if (scope.Mode == CharacterSearchScopeMode.Invert)
         {
-            scopeName += "Exclude ";
+            scopeName += "Exclude ".Loc();
         }
         if (scope.CharacterId != null && scope.CharacterId != 0)
         {
             var character = _characterMonitor.GetCharacterById(scope.CharacterId.Value);
-            scopeName += character?.FormattedName ?? "Unknown Character";
+            scopeName += character?.FormattedName ?? "Unknown Character".Loc();
         }
         if (scope.ActiveCharacter != null)
         {
-            scopeName += "Active Character";
+            scopeName += "Active Character".Loc();
         }
 
         if (scope.WorldId != null && scope.WorldId != 0)
         {
             var world = _worldSheet.GetRowOrDefault(scope.WorldId.Value);
-            scopeName += world?.Name.ExtractText() ?? "Unknown World";
+            scopeName += world?.Name.ExtractText() ?? "Unknown World".Loc();
         }
 
         if (scopeName == "")
         {
-            scopeName = "All";
+            scopeName = "All".Loc();
         }
 
         if (scope.Invert)
         {
-            scopeName += " (Invert)";
+            scopeName += " (Invert)".Loc();
         }
 
         return scopeName;
@@ -393,7 +394,7 @@ public class CharacterScopePicker
     {
 
         var changed = false;
-        var fakeRef = searchScopes.Count + " items selected.";
+        var fakeRef = searchScopes.Count + " items selected.".Loc();
         using (var disabled = ImRaii.Disabled())
         {
             if (disabled)
@@ -446,7 +447,7 @@ public class CharacterScopePicker
                             {
                                 if (searchScopes.Count == 0)
                                 {
-                                    ImGui.TextWrapped("No scopes defined yet. Press add to start.".Loc());
+                                    ImGui.TextWrapped(SharedText.NoScopesDefined.Loc());
                                 }
 
                                 for (var index = 0; index < searchScopes.Count; index++)
@@ -515,7 +516,7 @@ public class CharacterScopePicker
                                     var isActiveCharacter = _selectedScope.ActiveCharacter != null;
                                     ImGui.Text("Search Scope:".Loc());
                                     ImGui.Separator();
-                                    if (ImGui.RadioButton("All",!isCharacter && !isWorld && !isActiveCharacter))
+                                    if (ImGui.RadioButton("All".Loc(),!isCharacter && !isWorld && !isActiveCharacter))
                                     {
                                         _selectedScope.Reset();
                                     }
@@ -523,19 +524,19 @@ public class CharacterScopePicker
                                     _imGuiService.HelpMarker("Match against all characters".Loc());
                                     ImGui.NewLine();
 
-                                    if (ImGui.RadioButton("Character",isCharacter))
+                                    if (ImGui.RadioButton("Character".Loc(),isCharacter))
                                     {
                                         _selectedScope.Reset();
                                         _selectedScope.CharacterId = 0;
                                     }
                                     ImGui.SameLine();
-                                    _imGuiService.HelpMarker("Match against a specific character(player character, retainer, free company, etc)".Loc());
+                                    _imGuiService.HelpMarker(SharedText.ScopeSpecificCharacter.Loc());
 
                                     if (_selectedScope.CharacterId != null)
                                     {
                                         var selectedCharacter = _characterMonitor.GetCharacterById(_selectedScope.CharacterId.Value);
                                         using (var characterSelector = ImRaii.Combo("##character",
-                                                   selectedCharacter?.FormattedName ?? "Select Character"))
+                                                   selectedCharacter?.FormattedName ?? "Select Character".Loc()))
                                         {
                                             if (characterSelector)
                                             {
@@ -558,7 +559,7 @@ public class CharacterScopePicker
                                         }
                                     }
                                     ImGui.NewLine();
-                                    if (ImGui.RadioButton("Active Character",isActiveCharacter))
+                                    if (ImGui.RadioButton("Active Character".Loc(),isActiveCharacter))
                                     {
                                         _selectedScope.Reset();
                                         _selectedScope.ActiveCharacter = true;
@@ -567,7 +568,7 @@ public class CharacterScopePicker
                                     _imGuiService.HelpMarker("Match against the currently logged in character.".Loc());
                                     ImGui.NewLine();
 
-                                    if (ImGui.RadioButton("World",isWorld))
+                                    if (ImGui.RadioButton("World".Loc(),isWorld))
                                     {
                                         _selectedScope.Reset();
                                         _selectedScope.WorldId = 0;
@@ -578,11 +579,11 @@ public class CharacterScopePicker
                                     {
                                         var selectedWorld = _selectedScope.WorldId == 0 ? null : _worldSheet.GetRowOrDefault(_selectedScope.WorldId.Value);
                                         using (var worldSelector = ImRaii.Combo("##world",
-                                                   selectedWorld?.Name.ExtractText() ?? "Select World"))
+                                                   selectedWorld?.Name.ExtractText() ?? "Select World".Loc()))
                                         {
                                             if (worldSelector)
                                             {
-                                                foreach (var world in _worldSheet.Where(c => c.IsPublic))
+                                                foreach (var world in _worldSheet.Where(c => c.IsPublicWorld()))
                                                 {
                                                     if (ImGui.Selectable(world.Name.ExtractText()))
                                                     {
@@ -603,10 +604,10 @@ public class CharacterScopePicker
                                         }
                                         else
                                         {
-                                            characterTypesPreview = "Select character types";
+                                            characterTypesPreview = "Select character types".Loc();
                                         }
 
-                                        ImGui.LabelText("##characterTypesLabel", "Character Types: ");
+                                        ImGui.LabelText("##characterTypesLabel", "Character Types: ".Loc());
                                         using (var characterTypeSelector =
                                                ImRaii.Combo("##characterTypes", characterTypesPreview))
                                         {
@@ -643,7 +644,7 @@ public class CharacterScopePicker
                                             }
                                         }
                                         ImGui.SameLine();
-                                        _imGuiService.HelpMarker("When 'All' or 'World' is selected, choose the types of characters you want to filter against. Select an item again to unselect it.".Loc());
+                                        _imGuiService.HelpMarker(SharedText.ScopeCharacterTypes.Loc());
                                     }
 
                                     ImGui.Separator();
@@ -656,7 +657,7 @@ public class CharacterScopePicker
                                     }
 
                                     ImGui.SameLine();
-                                    _imGuiService.HelpMarker("When checked, match against the opposite of what is selected.".Loc());
+                                    _imGuiService.HelpMarker(SharedText.ScopeInvertMatch.Loc());
                                 }
                             }
 

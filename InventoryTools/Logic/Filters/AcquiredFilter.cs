@@ -10,13 +10,17 @@ namespace InventoryTools.Logic.Filters
 {
     public class AcquiredFilter : BooleanFilter
     {
-        private readonly IClientState _clientState;
+        // API13 把 IClientState.LocalContentId 標為過時。這裡改用 ICharacterMonitor.LocalContentId，
+        // 它在 CriticalCommonLib 裡就是 `=> _clientState.LocalContentId` 的純轉發屬性（同一個值，
+        // 沒有快取），本 repo 其他地方（RetainerListOverlay、CharacterDebuggerPane）也是這樣取值。
+        // CriticalCommonLib 是子模組、包裝層另案處理，故不在此改動它。
+        private readonly ICharacterMonitor _characterMonitor;
         private readonly InventoryToolsConfiguration _configuration;
         private readonly IGameInterface _gameInterface;
 
-        public AcquiredFilter(ILogger<AcquiredFilter> logger, ImGuiService imGuiService, IClientState clientState, InventoryToolsConfiguration configuration) : base(logger, imGuiService)
+        public AcquiredFilter(ILogger<AcquiredFilter> logger, ImGuiService imGuiService, ICharacterMonitor characterMonitor, InventoryToolsConfiguration configuration) : base(logger, imGuiService)
         {
-            _clientState = clientState;
+            _characterMonitor = characterMonitor;
             _configuration = configuration;
         }
         public override string Key { get; set; } = "Acquired";
@@ -43,7 +47,7 @@ namespace InventoryTools.Logic.Filters
             }
 
             var isUnlocked = false;
-            if(this._configuration.AcquiredItems.TryGetValue(_clientState.LocalContentId, out var value))
+            if(this._configuration.AcquiredItems.TryGetValue(_characterMonitor.LocalContentId, out var value))
             {
                 if (value.Contains(item.RowId))
                 {

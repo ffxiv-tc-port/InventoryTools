@@ -176,8 +176,8 @@ namespace InventoryTools.Ui
             {
                 foreach (var item in data.listData)
                 {
-                    bool isHq = item.Item1 > 1000000;
-                    var itemId = item.Item1 % 500000;
+                    bool isHq = item.Item1 >= ListImportExportService.HqItemIdOffset;
+                    var itemId = item.Item1 % ListImportExportService.HqItemIdOffset;
                     SelectedConfiguration.CraftList.AddCraftItem(itemId, item.Item2, isHq ? InventoryItem.ItemFlags.HighQuality : InventoryItem.ItemFlags.None);
                 }
                 SelectedConfiguration.NeedsRefresh = true;
@@ -430,7 +430,7 @@ namespace InventoryTools.Ui
                                 "https://github.com/Critical-Impact/InventoryTools".OpenBrowser();
                             }
 
-                            if (ImGui.MenuItem("Ko-Fi"))
+                            if (ImGui.MenuItem("Ko-Fi".Loc()))
                             {
                                 "https://ko-fi.com/critical_impact".OpenBrowser();
                             }
@@ -467,7 +467,7 @@ namespace InventoryTools.Ui
                                             var tcString = _importExportService.ToTCString(searchResults);
                                             _clipboardService.CopyToClipboard(tcString);
                                             _chatUtilities.Print(
-                                                "The craft list's contents were copied to your clipboard.".Loc());
+                                                SharedText.CraftListContentsCopied.Loc());
                                         }
 
                                         if (ImGui.MenuItem("Craft List (Outputs)".Loc()))
@@ -480,7 +480,7 @@ namespace InventoryTools.Ui
                                             var tcString = _importExportService.ToTCString(searchResults);
                                             _clipboardService.CopyToClipboard(tcString);
                                             _chatUtilities.Print(
-                                                "The craft list's outputs were copied to your clipboard.".Loc());
+                                                SharedText.CraftListOutputsCopied.Loc());
                                         }
 
                                         if (ImGui.MenuItem("Craft List (Precrafts)".Loc()))
@@ -497,7 +497,7 @@ namespace InventoryTools.Ui
                                             var tcString = _importExportService.ToTCString(searchResults);
                                             _clipboardService.CopyToClipboard(tcString);
                                             _chatUtilities.Print(
-                                                "The craft list's outputs were copied to your clipboard.".Loc());
+                                                SharedText.CraftListOutputsCopied.Loc());
                                         }
 
                                         if (ImGui.MenuItem("Craft List (Gatherables)".Loc()))
@@ -510,7 +510,7 @@ namespace InventoryTools.Ui
                                             var tcString = _importExportService.ToTCString(searchResults);
                                             _clipboardService.CopyToClipboard(tcString);
                                             _chatUtilities.Print(
-                                                "The craft list's gatherables were copied to your clipboard.".Loc());
+                                                SharedText.CraftListGatherablesCopied.Loc());
                                         }
 
                                         if (ImGui.MenuItem("Craft List (Missing Gatherables)".Loc()))
@@ -524,7 +524,7 @@ namespace InventoryTools.Ui
                                                 _importExportService.ToTCString(searchResults, TCExportMode.Missing);
                                             _clipboardService.CopyToClipboard(tcString);
                                             _chatUtilities.Print(
-                                                "The craft list's gatherables were copied to your clipboard.".Loc());
+                                                SharedText.CraftListGatherablesCopied.Loc());
                                         }
 
                                         if (ImGui.MenuItem("Retainer/Bag List".Loc()))
@@ -550,7 +550,7 @@ namespace InventoryTools.Ui
                                                 .ToList();
                                             _clipboardService.CopyToClipboard(craftTable.ExportToJson(searchResults));
                                             _chatUtilities.Print(
-                                                "The craft list's contents were copied to your clipboard.".Loc());
+                                                SharedText.CraftListContentsCopied.Loc());
                                         }
 
                                         if (ImGui.MenuItem("Craft List (Outputs)".Loc()))
@@ -561,7 +561,7 @@ namespace InventoryTools.Ui
                                                 .ToList();
                                             _clipboardService.CopyToClipboard(craftTable.ExportToJson(searchResults));
                                             _chatUtilities.Print(
-                                                "The craft list's outputs were copied to your clipboard.".Loc());
+                                                SharedText.CraftListOutputsCopied.Loc());
                                         }
 
                                         if (ImGui.MenuItem("Craft List (Precrafts)".Loc()))
@@ -576,7 +576,7 @@ namespace InventoryTools.Ui
                                                 .ToList();
                                             _clipboardService.CopyToClipboard(craftTable.ExportToJson(searchResults));
                                             _chatUtilities.Print(
-                                                "The craft list's outputs were copied to your clipboard.".Loc());
+                                                SharedText.CraftListOutputsCopied.Loc());
                                         }
 
                                         if (ImGui.MenuItem("Craft List (Gatherables)".Loc()))
@@ -588,7 +588,7 @@ namespace InventoryTools.Ui
                                                 .ToList();
                                             _clipboardService.CopyToClipboard(craftTable.ExportToJson(searchResults));
                                             _chatUtilities.Print(
-                                                "The craft list's gatherables were copied to your clipboard.".Loc());
+                                                SharedText.CraftListGatherablesCopied.Loc());
                                         }
 
                                         if (ImGui.MenuItem("Retainer/Bag List".Loc()))
@@ -610,17 +610,17 @@ namespace InventoryTools.Ui
                                         if (importedList == null)
                                         {
                                             _chatUtilities.PrintError(
-                                                "The contents of your clipboard could not be parsed.".Loc());
+                                                SharedText.ClipboardCouldNotBeParsed.Loc());
                                         }
                                         else
                                         {
-                                            _chatUtilities.Print("The contents of your clipboard were imported.".Loc());
+                                            _chatUtilities.Print(SharedText.ClipboardImported.Loc());
                                             this.SelectedConfiguration.AddItemsToList(importedList);
                                         }
                                     }
                                     else
                                     {
-                                        _chatUtilities.Print("The contents of your clipboard were imported.".Loc());
+                                        _chatUtilities.Print(SharedText.ClipboardImported.Loc());
                                         this.SelectedConfiguration.AddItemsToList(importedList);
                                     }
                                 }
@@ -1875,7 +1875,7 @@ namespace InventoryTools.Ui
                             if (contentChild.Success)
                             {
                                 ImGui.TextUnformatted(
-                                    "Get started by adding a craft list by hitting the + button on the bottom left.".Loc());
+                                    SharedText.GetStartedAddCraftList.Loc());
                             }
                         }
                     }

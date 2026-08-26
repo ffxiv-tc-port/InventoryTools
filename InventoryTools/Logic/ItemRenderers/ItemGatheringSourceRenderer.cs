@@ -240,11 +240,11 @@ public abstract class ItemGatheringSourceRenderer<T> : ItemInfoRenderer<T> where
         var asSource = (ItemGatheringSource)source;
 
          var level = asSource.GatheringItem.Base.GatheringItemLevel.Value.GatheringItemLevel;
-         ImGui.Text("Level:" + (level == 0 ? "N/A" : level));
+         ImGui.Text("Level:".Loc() + (level == 0 ? "N/A".Loc() : level));
          var stars = asSource.GatheringItem.Base.GatheringItemLevel.Value.Stars;
-         ImGui.Text("Stars:" + (stars == 0 ? "N/A" : stars));
+         ImGui.Text("Stars:".Loc() + (stars == 0 ? "N/A".Loc() : stars));
          var perceptionRequired = asSource.GatheringItem.Base.PerceptionReq;
-         ImGui.Text("Perception Required:" + (perceptionRequired == 0 ? "N/A" : stars));
+         ImGui.Text("Perception Required:".Loc() + (perceptionRequired == 0 ? "N/A".Loc() : stars));
 
          if (asSource.GatheringItem.AvailableAtTimedNode)
          {
@@ -267,7 +267,7 @@ public abstract class ItemGatheringSourceRenderer<T> : ItemInfoRenderer<T> where
                      {
                          using (ImRaii.PushColor(ImGuiCol.Text, ImGuiColors.DalamudRed))
                          {
-                             ImGui.Text(mapName + ": up in " +
+                             ImGui.Text(mapName + ": up in ".Loc() +
                                                TimeInterval.DurationString(nextUptime.Value.Start, TimeStamp.UtcNow,
                                                    true));
                          }
@@ -276,7 +276,7 @@ public abstract class ItemGatheringSourceRenderer<T> : ItemInfoRenderer<T> where
                      {
                          using (ImRaii.PushColor(ImGuiCol.Text, ImGuiColors.HealerGreen))
                          {
-                             ImGui.Text(mapName + " up for " +
+                             ImGui.Text(mapName + " up for ".Loc() +
                                                TimeInterval.DurationString(nextUptime.Value.End, TimeStamp.UtcNow,
                                                    true));
                          }
@@ -336,6 +336,6 @@ public abstract class ItemGatheringSourceRenderer<T> : ItemInfoRenderer<T> where
             starsString += "*";
         }
 
-        return $"Level {(level == 0 ? "N/A" : level)} ({starsString}) ({perceptionRequired} perception required)";
+        return $"Level {(level == 0 ? "N/A".Loc() : level)} ({starsString}) ({perceptionRequired} perception required)";
     };
 }

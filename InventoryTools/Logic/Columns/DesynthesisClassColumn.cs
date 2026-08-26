@@ -23,7 +23,7 @@ public class DesynthesisClassColumn : TextColumn
     public override string Name { get; set; } = "Desynthesis Class".Loc();
     public override string RenderName  => "Desynth Class".Loc();
     public override float Width { get; set; } = 100;
-    public override string HelpText { get; set; } = "What class is related to de-synthesising this item?".Loc();
+    public override string HelpText { get; set; } = SharedText.DesynthesisClass.Loc();
     public override bool HasFilter { get; set; } = true;
     public override ColumnFilterType FilterType { get; set; } = ColumnFilterType.Text;
 }

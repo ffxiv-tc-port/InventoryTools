@@ -49,7 +49,7 @@ public class UptimeColumn : TimeIntervalColumn
                 {
                     using (ImRaii.PushColor(ImGuiCol.Text, ImGuiColors.DalamudRed))
                     {
-                        ImGui.Text("Up in " +
+                        ImGui.Text("Up in ".Loc() +
                                    TimeInterval.DurationString(currentValue.Value.Start, TimeStamp.UtcNow,
                                        true));
                     }
@@ -58,7 +58,7 @@ public class UptimeColumn : TimeIntervalColumn
                 {
                     using (ImRaii.PushColor(ImGuiCol.Text, ImGuiColors.HealerGreen))
                     {
-                        ImGui.Text("Up for " +
+                        ImGui.Text("Up for ".Loc() +
                                    TimeInterval.DurationString(currentValue.Value.End, TimeStamp.UtcNow,
                                        true));
                     }
@@ -85,7 +85,7 @@ public class UptimeColumn : TimeIntervalColumn
                                 {
                                     using (ImRaii.PushColor(ImGuiCol.Text, ImGuiColors.DalamudRed))
                                     {
-                                        ImGui.Text( " (Up in " +
+                                        ImGui.Text( " (Up in ".Loc() +
                                                    TimeInterval.DurationString(nextUptime.Item2.Start, TimeStamp.UtcNow,
                                                        true) + ")");
                                     }
@@ -94,7 +94,7 @@ public class UptimeColumn : TimeIntervalColumn
                                 {
                                     using (ImRaii.PushColor(ImGuiCol.Text, ImGuiColors.HealerGreen))
                                     {
-                                        ImGui.Text(" (Up for " +
+                                        ImGui.Text(" (Up for ".Loc() +
                                                    TimeInterval.DurationString(nextUptime.Item2.End, TimeStamp.UtcNow,
                                                        true) + ")");
                                     }

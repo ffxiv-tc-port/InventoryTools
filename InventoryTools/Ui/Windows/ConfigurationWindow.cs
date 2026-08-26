@@ -119,10 +119,10 @@ namespace InventoryTools.Ui
             _addFilterMenu = new PopupMenu("addFilter", PopupMenu.PopupMenuButtons.LeftRight,
                 new List<PopupMenu.IPopupMenuItem>()
                 {
-                    new PopupMenu.PopupMenuItemSelectableAskName("Search List".Loc(), "adf1", "New Search List".Loc(), AddSearchFilter, "This will create a new list that let's you search for specific items within your characters and retainers inventories.".Loc()),
-                    new PopupMenu.PopupMenuItemSelectableAskName("Sort List".Loc(), "af2", "New Sort Filter".Loc(), AddSortFilter, "This will create a new list that let's you search for specific items within your characters and retainers inventories then determine where they should be moved to.".Loc()),
-                    new PopupMenu.PopupMenuItemSelectableAskName("Game Item List".Loc(), "af3", "New Game Item List".Loc(), AddGameItemFilter, "This will create a list that lets you search for all items in the game.".Loc()),
-                    new PopupMenu.PopupMenuItemSelectableAskName("History List".Loc(), "af4", "New History Item List".Loc(), AddHistoryFilter, "This will create a list that lets you view historical data of how your inventory has changed.".Loc()),
+                    new PopupMenu.PopupMenuItemSelectableAskName("Search List".Loc(), "adf1", "New Search List".Loc(), AddSearchFilter, SharedText.NewSearchListDescription.Loc()),
+                    new PopupMenu.PopupMenuItemSelectableAskName("Sort List".Loc(), "af2", "New Sort Filter".Loc(), AddSortFilter, SharedText.NewSortListDescription.Loc()),
+                    new PopupMenu.PopupMenuItemSelectableAskName("Game Item List".Loc(), "af3", "New Game Item List".Loc(), AddGameItemFilter, SharedText.NewGameItemListDescription.Loc()),
+                    new PopupMenu.PopupMenuItemSelectableAskName("History List".Loc(), "af4", "New History Item List".Loc(), AddHistoryFilter, SharedText.NewHistoryListDescription.Loc()),
                 });
 
             _addSampleMenu = new PopupMenu("addSampleFilter", PopupMenu.PopupMenuButtons.LeftRight, []);
@@ -132,12 +132,12 @@ namespace InventoryTools.Ui
             {
                 if (sampleFilter.SampleFilterType == SampleFilterType.Default)
                 {
-                    _addSampleMenu.Items.Add(new PopupMenu.PopupMenuItemSelectableAskName(sampleFilter.Name,
+                    _addSampleMenu.Items.Add(new PopupMenu.PopupMenuItemSelectableAskName(sampleFilter.Name.Loc(),
                         $"sf{sampleId}", sampleFilter.SampleDefaultName, (newName, id) =>
                         {
                             var createdFilter = sampleFilter.AddFilter();
                             createdFilter.Name = newName;
-                        }, sampleFilter.SampleDescription));
+                        }, sampleFilter.SampleDescription.Loc()));
                     sampleId++;
                 }
             }
@@ -148,12 +148,12 @@ namespace InventoryTools.Ui
             {
                 if (sampleFilter.SampleFilterType == SampleFilterType.Sample)
                 {
-                    _addSampleMenu.Items.Add(new PopupMenu.PopupMenuItemSelectableAskName(sampleFilter.Name,
+                    _addSampleMenu.Items.Add(new PopupMenu.PopupMenuItemSelectableAskName(sampleFilter.Name.Loc(),
                         $"sf{sampleId}", sampleFilter.SampleDefaultName, (newName, id) =>
                         {
                             var createdFilter = sampleFilter.AddFilter();
                             createdFilter.Name = newName;
-                        }, sampleFilter.SampleDescription));
+                        }, sampleFilter.SampleDescription.Loc()));
                     sampleId++;
                 }
             }
@@ -288,7 +288,7 @@ namespace InventoryTools.Ui
                         new PopupMenu.PopupMenuItemSelectableAskName("Duplicate".Loc(), "df_" + configuration.Key, configuration.Name, DuplicateFilter, "Duplicate the filter.".Loc()),
                         new PopupMenu.PopupMenuItemSelectable("Move Up".Loc(), "mu_" + configuration.Key, MoveFilterUp, "Move the filter up.".Loc()),
                         new PopupMenu.PopupMenuItemSelectable("Move Down".Loc(), "md_" + configuration.Key, MoveFilterDown, "Move the filter down.".Loc()),
-                        new PopupMenu.PopupMenuItemSelectableConfirm("Remove".Loc(), "rf_" + configuration.Key, "Are you sure you want to remove this filter?".Loc(), RemoveFilter, "Remove the filter.".Loc()),
+                        new PopupMenu.PopupMenuItemSelectableConfirm("Remove".Loc(), "rf_" + configuration.Key, SharedText.ConfirmRemoveFilter.Loc(), RemoveFilter, "Remove the filter.".Loc()),
                     }
                 );
             }

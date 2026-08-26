@@ -18,7 +18,7 @@ public class DesynthesisClassFilter : StringFilter
 
     public override string Key { get; set; } = "DesynthesisClass";
     public override string Name { get; set; } = "Desynth Class".Loc();
-    public override string HelpText { get; set; } = "What class is related to de-synthesising this item?".Loc();
+    public override string HelpText { get; set; } = SharedText.DesynthesisClass.Loc();
     public override FilterCategory FilterCategory { get; set; } = FilterCategory.Basic;
 
     public override bool? FilterItem(FilterConfiguration configuration, InventoryItem item)

@@ -185,7 +185,7 @@ public class ImGuiMenuService
                         if (part.RowId == 0) continue;
                         if (searchResult.CraftItem.Phase != index)
                         {
-                            if (ImGui.MenuItem("Switch to " + ((part.Base.CompanyCraftType.ValueNullable?.Name.ExtractText() ?? "") + " (Phase " + (index + 1) + ")")))
+                            if (ImGui.MenuItem("Switch to ??".Loc((part.Base.CompanyCraftType.ValueNullable?.Name.ExtractText() ?? "") + " (Phase " + (index + 1) + ")")))
                             {
                                 filterConfiguration.CraftList.SetCraftPhase(searchResult.Item.RowId, index,
                                     searchResult.CraftItem.Phase);
@@ -201,8 +201,8 @@ public class ImGuiMenuService
                 if (searchResult.Item.CanBeCrafted && !searchResult.Item.HasSourcesByType(ItemInfoType.FreeCompanyCraftRecipe))
                 {
                     ImGui.Separator();
-                    using (var menu = ImRaii.Menu("Add " + searchResult.CraftItem.QuantityNeeded + " " +
-                                                  searchResult.Item.NameString + " to craft list"))
+                    using (var menu = ImRaii.Menu("Add ?? ?? to craft list".Loc(searchResult.CraftItem.QuantityNeeded,
+                                                  searchResult.Item.NameString)))
                     {
                         if (menu)
                         {
@@ -219,7 +219,7 @@ public class ImGuiMenuService
                         }
                     }
 
-                    if (ImGui.MenuItem("Add " + searchResult.CraftItem.QuantityNeeded + " item to new craft list"))
+                    if (ImGui.MenuItem("Add ?? item to new craft list".Loc(searchResult.CraftItem.QuantityNeeded)))
                     {
                         var filter = _listService.AddNewCraftList();
                         filter.CraftList.AddCraftItem(searchResult.Item.RowId,
@@ -230,8 +230,7 @@ public class ImGuiMenuService
                         filterConfiguration.NeedsRefresh = true;
                     }
 
-                    if (ImGui.MenuItem("Add " + searchResult.CraftItem.QuantityNeeded +
-                                         " item to new craft list (ephemeral)"))
+                    if (ImGui.MenuItem("Add ?? item to new craft list (ephemeral)".Loc(searchResult.CraftItem.QuantityNeeded)))
                     {
                         var filter = _listService.AddNewCraftList(null, true);
                         filter.CraftList.AddCraftItem(searchResult.Item.RowId,
@@ -250,35 +249,10 @@ public class ImGuiMenuService
     {
         ImGui.Text(searchResult.Item.NameString);
         ImGui.Separator();
-        if (ImGui.MenuItem("Open in Garland Tools".Loc()))
+        // 英文外站選項依使用者需求移除,只保留灰機wiki。
+        if (ImGui.MenuItem("Open in Huiji Wiki".Loc()))
         {
-            $"https://www.garlandtools.org/db/#item/{searchResult.Item.GarlandToolsId}".OpenBrowser();
-        }
-        if (ImGui.MenuItem("Open in Teamcraft".Loc()))
-        {
-            $"https://ffxivteamcraft.com/db/en/item/{searchResult.Item.RowId}".OpenBrowser();
-        }
-        if (ImGui.MenuItem("Open in Universalis".Loc()))
-        {
-            $"https://universalis.app/market/{searchResult.Item.RowId}".OpenBrowser();
-        }
-        if (ImGui.MenuItem("Open in Gamer Escape".Loc()))
-        {
-            var name = searchResult.Item.NameString.Replace(' ', '_');
-            name = name.Replace('–', '-');
-
-            if (name.StartsWith("_")) // "level sync" icon
-                name = name.Substring(2);
-            $"https://ffxiv.gamerescape.com/wiki/{HttpUtility.UrlEncode(name)}?useskin=Vector".OpenBrowser();
-        }
-        if (ImGui.MenuItem("Open in Console Games Wiki".Loc()))
-        {
-            var name = searchResult.Item.NameString.Replace("#"," ").Replace("  ", " ").Replace(' ', '_');
-            name = name.Replace('–', '-');
-
-            if (name.StartsWith("_")) // "level sync" icon
-                name = name.Substring(2);
-            $"https://ffxiv.consolegameswiki.com/wiki/{HttpUtility.UrlEncode(name)}".OpenBrowser();
+            $"https://ff14.huijiwiki.com/index.php?search={HttpUtility.UrlEncode(searchResult.Item.NameString)}&ns220=1".OpenBrowser();
         }
         ImGui.Separator();
         if (ImGui.MenuItem("Copy Name".Loc()))

@@ -32,14 +32,14 @@ public class ItemDungeonDropSourceRenderer : ItemInfoRenderer<ItemDungeonDropSou
     public override Action<ItemSource> DrawTooltip => source =>
     {
         var dungeonDropSource = AsSource(source);
-        ImGui.Text("Dungeon: " + dungeonDropSource.ContentFinderCondition.FormattedName);
+        ImGui.Text("Dungeon: ".Loc() + dungeonDropSource.ContentFinderCondition.FormattedName);
     };
 
     public override Func<ItemSource, string> GetName => source =>
     {
         var dungeonDropSource = AsSource(source);
 
-        return "Dungeon: " + dungeonDropSource.ContentFinderCondition.FormattedName;
+        return "Dungeon: ".Loc() + dungeonDropSource.ContentFinderCondition.FormattedName;
     };
 
     public override Func<ItemSource, int> GetIcon => _ => Icons.DutyIcon;

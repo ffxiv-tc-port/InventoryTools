@@ -45,7 +45,7 @@ namespace InventoryTools.Logic.Filters.Abstract
             if (value == null)
             {
                 var isChecked = false;
-                if (ImGui.Checkbox("Override Color##" + Key + "ColorEnable", ref isChecked))
+                if (ImGui.Checkbox("Override Color".Loc() + "##" + Key + "ColorEnable", ref isChecked))
                 {
                     if (isChecked)
                     {
@@ -74,7 +74,7 @@ namespace InventoryTools.Logic.Filters.Abstract
             if (HasValueSet(configuration) && value?.W == 0)
             {
                 ImGui.SameLine();
-                ImGui.TextColored(ImGuiColors.DalamudRed, "The alpha is currently set to 0, this will be invisible.".Loc());
+                ImGui.TextColored(ImGuiColors.DalamudRed, SharedText.AlphaIsZero.Loc());
             }
             if (HasValueSet(configuration) && ShowReset)
             {

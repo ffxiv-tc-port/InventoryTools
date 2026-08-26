@@ -17,7 +17,7 @@ public class RecipeTotalFilter : StringFilter
 
     public override string Key { get; set; } = "RecipeTotalFilter";
     public override string Name { get; set; } = "Recipe Total Count".Loc();
-    public override string HelpText { get; set; } = "The number of recipes the item is a component of.".Loc();
+    public override string HelpText { get; set; } = SharedText.RecipeTotal.Loc();
     public override FilterCategory FilterCategory { get; set; } = FilterCategory.Crafting;
 
     public override bool? FilterItem(FilterConfiguration configuration, InventoryItem item)

@@ -25,5 +25,5 @@ public class DelayColumn : DecimalColumn
 
     public override string Name { get; set; } = "Delay".Loc();
     public override float Width { get; set; } = 80;
-    public override string HelpText { get; set; } = "The time it takes between each automatic attack while engaged with and in range of an enemy in seconds.".Loc();
+    public override string HelpText { get; set; } = SharedText.AttackDelay.Loc();
 }

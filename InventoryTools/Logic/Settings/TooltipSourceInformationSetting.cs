@@ -43,7 +43,7 @@ public class TooltipSourceInformationEnabledSetting : GenericBooleanSetting
 
 public class TooltipSourceInformationModifierSetting : GenericEnumChoiceSetting<TooltipSourceModifier>
 {
-    public TooltipSourceInformationModifierSetting(ILogger<TooltipSourceInformationModifierSetting> logger, ImGuiService imGuiService) : base("TooltipSourceInformationModifier", "Source Information Modifier Key".Loc(), "Should the tooltip only be shown if a modifier key is pressed?".Loc(), TooltipSourceModifier.Always, new()
+    public TooltipSourceInformationModifierSetting(ILogger<TooltipSourceInformationModifierSetting> logger, ImGuiService imGuiService) : base("TooltipSourceInformationModifier", "Source Information Modifier Key".Loc(), SharedText.TooltipModifierKeyOnly.Loc(), TooltipSourceModifier.Always, new()
     {
         {TooltipSourceModifier.Always, "Always".Loc()},
         {TooltipSourceModifier.Control, "Control".Loc()},

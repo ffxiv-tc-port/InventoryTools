@@ -30,9 +30,9 @@ public class ItemGcSupplyDutySourceRenderer : ItemInfoRenderer<ItemGCSupplyDutyS
         {
             var baseReward = rewardRow.Base.ExperienceSupply;
             var sealsSupply = rewardRow.Base.SealsSupply;
-            ImGui.Text("Level: " + asSource.GCSupplyDutyRow.RowId);
-            ImGui.Text("Exp: " + baseReward);
-            ImGui.Text("Seals: " + sealsSupply);
+            ImGui.Text("Level: ".Loc() + asSource.GCSupplyDutyRow.RowId);
+            ImGui.Text("Exp: ".Loc() + baseReward);
+            ImGui.Text("Seals: ".Loc() + sealsSupply);
         }
         else
         {
@@ -60,7 +60,7 @@ public class ItemGcSupplyDutySourceRenderer : ItemInfoRenderer<ItemGCSupplyDutyS
         }
         else
         {
-            return "Unknown rewards";
+            return "Unknown rewards".Loc();
         }
     };
 }

@@ -58,6 +58,7 @@ namespace InventoryTools
         private int _marketSaleHistoryLimit = 7;
         private bool _showItemNumberRetainerList = true;
         private bool _historyEnabled;
+        private int _historyMaxEntries = 50000;
         private bool _addTitleMenuButton;
 
         private Vector4 _tabHighlightColor = new (0.007f, 0.008f,
@@ -181,6 +182,39 @@ namespace InventoryTools
             set
             {
                 _historyEnabled = value;
+                IsDirty = true;
+            }
+        }
+
+        /// <summary>
+        /// Maximum number of item history entries to retain. Once exceeded, the oldest entries are
+        /// dropped first (both in memory and the next time history.csv is saved). Defaults to 50,000 to
+        /// keep history.csv - which is fully read/written on every plugin start/stop - from growing
+        /// without bound. Set to 0 or a negative value to disable the limit entirely.
+        /// </summary>
+        // 🔴 The attribute and the field initialiser DISAGREE ON PURPOSE - do not
+        // "tidy" this into agreement and do not delete either half. It is a grandfather clause.
+        //
+        // The config is read back with DefaultValueHandling.IgnoreAndPopulate, so this
+        // attribute is what an EXISTING user with no HistoryMaxEntries key gets, while the
+        // field initialiser is what a BRAND NEW install gets - no json file at all means the
+        // populate path never runs and the constructor value survives untouched.
+        //
+        // Those two populations need different answers. 0 means "no limit" (TrimHistory only
+        // trims `if (_maxEntries > 0 ...)`), and anyone who has been running without the key
+        // has been accumulating history unbounded on that basis. Populating 50000 into them
+        // would call TrimHistory() on the very next load and PERMANENTLY drop everything past
+        // the cap - one real history.csv measured while writing this held 221,304 entries, so
+        // that is a silent one-way deletion of ~170,000 rows. A new install has nothing to
+        // lose and gets the author's 50,000 cap, which is what stops history.csv growing
+        // without bound in the first place.
+        [DefaultValue(0)]
+        public int HistoryMaxEntries
+        {
+            get => _historyMaxEntries;
+            set
+            {
+                _historyMaxEntries = value;
                 IsDirty = true;
             }
         }
@@ -346,8 +380,11 @@ namespace InventoryTools
         }
 
         public int SelectedConfigurationPage { get; set; }
+        [DefaultValue(true)]
         public bool ShowFilterTab { get; set; } = true;
+        [DefaultValue(true)]
         public bool SwitchFiltersAutomatically { get; set; } = true;
+        [DefaultValue(true)]
         public bool SwitchCraftListsAutomatically { get; set; } = true;
         private bool _tooltipCurrentCharacter;
         private bool _tooltipDisplayAmountOwned = true;
@@ -362,6 +399,7 @@ namespace InventoryTools
         private int _tooltipHeaderLines;
         private int _tooltipFooterLines;
         private TooltipLocationDisplayMode _tooltipLocationDisplayMode = TooltipLocationDisplayMode.CharacterCategoryQuantityQuality;
+        private TooltipOwnerTypeDisplayMode _tooltipOwnerTypeDisplayMode = TooltipOwnerTypeDisplayMode.Never;
         private WindowLayout _craftWindowLayout =  WindowLayout.Tabs;
         private WindowLayout _filtersLayout = WindowLayout.Tabs;
         private uint? _tooltipColor;
@@ -389,6 +427,7 @@ namespace InventoryTools
             }
         }
 
+        [Vector4Default("0, 0.8, 0.1333333, 1")]
         public Vector4 RetainerListColor
         {
             get => _retainerListColor;
@@ -410,6 +449,7 @@ namespace InventoryTools
             }
         }
 
+        [DefaultValue(true)]
         public bool DisplayCrossCharacter
         {
             get => _displayCrossCharacter;
@@ -420,6 +460,7 @@ namespace InventoryTools
             }
         }
 
+        [DefaultValue(true)]
         public bool DisplayTooltip
         {
             get => _displayTooltip;
@@ -440,6 +481,7 @@ namespace InventoryTools
             }
         }
 
+        [DefaultValue(true)]
         public bool TooltipDisplayAmountOwned
         {
             get => _tooltipDisplayAmountOwned;
@@ -488,6 +530,7 @@ namespace InventoryTools
             }
         }
 
+        [DefaultValue(true)]
         public bool TooltipDisplayMarketLowestPrice
         {
             get => _tooltipDisplayMarketLowestPrice;
@@ -518,6 +561,7 @@ namespace InventoryTools
                 IsDirty = true;
             }
         }
+        [DefaultValue(Logic.Settings.TooltipLocationDisplayMode.CharacterCategoryQuantityQuality)]
         public TooltipLocationDisplayMode TooltipLocationDisplayMode
         {
             get => _tooltipLocationDisplayMode;
@@ -527,6 +571,22 @@ namespace InventoryTools
                 IsDirty = true;
             }
         }
+
+        // The DefaultValue attribute is load bearing, not decoration: the configuration is read
+        // back with DefaultValueHandling.IgnoreAndPopulate, which overwrites the backing field's
+        // initializer with default(T) for any property missing from the json - and this property
+        // is missing from every existing user's json.
+        [DefaultValue(Logic.Settings.TooltipOwnerTypeDisplayMode.Never)]
+        public TooltipOwnerTypeDisplayMode TooltipOwnerTypeDisplayMode
+        {
+            get => _tooltipOwnerTypeDisplayMode;
+            set
+            {
+                _tooltipOwnerTypeDisplayMode = value;
+                IsDirty = true;
+            }
+        }
+        [DefaultValue(WindowLayout.Tabs)]
         public WindowLayout CraftWindowLayout
         {
             get => _craftWindowLayout;
@@ -536,6 +596,7 @@ namespace InventoryTools
                 IsDirty = true;
             }
         }
+        [DefaultValue(WindowLayout.Tabs)]
         public WindowLayout FiltersLayout
         {
             get => _filtersLayout;
@@ -588,6 +649,7 @@ namespace InventoryTools
             }
         }
 
+        [DefaultValue(true)]
         public bool ColorRetainerList
         {
             get => _colorRetainerList;
@@ -598,6 +660,7 @@ namespace InventoryTools
             }
         }
 
+        [DefaultValue(true)]
         public bool ShowItemNumberRetainerList
         {
             get => _showItemNumberRetainerList;
@@ -608,6 +671,7 @@ namespace InventoryTools
             }
         }
 
+        [DefaultValue(true)]
         public bool InvertHighlighting
         {
             get => _invertHighlighting;
@@ -823,7 +887,9 @@ namespace InventoryTools
         #if DEBUG
         public int SelectedDebugPage { get; set; }
         #endif
+        [DefaultValue(true)]
         public bool AutoSave { get; set; } = true;
+        [DefaultValue(10)]
         public int AutoSaveMinutes { get; set; } = 10;
         public int InternalVersion { get; set; } = 0;
         public int Version { get; set; }
@@ -947,6 +1013,7 @@ namespace InventoryTools
             }
         }
 
+        [DefaultValue(Microsoft.Extensions.Logging.LogLevel.Information)]
         public LogLevel LogLevel { get; set; } = LogLevel.Information;
 
         public Dictionary<string, bool> BooleanSettings

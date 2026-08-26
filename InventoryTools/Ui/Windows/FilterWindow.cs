@@ -186,7 +186,7 @@ namespace InventoryTools.Ui
                 {
                     var highlightItems = itemTable.HighlightItems;
                     ImGuiService.CenterElement(20 * ImGui.GetIO().FontGlobalScale);
-                    ImGui.Checkbox("Highlight?" + "###" + itemTable.Key + "VisibilityCheckbox",
+                    ImGui.Checkbox("Highlight?".Loc() + "###" + itemTable.Key + "VisibilityCheckbox",
                         ref highlightItems);
                     if (highlightItems != itemTable.HighlightItems)
                     {
@@ -287,13 +287,13 @@ namespace InventoryTools.Ui
                     }
 
                     ImGui.SameLine();
-                    ImGuiService.VerticalCenter("Pending Market Requests: " + _universalis.QueuedCount);
+                    ImGuiService.VerticalCenter("Pending Market Requests: ".Loc() + _universalis.QueuedCount);
                     if (filterConfiguration.FilterType == FilterType.CraftFilter)
                     {
                         ImGui.SameLine();
-                        ImGui.TextUnformatted("Total Cost NQ: " + filterConfiguration.CraftList.MinimumNQCost);
+                        ImGui.TextUnformatted("Total Cost NQ: ".Loc() + filterConfiguration.CraftList.MinimumNQCost);
                         ImGui.SameLine();
-                        ImGui.TextUnformatted("Total Cost HQ: " + filterConfiguration.CraftList.MinimumHQCost);
+                        ImGui.TextUnformatted("Total Cost HQ: ".Loc() + filterConfiguration.CraftList.MinimumHQCost);
                     }
 
                     if (filterConfiguration.FilterType == FilterType.CraftFilter)
