@@ -1,10 +1,12 @@
 using System;
 using System.Collections.Generic;
 using CriticalCommonLib.Extensions;
+using CriticalCommonLib.Models;
 using CriticalCommonLib.Services;
 using Dalamud.Interface.Colors;
-using ImGuiNET;
+using Dalamud.Bindings.ImGui;
 using InventoryTools.Lists;
+using InventoryTools.Logic.Editors;
 using InventoryTools.Logic.Filters.Abstract;
 using InventoryTools.Services;
 using Microsoft.Extensions.Logging;
@@ -14,12 +16,16 @@ namespace InventoryTools.Logic.Filters
     public class DestinationsFilter : DisplayFilter
     {
         private readonly ICharacterMonitor _characterMonitor;
-        private readonly ListCategoryService _listCategoryService;
+        private readonly CraftDestinationInventoriesFilter _craftDestinationInventoriesFilter;
+        private readonly DestinationInventoriesFilter _destinationInventoriesFilter;
+        private readonly InventoryScopeCalculator _scopeCalculator;
 
-        public DestinationsFilter(ILogger<DestinationsFilter> logger, ImGuiService imGuiService, ICharacterMonitor characterMonitor, ListCategoryService listCategoryService) : base(logger, imGuiService)
+        public DestinationsFilter(ILogger<DestinationsFilter> logger, ImGuiService imGuiService, ICharacterMonitor characterMonitor, CraftDestinationInventoriesFilter craftDestinationInventoriesFilter, DestinationInventoriesFilter destinationInventoriesFilter, InventoryScopeCalculator scopeCalculator) : base(logger, imGuiService)
         {
             _characterMonitor = characterMonitor;
-            _listCategoryService = listCategoryService;
+            _craftDestinationInventoriesFilter = craftDestinationInventoriesFilter;
+            _destinationInventoriesFilter = destinationInventoriesFilter;
+            _scopeCalculator = scopeCalculator;
         }
         public override int Order { get; set; } = 2;
         public override string Key { get; set; } = "Destinations";
@@ -42,24 +48,39 @@ namespace InventoryTools.Logic.Filters
             ImGui.NewLine();
             ImGui.Text("Destination Information: ".Loc());
             ImGui.SameLine();
-            ImGuiService.HelpMarker(HelpText);
+            ImGuiService.HelpMarker(GetHelpText(configuration));
             var allCharacters = _characterMonitor.Characters;
 
             //Retainers
             List<string> destinations = new();
-            foreach (var retainerCategories in _listCategoryService.DestinationRetainerCategories(configuration))
+            var destinationInventories = _destinationInventoriesFilter.CurrentValue(configuration);
+            if (configuration.FilterType == FilterType.CraftFilter)
             {
-                foreach (var retainerCategory in retainerCategories.Value)
+                destinationInventories = _craftDestinationInventoriesFilter.CurrentValue(configuration);
+            }
+
+            if (destinationInventories != null)
+            {
+                foreach (var retainer in allCharacters)
                 {
-                    if (allCharacters.ContainsKey(retainerCategories.Key) &&
-                        retainerCategories.Key.ToString().StartsWith("3"))
+                    foreach (var category in Enum.GetValues<InventoryCategory>())
                     {
-                        var formattedName = allCharacters[retainerCategories.Key].FormattedName + " - " +
-                                            retainerCategory.FormattedName();
-                        destinations.Add(formattedName);
+
+                        if (retainer.Value.CharacterType != CharacterType.Retainer ||
+                            !category.IsRetainerCategory())
+                        {
+                            continue;
+                        }
+                        if (_scopeCalculator.Filter(destinationInventories, retainer.Key, category))
+                        {
+                            var formattedName = retainer.Value.FormattedName + " - " + category.FormattedName();
+                            destinations.Add(formattedName);
+                        }
                     }
                 }
             }
+
+
             ImGui.SetNextItemWidth(LabelSize);
             if (destinations.Count != 0)
             {
@@ -75,19 +96,27 @@ namespace InventoryTools.Logic.Filters
 
             //Characters
             destinations = new();
-            foreach (var characterCategories in _listCategoryService.DestinationCharacterCategories(configuration))
+            if (destinationInventories != null)
             {
-                foreach (var characterCategory in characterCategories.Value)
+                foreach (var retainer in allCharacters)
                 {
-                    if (allCharacters.ContainsKey(characterCategories.Key) &&
-                        characterCategories.Key.ToString().StartsWith("1"))
+                    foreach (var category in Enum.GetValues<InventoryCategory>())
                     {
-                        var formattedName = allCharacters[characterCategories.Key].FormattedName + " - " +
-                                            characterCategory.FormattedName();
-                        destinations.Add(formattedName);
+                        if (retainer.Value.CharacterType != CharacterType.Character ||
+                            !category.IsCharacterCategory())
+                        {
+                            continue;
+                        }
+                        if (_scopeCalculator.Filter(destinationInventories, retainer.Key, category))
+                        {
+                            var formattedName = retainer.Value.FormattedName + " - " + category.FormattedName();
+                            destinations.Add(formattedName);
+                        }
                     }
                 }
             }
+
+
             ImGui.SetNextItemWidth(LabelSize);
             if (destinations.Count != 0)
             {
@@ -103,18 +132,27 @@ namespace InventoryTools.Logic.Filters
 
             //Free Companies
             destinations = new();
-            foreach (var characterCategories in _listCategoryService.DestinationFreeCompanyCategories(configuration))
+            if (destinationInventories != null)
             {
-                foreach (var characterCategory in characterCategories.Value)
+                foreach (var retainer in allCharacters)
                 {
-                    if (allCharacters.ContainsKey(characterCategories.Key))
+                    foreach (var category in Enum.GetValues<InventoryCategory>())
                     {
-                        var formattedName = allCharacters[characterCategories.Key].FormattedName + " - " +
-                                            characterCategory.FormattedName();
-                        destinations.Add(formattedName);
+
+                        if (retainer.Value.CharacterType != CharacterType.FreeCompanyChest ||
+                            !category.IsFreeCompanyCategory())
+                        {
+                            continue;
+                        }
+                        if (_scopeCalculator.Filter(destinationInventories, retainer.Key, category))
+                        {
+                            var formattedName = retainer.Value.FormattedName + " - " + category.FormattedName();
+                            destinations.Add(formattedName);
+                        }
                     }
                 }
             }
+
             ImGui.SetNextItemWidth(LabelSize);
             if (destinations.Count != 0)
             {
@@ -130,18 +168,27 @@ namespace InventoryTools.Logic.Filters
 
             //Houses
             destinations = new();
-            foreach (var characterCategories in _listCategoryService.DestinationHouseCategories(configuration))
+            if (destinationInventories != null)
             {
-                foreach (var characterCategory in characterCategories.Value)
+                foreach (var retainer in allCharacters)
                 {
-                    if (allCharacters.ContainsKey(characterCategories.Key))
+                    foreach (var category in Enum.GetValues<InventoryCategory>())
                     {
-                        var formattedName = allCharacters[characterCategories.Key].FormattedName + " - " +
-                                            characterCategory.FormattedName();
-                        destinations.Add(formattedName);
+
+                        if (retainer.Value.CharacterType != CharacterType.Housing ||
+                            !category.IsHousingCategory())
+                        {
+                            continue;
+                        }
+                        if (_scopeCalculator.Filter(destinationInventories, retainer.Key, category))
+                        {
+                            var formattedName = retainer.Value.FormattedName + " - " + category.FormattedName();
+                            destinations.Add(formattedName);
+                        }
                     }
                 }
             }
+
             ImGui.SetNextItemWidth(LabelSize);
             if (destinations.Count != 0)
             {

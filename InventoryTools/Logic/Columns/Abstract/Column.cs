@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using CriticalCommonLib.Services.Mediator;
 using DalaMock.Host.Mediator;
-using ImGuiNET;
+using Dalamud.Bindings.ImGui;
 using InventoryTools.Logic.Columns.Abstract.ColumnSettings;
 using InventoryTools.Services;
 using Microsoft.Extensions.Logging;
@@ -20,7 +20,7 @@ namespace InventoryTools.Logic.Columns.Abstract
 
         [JsonIgnore] protected ILogger Logger { get; }
         [JsonIgnore] protected ImGuiService ImGuiService { get; }
-        public virtual uint MaxFilterLength { get; set; } = 200;
+        public virtual int MaxFilterLength { get; set; } = 200;
         public List<IColumnSetting> FilterSettings { get; set; } = new();
         public List<IColumnSetting> Settings { get; set; } = new();
 

@@ -6,7 +6,7 @@ using CriticalCommonLib;
 using CriticalCommonLib.Extensions;
 using CriticalCommonLib.Models;
 
-using ImGuiNET;
+using Dalamud.Bindings.ImGui;
 using InventoryTools.Extensions;
 using InventoryTools.Logic.Filters.Abstract;
 using InventoryTools.Services;
@@ -69,7 +69,7 @@ public class CraftWorldPricePreference : SortedListFilter<uint, uint>
 
     public override bool HasValueSet(FilterConfiguration configuration)
     {
-        return true;
+        return configuration.CraftList.WorldPricePreference.Count != 0;
     }
 
     public override FilterType AvailableIn { get; set; } = FilterType.CraftFilter;
@@ -103,12 +103,12 @@ public class CraftWorldPricePreference : SortedListFilter<uint, uint>
 
     public override void Draw(FilterConfiguration configuration)
     {
-        ImGui.TextUnformatted(Name);
-        ImGuiService.HelpMarker(HelpText);
+        ImGui.TextUnformatted(GetName(configuration));
+        ImGuiService.HelpMarker(GetHelpText(configuration));
         ImGui.Separator();
         DrawTable(configuration);
         ImGui.SameLine();
-        ImGuiService.HelpMarker(HelpText);
+        ImGuiService.HelpMarker(GetHelpText(configuration));
 
         var currentValue = CurrentValue(configuration);
         ImGui.SetNextItemWidth(LabelSize);

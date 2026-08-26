@@ -5,6 +5,8 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading;
+using AllaganLib.Shared.Interfaces;
+using AllaganLib.Shared.Services;
 using CriticalCommonLib.Interfaces;
 using CriticalCommonLib.Models;
 using CriticalCommonLib.Resolvers;
@@ -33,11 +35,11 @@ namespace InventoryTools.Services
 
         public event ConfigurationChangedDelegate? ConfigurationChanged;
 
-        public ConfigurationManagerService(IFramework framework, IDalamudPluginInterface pluginInterfaceService, ILogger<ConfigurationManagerService> logger, IBackgroundTaskQueue saveQueue, MinifyResolver minifyResolver, ContainerAwareCsvLoader containerAwareCsvLoader)
+        public ConfigurationManagerService(IFramework framework, IDalamudPluginInterface pluginInterfaceService, ILogger<ConfigurationManagerService> logger, BackgroundTaskQueue.Factory taskQueueFactory, MinifyResolver minifyResolver, ContainerAwareCsvLoader containerAwareCsvLoader)
         {
             Logger = logger;
             _pluginInterfaceService = pluginInterfaceService;
-            _saveQueue = saveQueue;
+            _saveQueue = taskQueueFactory.Invoke("Configuration Save Queue");
             _minifyResolver = minifyResolver;
             _containerAwareCsvLoader = containerAwareCsvLoader;
             _framework = framework;
@@ -204,17 +206,21 @@ namespace InventoryTools.Services
             else if (!Config.InventoriesMigratedToCsv)
             {
                 Logger.LogTrace("Marked inventories to now load from CSV");
-                var parsedInventories = LoadInventoriesJson(InventoryFile) ?? new();
-                foreach (var parsedInventory in parsedInventories)
+                if (File.Exists(InventoryFile))
                 {
-                    foreach (var category in parsedInventory.Value)
+                    var parsedInventories = LoadInventoriesJson(InventoryFile) ?? new();
+                    foreach (var parsedInventory in parsedInventories)
                     {
-                        foreach (var item in category.Value)
+                        foreach (var category in parsedInventory.Value)
                         {
-                            inventories.Add(item);
+                            foreach (var item in category.Value)
+                            {
+                                inventories.Add(item);
+                            }
                         }
                     }
                 }
+
                 Config.InventoriesMigratedToCsv = true;
             }
             else
@@ -247,7 +253,7 @@ namespace InventoryTools.Services
             }
             catch (Exception e)
             {
-                Logger.LogError($"Failed to save allagan tools configuration due to {e.Message}");
+                Logger.LogWarning($"Failed to save allagan tools configuration due to {e.Message}");
             }
         }
 
@@ -286,7 +292,7 @@ namespace InventoryTools.Services
         private MinifyResolver _minifyResolver;
         private readonly ContainerAwareCsvLoader _containerAwareCsvLoader;
         private readonly IDalamudPluginInterface _pluginInterfaceService;
-        private readonly IBackgroundTaskQueue _saveQueue;
+        private readonly BackgroundTaskQueue _saveQueue;
 
         [Obsolete]
         public void SaveInventoriesToJson(
@@ -368,8 +374,7 @@ namespace InventoryTools.Services
                 catch (Exception e)
                 {
                     success = false;
-                    Logger.LogError("Failed to load history from CSV");
-                    Logger.LogError(e.Message);
+                    Logger.LogError(e, "Failed to load history from CSV");
                 }
             }
             else

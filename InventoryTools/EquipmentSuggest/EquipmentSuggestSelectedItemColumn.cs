@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
+using System.Threading.Tasks;
 using AllaganLib.Interface.FormFields;
 using AllaganLib.Interface.Grid;
 using CriticalCommonLib.Services.Mediator;
@@ -9,7 +10,7 @@ using DalaMock.Host.Mediator;
 using DalaMock.Shared.Interfaces;
 using Dalamud.Interface;
 using Dalamud.Interface.Utility.Raii;
-using ImGuiNET;
+using Dalamud.Bindings.ImGui;
 using InventoryTools.Logic;
 using InventoryTools.Logic.ItemRenderers;
 using InventoryTools.Mediator;
@@ -80,7 +81,7 @@ public class EquipmentSuggestSelectedItemColumn  : StringFormField<EquipmentSugg
                     if (group)
                     {
                         if (ImGui.ImageButton(
-                                ImGuiService.GetIconTexture(item.SelectedItem.Item.Icon).ImGuiHandle,
+                                ImGuiService.GetIconTexture(item.SelectedItem.Item.Icon).Handle,
                                 new Vector2(iconSize, iconSize) * ImGui.GetIO().FontGlobalScale,
                                 new Vector2(0, 0), new Vector2(1, 1), 0))
                         {
@@ -131,7 +132,7 @@ public class EquipmentSuggestSelectedItemColumn  : StringFormField<EquipmentSugg
                 //                 if (group)
                 //                 {
                 //                     if (ImGui.ImageButton(
-                //                             ImGuiService.GetIconTexture(item.SelectedItem.Item.Icon).ImGuiHandle,
+                //                             ImGuiService.GetIconTexture(item.SelectedItem.Item.Icon).Handle,
                 //                             new Vector2(iconSize, iconSize) * ImGui.GetIO().FontGlobalScale,
                 //                             new Vector2(0, 0), new Vector2(1, 1), 0))
                 //                     {
@@ -167,7 +168,7 @@ public class EquipmentSuggestSelectedItemColumn  : StringFormField<EquipmentSugg
                 //                     var tint = firstItem.Type == item.AcquisitionSource
                 //                         ? Vector4.One
                 //                         : new Vector4(1.0f, 1.0f, 1.0f, 0.5f);
-                //                     if (ImGui.ImageButton(sourceIcon.ImGuiHandle,
+                //                     if (ImGui.ImageButton(sourceIcon.Handle,
                 //                             new Vector2(iconSize, iconSize) * ImGui.GetIO().FontGlobalScale,
                 //                             new Vector2(0, 0),
                 //                             new Vector2(1, 1), 0, Vector4.Zero, tint))
@@ -233,38 +234,51 @@ public class EquipmentSuggestSelectedItemColumn  : StringFormField<EquipmentSugg
                         foreach (var filter in craftFilters)
                         {
                             if (!ImGui.Selectable(filter.Name)) continue;
-                            foreach (var toAdd in GetItems())
+                            Task.Run(() =>
                             {
-                                filter.CraftList.AddCraftItem(toAdd.Item.RowId);
-                            }
-                            messages.Add(new OpenGenericWindowMessage(typeof(CraftsWindow)));
-                            messages.Add(new FocusListMessage(typeof(CraftsWindow), filter));
-                            filter.NeedsRefresh = true;
+                                foreach (var toAdd in GetItems())
+                                {
+                                    filter.CraftList.AddCraftItem(toAdd.Item.RowId);
+                                }
+
+                                messages.Add(new OpenGenericWindowMessage(typeof(CraftsWindow)));
+                                messages.Add(new FocusListMessage(typeof(CraftsWindow), filter));
+                                filter.NeedsRefresh = true;
+                            });
+
                         }
                     }
                 }
 
                 if (ImGui.Selectable("Add to new Craft List".Loc()))
                 {
-                    var filter = _listService.AddNewCraftList();
-                    foreach (var toAdd in GetItems())
+                    Task.Run(() =>
                     {
-                        filter.CraftList.AddCraftItem(toAdd.Item.RowId);
-                    }
-                    messages.Add(new OpenGenericWindowMessage(typeof(CraftsWindow)));
-                    messages.Add(new FocusListMessage(typeof(CraftsWindow), filter));
-                    filter.NeedsRefresh = true;
+                        var filter = _listService.AddNewCraftList();
+                        foreach (var toAdd in GetItems())
+                        {
+                            filter.CraftList.AddCraftItem(toAdd.Item.RowId);
+                        }
+
+                        messages.Add(new OpenGenericWindowMessage(typeof(CraftsWindow)));
+                        messages.Add(new FocusListMessage(typeof(CraftsWindow), filter));
+                        filter.NeedsRefresh = true;
+                    });
                 }
                 if (ImGui.Selectable("Add to new Craft List (ephemeral)".Loc()))
                 {
-                    var filter = _listService.AddNewCraftList(null,true);
-                    foreach (var toAdd in GetItems())
+                    Task.Run(() =>
                     {
-                        filter.CraftList.AddCraftItem(toAdd.Item.RowId);
-                    }
-                    messages.Add(new OpenGenericWindowMessage(typeof(CraftsWindow)));
-                    messages.Add(new FocusListMessage(typeof(CraftsWindow), filter));
-                    filter.NeedsRefresh = true;
+                        var filter = _listService.AddNewCraftList(null, true);
+                        foreach (var toAdd in GetItems())
+                        {
+                            filter.CraftList.AddCraftItem(toAdd.Item.RowId);
+                        }
+
+                        messages.Add(new OpenGenericWindowMessage(typeof(CraftsWindow)));
+                        messages.Add(new FocusListMessage(typeof(CraftsWindow), filter));
+                        filter.NeedsRefresh = true;
+                    });
                 }
                 ImGui.Separator();
                 var curatedLists =
@@ -277,25 +291,33 @@ public class EquipmentSuggestSelectedItemColumn  : StringFormField<EquipmentSugg
                         foreach (var filter in curatedLists)
                         {
                             if (!ImGui.MenuItem(filter.Name)) continue;
-                            foreach (var toAdd in GetItems())
+                            Task.Run(() =>
                             {
-                                filter.AddCuratedItem(new CuratedItem(toAdd.Item.RowId));
-                            }
-                            messages.Add(new FocusListMessage(typeof(FiltersWindow), filter));
-                            filter.NeedsRefresh = true;
+                                foreach (var toAdd in GetItems())
+                                {
+                                    filter.AddCuratedItem(new CuratedItem(toAdd.Item.RowId));
+                                }
+
+                                messages.Add(new FocusListMessage(typeof(FiltersWindow), filter));
+                                filter.NeedsRefresh = true;
+                            });
                         }
                     }
                 }
 
                 if (ImGui.Selectable("Add to new Curated List".Loc()))
                 {
-                    var filter = _listService.AddNewCuratedList();
-                    foreach (var toAdd in GetItems())
+                    Task.Run(() =>
                     {
-                        filter.AddCuratedItem(new CuratedItem(toAdd.Item.RowId));
-                    }
-                    messages.Add(new FocusListMessage(typeof(FiltersWindow), filter));
-                    filter.NeedsRefresh = true;
+                        var filter = _listService.AddNewCuratedList();
+                        foreach (var toAdd in GetItems())
+                        {
+                            filter.AddCuratedItem(new CuratedItem(toAdd.Item.RowId));
+                        }
+
+                        messages.Add(new FocusListMessage(typeof(FiltersWindow), filter));
+                        filter.NeedsRefresh = true;
+                    });
                 }
 
             }

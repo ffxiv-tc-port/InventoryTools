@@ -13,7 +13,9 @@ using CriticalCommonLib.Models;
 using Dalamud.Interface.Colors;
 using Dalamud.Plugin;
 using InventoryTools.Logic;
+using InventoryTools.Logic.Editors;
 using InventoryTools.Logic.Filters;
+using InventoryTools.Logic.Filters.Abstract;
 using InventoryTools.Logic.Filters.Stats;
 using InventoryTools.Logic.ItemRenderers;
 using InventoryTools.Logic.Settings;
@@ -21,6 +23,7 @@ using InventoryTools.Services.Interfaces;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+#pragma warning disable CS0618 // Type or member is obsolete
 
 namespace InventoryTools.Services;
 
@@ -387,6 +390,280 @@ public class MigrationManagerService : IHostedService
 
             config.InternalVersion++;
         }
+
+        //Bump the version to 30 to bypass some versioning weirdness
+        if (config.InternalVersion < 30)
+        {
+            config.InternalVersion = 30;
+            foreach (var filterConfig in config.FilterConfigurations)
+            {
+                if (filterConfig.FilterType == FilterType.CraftFilter)
+                {
+                    var sourceScopes = MigrateSourceScopes(filterConfig, _configuration);
+                    if (sourceScopes.Count == 0)
+                    {
+                        _componentContext.Resolve<CraftSourceInventoriesFilter>()
+                            .ResetFilter(filterConfig);
+                    }
+                    else
+                    {
+                        _componentContext.Resolve<CraftSourceInventoriesFilter>()
+                            .UpdateFilterConfiguration(filterConfig, sourceScopes);
+                    }
+
+                    var destinationScopes = MigrateDestinationScopes(filterConfig, _configuration);
+                    if (destinationScopes.Count == 0)
+                    {
+                        _componentContext.Resolve<CraftDestinationInventoriesFilter>()
+                            .ResetFilter(filterConfig);
+                    }
+                    else
+                    {
+                        _componentContext.Resolve<CraftDestinationInventoriesFilter>()
+                            .UpdateFilterConfiguration(filterConfig, destinationScopes);
+                    }
+                }
+                else if (filterConfig.FilterType == FilterType.SortingFilter)
+                {
+                    var sourceScopes = MigrateSourceScopes(filterConfig, _configuration);
+                    _componentContext.Resolve<SourceInventoriesFilter>().UpdateFilterConfiguration(filterConfig, sourceScopes);
+
+                    var destinationScopes = MigrateDestinationScopes(filterConfig, _configuration);
+                    _componentContext.Resolve<DestinationInventoriesFilter>().UpdateFilterConfiguration(filterConfig, destinationScopes);
+                }
+                else
+                {
+                    var sourceScopes = MigrateSourceScopes(filterConfig, _configuration);
+                    _componentContext.Resolve<SourceInventoriesFilter>().UpdateFilterConfiguration(filterConfig, sourceScopes);
+                }
+            }
+
+            config.InternalVersion++;
+        }
+
+        //Bump the version to 30 to bypass some versioning weirdness
+        if (config.InternalVersion == 31)
+        {
+            foreach (var filterConfig in config.FilterConfigurations)
+            {
+                if (filterConfig.HighlightWhen == "Always")
+                {
+                    filterConfig.HighlightWhenEnum = HighlightWhen.Always;
+                }
+                else if (filterConfig.HighlightWhen == "When Searching")
+                {
+                    filterConfig.HighlightWhenEnum = HighlightWhen.WhenSearching;
+                }
+                else
+                {
+                    filterConfig.HighlightWhenEnum = HighlightWhen.UseGlobalConfiguration;
+                }
+            }
+
+            if (config.HighlightWhen == "Always")
+            {
+                config.HighlightWhenEnum = HighlightWhen.Always;
+            }
+            else if (config.HighlightWhen == "When Searching")
+            {
+                config.HighlightWhenEnum = HighlightWhen.WhenSearching;
+            }
+
+            config.InternalVersion++;
+        }
+    }
+
+    private List<InventorySearchScope> MigrateSourceScopes(FilterConfiguration filterConfiguration, InventoryToolsConfiguration configuration)
+    {
+        List<InventorySearchScope> scopeFilters = new List<InventorySearchScope>();
+        InventorySearchScope? activeCharacterScope = null;
+
+        if (filterConfiguration.SourceAllCharacters == true)
+        {
+            if (filterConfiguration.SourceIncludeCrossCharacter ?? configuration.DisplayCrossCharacter)
+            {
+                scopeFilters.Add(new InventorySearchScope() {  CharacterTypes = [CharacterType.Character]});
+            }
+            else
+            {
+                if (activeCharacterScope == null)
+                {
+                    activeCharacterScope = new InventorySearchScope() { ActiveCharacter = true, CharacterTypes = []};
+                }
+
+                activeCharacterScope.CharacterTypes!.Add(CharacterType.Character);
+            }
+        }
+        if (filterConfiguration.SourceAllFreeCompanies == true)
+        {
+            if (filterConfiguration.SourceIncludeCrossCharacter ?? configuration.DisplayCrossCharacter)
+            {
+                scopeFilters.Add(new InventorySearchScope() {  CharacterTypes = [CharacterType.FreeCompanyChest]});
+            }
+            else
+            {
+                if (activeCharacterScope == null)
+                {
+                    activeCharacterScope = new InventorySearchScope() { ActiveCharacter = true, CharacterTypes = []};
+                }
+
+                activeCharacterScope.CharacterTypes!.Add(CharacterType.FreeCompanyChest);
+            }
+        }
+        if (filterConfiguration.SourceAllHouses == true)
+        {
+            if (filterConfiguration.SourceIncludeCrossCharacter ?? configuration.DisplayCrossCharacter)
+            {
+                scopeFilters.Add(new InventorySearchScope() {  CharacterTypes = [CharacterType.Housing]});
+            }
+            else
+            {
+                if (activeCharacterScope == null)
+                {
+                    activeCharacterScope = new InventorySearchScope() { ActiveCharacter = true, CharacterTypes = []};
+                }
+
+                activeCharacterScope.CharacterTypes!.Add(CharacterType.Housing);
+            }
+        }
+        if (filterConfiguration.SourceAllRetainers == true)
+        {
+            if (filterConfiguration.SourceIncludeCrossCharacter ?? configuration.DisplayCrossCharacter)
+            {
+                scopeFilters.Add(new InventorySearchScope() {  CharacterTypes = [CharacterType.Retainer]});
+            }
+            else
+            {
+                if (activeCharacterScope == null)
+                {
+                    activeCharacterScope = new InventorySearchScope() { ActiveCharacter = true, CharacterTypes = []};
+                }
+
+                activeCharacterScope.CharacterTypes!.Add(CharacterType.Retainer);
+            }
+        }
+        if (filterConfiguration.SourceCategories != null)
+        {
+            if (filterConfiguration.SourceIncludeCrossCharacter ?? configuration.DisplayCrossCharacter)
+            {
+                scopeFilters.Add(new InventorySearchScope() {  Categories = filterConfiguration.SourceCategories.ToHashSet()});
+            }
+            else
+            {
+                scopeFilters.Add(new InventorySearchScope() { ActiveCharacter = true, Categories = filterConfiguration.SourceCategories.ToHashSet()});
+            }
+        }
+        foreach(var sourceInventory in filterConfiguration.SourceInventories)
+        {
+            scopeFilters.Add(new InventorySearchScope() { CharacterId  = sourceInventory.Item1, Categories = [sourceInventory.Item2]});
+        }
+        if(filterConfiguration.SourceWorlds != null)
+        {
+            foreach (var sourceWorld in filterConfiguration.SourceWorlds)
+            {
+                scopeFilters.Add(new InventorySearchScope() { WorldId = sourceWorld });
+            }
+        }
+
+        if (activeCharacterScope != null)
+        {
+            scopeFilters.Add(activeCharacterScope);
+        }
+
+        return scopeFilters;
+    }
+
+    private List<InventorySearchScope> MigrateDestinationScopes(FilterConfiguration filterConfiguration, InventoryToolsConfiguration configuration)
+    {
+        List<InventorySearchScope> scopeFilters = new List<InventorySearchScope>();
+        InventorySearchScope? activeCharacterScope = null;
+
+        if (filterConfiguration.DestinationAllCharacters == true)
+        {
+            if (filterConfiguration.DestinationIncludeCrossCharacter ?? configuration.DisplayCrossCharacter)
+            {
+                scopeFilters.Add(new InventorySearchScope() {  CharacterTypes = [CharacterType.Character]});
+            }
+            else
+            {
+                if (activeCharacterScope == null)
+                {
+                    activeCharacterScope = new InventorySearchScope() { ActiveCharacter = true, CharacterTypes = []};
+                }
+
+                activeCharacterScope.CharacterTypes!.Add(CharacterType.Character);
+            }
+        }
+        if (filterConfiguration.DestinationAllFreeCompanies == true)
+        {
+            if (filterConfiguration.DestinationIncludeCrossCharacter ?? configuration.DisplayCrossCharacter)
+            {
+                scopeFilters.Add(new InventorySearchScope() {  CharacterTypes = [CharacterType.FreeCompanyChest]});
+            }
+            else
+            {
+                if (activeCharacterScope == null)
+                {
+                    activeCharacterScope = new InventorySearchScope() { ActiveCharacter = true, CharacterTypes = []};
+                }
+
+                activeCharacterScope.CharacterTypes!.Add(CharacterType.FreeCompanyChest);
+            }
+        }
+        if (filterConfiguration.DestinationAllHouses == true)
+        {
+            if (filterConfiguration.DestinationIncludeCrossCharacter ?? configuration.DisplayCrossCharacter)
+            {
+                scopeFilters.Add(new InventorySearchScope() {  CharacterTypes = [CharacterType.Housing]});
+            }
+            else
+            {
+                if (activeCharacterScope == null)
+                {
+                    activeCharacterScope = new InventorySearchScope() { ActiveCharacter = true, CharacterTypes = []};
+                }
+
+                activeCharacterScope.CharacterTypes!.Add(CharacterType.Housing);
+            }
+        }
+        if (filterConfiguration.DestinationAllRetainers == true)
+        {
+            if (filterConfiguration.DestinationIncludeCrossCharacter ?? configuration.DisplayCrossCharacter)
+            {
+                scopeFilters.Add(new InventorySearchScope() {  CharacterTypes = [CharacterType.Retainer]});
+            }
+            else
+            {
+                if (activeCharacterScope == null)
+                {
+                    activeCharacterScope = new InventorySearchScope() { ActiveCharacter = true, CharacterTypes = []};
+                }
+
+                activeCharacterScope.CharacterTypes!.Add(CharacterType.Retainer);
+            }
+        }
+        if (filterConfiguration.DestinationCategories != null)
+        {
+            if (filterConfiguration.DestinationIncludeCrossCharacter ?? configuration.DisplayCrossCharacter)
+            {
+                scopeFilters.Add(new InventorySearchScope() {  Categories = filterConfiguration.DestinationCategories.ToHashSet()});
+            }
+            else
+            {
+                scopeFilters.Add(new InventorySearchScope() { ActiveCharacter = true, Categories = filterConfiguration.DestinationCategories.ToHashSet()});
+            }
+        }
+        foreach(var destinationInventory in filterConfiguration.DestinationInventories)
+        {
+            scopeFilters.Add(new InventorySearchScope() { CharacterId  = destinationInventory.Item1, Categories = [destinationInventory.Item2]});
+        }
+
+        if (activeCharacterScope != null)
+        {
+            scopeFilters.Add(activeCharacterScope);
+        }
+
+        return scopeFilters;
     }
 
     private string GetNewFileName(string fileName, string extension)

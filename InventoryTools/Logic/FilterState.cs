@@ -10,6 +10,8 @@ using CriticalCommonLib.Extensions;
 using CriticalCommonLib.Models;
 using CriticalCommonLib.Services;
 using CriticalCommonLib.Services.Ui;
+using InventoryTools.Logic.Filters;
+using InventoryTools.Logic.Settings;
 using InventoryTools.Services;
 using Lumina.Excel;
 using Lumina.Excel.Sheets;
@@ -19,15 +21,19 @@ namespace InventoryTools.Logic
 {
     public class FilterState
     {
-        public FilterState(ILogger<FilterState> logger, ICharacterMonitor characterMonitor, WindowService windowService, IGameUiManager gameUiManager, IInventoryMonitor inventoryMonitor, InventoryToolsConfiguration configuration, ExcelSheet<CabinetCategory> cabinetCategorySheet)
+        public FilterState(ICharacterMonitor characterMonitor, WindowService windowService,
+            IGameUiManager gameUiManager, IInventoryMonitor inventoryMonitor, InventoryToolsConfiguration configuration,
+            ExcelSheet<CabinetCategory> cabinetCategorySheet, HighlightWhenFilter highlightWhenFilter,
+            HighlightWhenSetting highlightWhenSetting)
         {
-            _logger = logger;
             _characterMonitor = characterMonitor;
             _windowService = windowService;
             _gameUiManager = gameUiManager;
             _inventoryMonitor = inventoryMonitor;
             _configuration = configuration;
             _cabinetCategorySheet = cabinetCategorySheet;
+            _highlightWhenFilter = highlightWhenFilter;
+            _highlightWhenSetting = highlightWhenSetting;
         }
 
         public void Initialize(FilterConfiguration filterConfiguration)
@@ -36,13 +42,14 @@ namespace InventoryTools.Logic
         }
 
         public FilterConfiguration FilterConfiguration;
-        private readonly ILogger<FilterState> _logger;
         private readonly ICharacterMonitor _characterMonitor;
         private readonly WindowService _windowService;
         private readonly IGameUiManager _gameUiManager;
         private readonly IInventoryMonitor _inventoryMonitor;
         private readonly InventoryToolsConfiguration _configuration;
         private readonly ExcelSheet<CabinetCategory> _cabinetCategorySheet;
+        private readonly HighlightWhenFilter _highlightWhenFilter;
+        private readonly HighlightWhenSetting _highlightWhenSetting;
         public RenderTableBase? FilterTable;
         public ulong? ActiveRetainerId => _characterMonitor.ActiveRetainerId == 0 ? null : _characterMonitor.ActiveRetainerId;
         public ulong? ActiveFreeCompanyId => _characterMonitor.ActiveFreeCompanyId == 0 ? null : _characterMonitor.ActiveFreeCompanyId;
@@ -95,7 +102,10 @@ namespace InventoryTools.Logic
                         if (activeTableHighlightItems)
                         {
                             shouldHighlight = activeTableHighlightItems;
-                            if (activeFilter.HighlightWhen is "When Searching" || activeFilter.HighlightWhen == null && _configuration.HighlightWhen == "When Searching")
+                            var filterHighlightWhen = _highlightWhenFilter.CurrentValue(activeFilter);
+                            var configurationHighlightWhen = _highlightWhenSetting.CurrentValue(_configuration);
+
+                            if (activeFilter.FilterType != FilterType.CraftFilter && (filterHighlightWhen is HighlightWhen.WhenSearching || filterHighlightWhen == HighlightWhen.UseGlobalConfiguration && configurationHighlightWhen == HighlightWhen.WhenSearching))
                             {
                                 if (!activeTable.IsSearching)
                                 {
@@ -465,37 +475,26 @@ namespace InventoryTools.Logic
             {
                 case InventoryCategory.CharacterBags:
                     return _characterMonitor.ActiveCharacterId;
-                    break;
                 case InventoryCategory.CharacterSaddleBags:
                     return _characterMonitor.ActiveCharacterId;
-                    break;
                 case InventoryCategory.CharacterPremiumSaddleBags:
                     return _characterMonitor.ActiveCharacterId;
-                    break;
                 case InventoryCategory.RetainerBags:
                     return ActiveRetainerId;
-                    break;
                 case InventoryCategory.CharacterArmoryChest:
                     return _characterMonitor.ActiveCharacterId;
-                    break;
                 case InventoryCategory.CharacterEquipped:
                     return _characterMonitor.ActiveCharacterId;
-                    break;
                 case InventoryCategory.RetainerEquipped:
                     return ActiveRetainerId;
-                    break;
                 case InventoryCategory.RetainerMarket:
                     return ActiveRetainerId;
-                    break;
                 case InventoryCategory.GlamourChest:
                     return _characterMonitor.ActiveCharacterId;
-                    break;
                 case InventoryCategory.Armoire:
                     return _characterMonitor.ActiveCharacterId;
-                    break;
                 case InventoryCategory.FreeCompanyBags:
                     return _characterMonitor.ActiveFreeCompanyId;
-                    break;
                 default:
                     return null;
             }
@@ -774,7 +773,7 @@ namespace InventoryTools.Logic
 
             if (searchResult.InventoryItem.IsEmpty && invertHighlighting)
             {
-                return false;
+                return true;
             }
 
             return false;

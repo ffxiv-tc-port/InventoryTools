@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Numerics;
 using AllaganLib.GameSheets.Caches;
 using AllaganLib.GameSheets.ItemSources;
 using AllaganLib.GameSheets.Model;
@@ -17,13 +18,14 @@ using Dalamud.Interface.Colors;
 using Dalamud.Interface.Textures;
 using Dalamud.Interface.Utility.Raii;
 using Dalamud.Plugin.Services;
-using ImGuiNET;
+using Dalamud.Bindings.ImGui;
 using InventoryTools.Logic.Columns.Abstract;
 using InventoryTools.Mediator;
 using InventoryTools.Services;
 using Lumina.Extensions;
 using Microsoft.Extensions.Logging;
 using OtterGui;
+using ImGuiTable = OtterGui.ImGuiTable;
 
 namespace InventoryTools.Logic.Columns.Buttons
 {
@@ -51,7 +53,7 @@ namespace InventoryTools.Logic.Columns.Buttons
             {
                 return true;
             }
-            return searchResult.Item.ObtainedGathering || searchResult.Item.ObtainedFishing;
+            return searchResult.Item.ObtainedGathering || searchResult.Item.ObtainedFishing || searchResult.Item.ObtainedSpearFishing;
         }
 
         List<(IShop shop, ENpcBaseRow? npc, ILocation? location)> GetLocations(ItemRow item)
@@ -204,7 +206,7 @@ namespace InventoryTools.Logic.Columns.Buttons
 
                     ImGui.SameLine();
                     var wrap = ImGuiService.TextureProvider.GetFromGameIcon(new GameIconLookup(66317)).GetWrapOrEmpty();
-                    ImGui.Image(wrap.ImGuiHandle, new(16, 16));
+                    ImGui.Image(wrap.Handle, new(16, 16));
 
                     if (ImGui.IsItemHovered())
                     {
@@ -260,7 +262,7 @@ namespace InventoryTools.Logic.Columns.Buttons
 
                 return true;
             }
-            else if (searchResult.Item.ObtainedFishing)
+            else if (searchResult.Item.ObtainedFishing || searchResult.Item.ObtainedSpearFishing)
             {
                 if (needsSameLine)
                 {
@@ -322,7 +324,7 @@ namespace InventoryTools.Logic.Columns.Buttons
                 }
 
                 ImGui.SameLine(0, 0);
-                if (ImGui.ArrowButton("select##" + rowIndex, ImGuiDir.Down))
+                if (ImGuiP.ArrowButtonEx("select##" + rowIndex, ImGuiDir.Down, new Vector2(24,24)))
                 {
                     ImGui.OpenPopup("buyLocations" + rowIndex);
                 }

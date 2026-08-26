@@ -4,8 +4,9 @@ using CriticalCommonLib.Extensions;
 using CriticalCommonLib.Models;
 using CriticalCommonLib.Services;
 using Dalamud.Interface.Colors;
-using ImGuiNET;
+using Dalamud.Bindings.ImGui;
 using InventoryTools.Lists;
+using InventoryTools.Logic.Editors;
 using InventoryTools.Logic.Filters.Abstract;
 using InventoryTools.Services;
 using Microsoft.Extensions.Logging;
@@ -15,12 +16,16 @@ namespace InventoryTools.Logic.Filters
     public class SourcesFilter : DisplayFilter
     {
         private readonly ICharacterMonitor _characterMonitor;
-        private readonly ListCategoryService _listCategoryService;
+        private readonly CraftSourceInventoriesFilter _craftSourceInventoriesFilter;
+        private readonly SourceInventoriesFilter _sourceInventoriesFilter;
+        private readonly InventoryScopeCalculator _scopeCalculator;
 
-        public SourcesFilter(ILogger<SourcesFilter> logger, ImGuiService imGuiService, ICharacterMonitor characterMonitor, ListCategoryService listCategoryService) : base(logger, imGuiService)
+        public SourcesFilter(ILogger<SourcesFilter> logger, ImGuiService imGuiService, ICharacterMonitor characterMonitor, CraftSourceInventoriesFilter craftSourceInventoriesFilter, SourceInventoriesFilter sourceInventoriesFilter, InventoryScopeCalculator scopeCalculator) : base(logger, imGuiService)
         {
             _characterMonitor = characterMonitor;
-            _listCategoryService = listCategoryService;
+            _craftSourceInventoriesFilter = craftSourceInventoriesFilter;
+            _sourceInventoriesFilter = sourceInventoriesFilter;
+            _scopeCalculator = scopeCalculator;
         }
         public override int Order { get; set; } = 1;
         public override string Key { get; set; } = "Sources";
@@ -45,21 +50,35 @@ namespace InventoryTools.Logic.Filters
             ImGui.NewLine();
             ImGui.Text("Source Information: ".Loc());
             ImGui.SameLine();
-            ImGuiService.HelpMarker(HelpText);
+            ImGuiService.HelpMarker(GetHelpText(configuration));
             var allCharacters = _characterMonitor.Characters;
 
             //Retainer Sources
             List<string> sources = new();
-            foreach (var retainerCategories in _listCategoryService.SourceRetainerCategories(configuration))
+            var sourceInventories = _sourceInventoriesFilter.CurrentValue(configuration);
+            if (configuration.FilterType == FilterType.CraftFilter)
             {
-                foreach (var retainerCategory in retainerCategories.Value)
+                sourceInventories = _craftSourceInventoriesFilter.CurrentValue(configuration);
+            }
+
+
+            if (sourceInventories != null)
+            {
+                foreach (var retainer in allCharacters)
                 {
-                    if (allCharacters.ContainsKey(retainerCategories.Key) &&
-                        retainerCategories.Key.ToString().StartsWith("3"))
+                    foreach (var category in Enum.GetValues<InventoryCategory>())
                     {
-                        var formattedName = allCharacters[retainerCategories.Key].FormattedName + " - " +
-                                            retainerCategory.FormattedName();
-                        sources.Add(formattedName);
+
+                        if (retainer.Value.CharacterType != CharacterType.Retainer ||
+                            !category.IsRetainerCategory())
+                        {
+                            continue;
+                        }
+                        if (_scopeCalculator.Filter(sourceInventories, retainer.Key, category))
+                        {
+                            var formattedName = retainer.Value.FormattedName + " - " + category.FormattedName();
+                            sources.Add(formattedName);
+                        }
                     }
                 }
             }
@@ -79,19 +98,28 @@ namespace InventoryTools.Logic.Filters
 
             //Character Sources
             sources = new();
-            foreach (var characterCategories in _listCategoryService.SourceCharacterCategories(configuration))
+
+            if (sourceInventories != null)
             {
-                foreach (var characterCategory in characterCategories.Value)
+                foreach (var retainer in allCharacters)
                 {
-                    if (allCharacters.ContainsKey(characterCategories.Key) &&
-                        characterCategories.Key.ToString().StartsWith("1"))
+                    foreach (var category in Enum.GetValues<InventoryCategory>())
                     {
-                        var formattedName = allCharacters[characterCategories.Key].FormattedName + " - " +
-                                            characterCategory.FormattedName();
-                        sources.Add(formattedName);
+
+                        if (retainer.Value.CharacterType != CharacterType.Character ||
+                            !category.IsCharacterCategory())
+                        {
+                            continue;
+                        }
+                        if (_scopeCalculator.Filter(sourceInventories, retainer.Key, category))
+                        {
+                            var formattedName = retainer.Value.FormattedName + " - " + category.FormattedName();
+                            sources.Add(formattedName);
+                        }
                     }
                 }
             }
+
             ImGui.SetNextItemWidth(LabelSize);
             if (sources.Count != 0)
             {
@@ -107,18 +135,29 @@ namespace InventoryTools.Logic.Filters
 
             //Free Company Sources
             sources = new();
-            foreach (var characterCategories in _listCategoryService.SourceFreeCompanyCategories(configuration))
+
+            if (sourceInventories != null)
             {
-                foreach (var characterCategory in characterCategories.Value)
+                foreach (var retainer in allCharacters)
                 {
-                    if (allCharacters.ContainsKey(characterCategories.Key))
+                    foreach (var category in Enum.GetValues<InventoryCategory>())
                     {
-                        var formattedName = allCharacters[characterCategories.Key].FormattedName + " - " +
-                                            characterCategory.FormattedName();
-                        sources.Add(formattedName);
+
+                        if (retainer.Value.CharacterType != CharacterType.FreeCompanyChest ||
+                            !category.IsFreeCompanyCategory())
+                        {
+                            continue;
+                        }
+                        if (_scopeCalculator.Filter(sourceInventories, retainer.Key, category))
+                        {
+                            var formattedName = retainer.Value.FormattedName + " - " + category.FormattedName();
+                            sources.Add(formattedName);
+                        }
                     }
                 }
             }
+
+
             ImGui.SetNextItemWidth(LabelSize);
             if (sources.Count != 0)
             {
@@ -134,18 +173,29 @@ namespace InventoryTools.Logic.Filters
 
             //House Sources
             sources = new();
-            foreach (var characterCategories in _listCategoryService.SourceHouseCategories(configuration))
+
+            if (sourceInventories != null)
             {
-                foreach (var characterCategory in characterCategories.Value)
+                foreach (var retainer in allCharacters)
                 {
-                    if (allCharacters.TryGetValue(characterCategories.Key, out var character))
+                    foreach (var category in Enum.GetValues<InventoryCategory>())
                     {
-                        var formattedName = character.FormattedName + " - " +
-                                            characterCategory.FormattedName();
-                        sources.Add(formattedName);
+
+                        if (retainer.Value.CharacterType != CharacterType.Housing ||
+                            !category.IsHousingCategory())
+                        {
+                            continue;
+                        }
+                        if (_scopeCalculator.Filter(sourceInventories, retainer.Key, category))
+                        {
+                            var formattedName = retainer.Value.FormattedName + " - " + category.FormattedName();
+                            sources.Add(formattedName);
+                        }
                     }
                 }
             }
+
+
             ImGui.SetNextItemWidth(LabelSize);
             if (sources.Count != 0)
             {

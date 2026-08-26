@@ -4,13 +4,15 @@ using System.ComponentModel;
 using System.Linq;
 using System.Numerics;
 using AllaganLib.GameSheets.Sheets.Rows;
+using CharacterTools.Logic.Editors;
 using CriticalCommonLib.Crafting;
 using CriticalCommonLib.Extensions;
 using CriticalCommonLib.Models;
 
-using ImGuiNET;
+using Dalamud.Bindings.ImGui;
 using InventoryTools.Attributes;
 using InventoryTools.Converters;
+using InventoryTools.Logic.Editors;
 using InventoryTools.Logic.Filters;
 using Newtonsoft.Json;
 
@@ -18,16 +20,17 @@ namespace InventoryTools.Logic
 {
     public class FilterConfiguration
     {
+        [JsonIgnore] //Stops the object copy from erasing the field
         private readonly CraftList.Factory _craftListFactory;
-        private List<(ulong, InventoryCategory)> _destinationInventories = new();
+        private List<(ulong, InventoryCategory)> _destinationInventories = [];
         private bool _displayInTabs = true;
         private bool? _duplicatesOnly;
-        private List<uint> _equipSlotCategoryId = new();
+        private List<uint> _equipSlotCategoryId = [];
         private bool? _isCollectible;
         private bool? _isHq;
-        private List<uint> _itemSearchCategoryId = new();
-        private List<uint> _itemSortCategoryId = new();
-        private List<uint> _itemUiCategoryId = new();
+        private List<uint> _itemSearchCategoryId = [];
+        private List<uint> _itemSortCategoryId = [];
+        private List<uint> _itemUiCategoryId = [];
         private Dictionary<string, bool>? _booleanFilters = new();
         private Dictionary<string, string>? _stringFilters = new();
         private Dictionary<string, int>? _integerFilters = new();
@@ -37,6 +40,8 @@ namespace InventoryTools.Logic
         private Dictionary<string, List<ulong>>? _ulongChoiceFilters = new();
         private Dictionary<string, List<string>>? _stringChoiceFilters = new();
         private Dictionary<string, Vector4>? _colorFilters = new();
+        private Dictionary<string, List<CharacterSearchScope>>? _characterSearchScopes;
+        private Dictionary<string, List<InventorySearchScope>>? _inventorySearchScopes;
         private List<CuratedItem>? _curatedItems;
         private string? _name = "";
         private string _key = "";
@@ -69,7 +74,7 @@ namespace InventoryTools.Logic
         private bool _openAsWindow = false;
         private bool? _canBeBought;
         private bool? _isAvailableAtTimedNode;
-        private List<(ulong, InventoryCategory)> _sourceInventories = new();
+        private List<(ulong, InventoryCategory)> _sourceInventories = [];
         private FilterType _filterType;
         private Vector4? _highlightColor;
         private Vector4? _tabHighlightColor;
@@ -171,6 +176,7 @@ namespace InventoryTools.Logic
 
         private string? _tableId = null;
         private string? _craftTableId = null;
+        private HighlightWhen _highlightWhenEnum;
         public HighlightMode HighlightMode { get; set; } = HighlightMode.Never;
 
         public List<CuratedItem>? CuratedItems
@@ -197,21 +203,10 @@ namespace InventoryTools.Logic
         public void ApplyDefaultCraftFilterConfiguration()
         {
             CraftListDefault = true;
-            DestinationAllCharacters = true;
-            DestinationIncludeCrossCharacter = false;
-            SourceAllCharacters = false;
-            SourceAllRetainers = true;
-            SourceAllFreeCompanies = true;
-            SourceIncludeCrossCharacter = false;
-            HighlightWhen = "Always";
-            SourceCategories = new HashSet<InventoryCategory>()
-            {
-                InventoryCategory.FreeCompanyBags,
-                InventoryCategory.CharacterSaddleBags,
-                InventoryCategory.CharacterPremiumSaddleBags,
-            };
+            HighlightWhenEnum = Filters.HighlightWhen.Always;
         }
 
+        [Obsolete("Remove with API14")]
         public List<(ulong, InventoryCategory)> SourceInventories
         {
             get => _sourceInventories;
@@ -221,6 +216,7 @@ namespace InventoryTools.Logic
             }
         }
 
+        [Obsolete("Remove with API14")]
         public List<uint> ItemUiCategoryId
         {
             get => _itemUiCategoryId;
@@ -230,6 +226,7 @@ namespace InventoryTools.Logic
             }
         }
 
+        [Obsolete("Remove with API14")]
         public List<uint> ItemSearchCategoryId
         {
             get => _itemSearchCategoryId;
@@ -239,6 +236,7 @@ namespace InventoryTools.Logic
             }
         }
 
+        [Obsolete("Remove with API14")]
         public List<uint> EquipSlotCategoryId
         {
             get => _equipSlotCategoryId;
@@ -278,6 +276,7 @@ namespace InventoryTools.Logic
             }
         }
 
+        [Obsolete("Remove with API14")]
         public List<uint> ItemSortCategoryId
         {
             get => _itemSortCategoryId;
@@ -287,6 +286,7 @@ namespace InventoryTools.Logic
             }
         }
 
+        [Obsolete("Remove with API14")]
         public List<(ulong, InventoryCategory)> DestinationInventories
         {
             get => _destinationInventories;
@@ -296,6 +296,7 @@ namespace InventoryTools.Logic
             }
         }
 
+        [Obsolete("Remove with API14")]
         public bool? IsHq
         {
             get => _isHq;
@@ -305,6 +306,7 @@ namespace InventoryTools.Logic
             }
         }
 
+        [Obsolete("Remove with API14")]
         public bool? IsCollectible
         {
             get => _isCollectible;
@@ -330,32 +332,24 @@ namespace InventoryTools.Logic
                 unsafe
                 {
                     _name = value;
-                    _nameAsBytes = null;
                     ConfigurationDirty = true;
                 }
             }
         }
 
         [JsonIgnore]
-        public byte[] NameAsBytes
+        public string NameFormatted
         {
             get
             {
-                if (_nameAsBytes == null)
+                var actualName = Name == "" ? "Untitled" : Name;
+                if (IsEphemeralCraftList)
                 {
-                    var actualName = Name == "" ? "Untitled" : Name;
-                    if (IsEphemeralCraftList)
-                    {
-                        actualName += " (*)";
-                    }
-                    _nameAsBytes = System.Text.Encoding.UTF8.GetBytes(actualName);
+                    actualName += " (*)";
                 }
-
-                return _nameAsBytes;
+                return actualName;
             }
         }
-
-        private byte[]? _nameAsBytes;
 
         public bool? DuplicatesOnly
         {
@@ -408,6 +402,7 @@ namespace InventoryTools.Logic
             }
         }
 
+        [Obsolete("Remove with API14")]
         public string Quantity
         {
             get => _quantity;
@@ -417,6 +412,7 @@ namespace InventoryTools.Logic
             }
         }
 
+        [Obsolete("Remove with API14")]
         public string ILevel
         {
             get => _iLevel;
@@ -426,6 +422,7 @@ namespace InventoryTools.Logic
             }
         }
 
+        [Obsolete("Remove with API14")]
         public string Spiritbond
         {
             get => _spiritbond;
@@ -435,6 +432,7 @@ namespace InventoryTools.Logic
             }
         }
 
+        [Obsolete("Remove with API14")]
         public string NameFilter
         {
             get => _nameFilter;
@@ -456,6 +454,7 @@ namespace InventoryTools.Logic
             set => _key = value;
         }
 
+        [Obsolete("Remove with API14")]
         public bool? SourceAllRetainers
         {
             get => _sourceAllRetainers;
@@ -465,6 +464,7 @@ namespace InventoryTools.Logic
             }
         }
 
+        [Obsolete("Remove with API14")]
         public bool? SourceAllHouses
         {
             get => _sourceAllHouses;
@@ -474,6 +474,7 @@ namespace InventoryTools.Logic
             }
         }
 
+        [Obsolete("Remove with API14")]
         public bool? SourceAllFreeCompanies
         {
             get => _sourceAllFreeCompanies;
@@ -483,12 +484,23 @@ namespace InventoryTools.Logic
             }
         }
 
+        [Obsolete("Remove with API14")]
         public string? HighlightWhen
         {
             get => _highlightWhen;
             set
             {
                 _highlightWhen = value;
+                ConfigurationDirty = true;
+            }
+        }
+
+        public HighlightWhen HighlightWhenEnum
+        {
+            get => _highlightWhenEnum;
+            set
+            {
+                _highlightWhenEnum = value;
                 ConfigurationDirty = true;
             }
         }
@@ -504,6 +516,7 @@ namespace InventoryTools.Logic
             }
         }
 
+        [Obsolete("Remove with API14")]
         public bool? SourceAllCharacters
         {
             get => _sourceAllCharacters;
@@ -513,6 +526,7 @@ namespace InventoryTools.Logic
             }
         }
 
+        [Obsolete("Remove with API14")]
         public bool? DestinationAllRetainers
         {
             get => _destinationAllRetainers;
@@ -522,6 +536,7 @@ namespace InventoryTools.Logic
             }
         }
 
+        [Obsolete("Remove with API14")]
         public bool? DestinationAllFreeCompanies
         {
             get => _destinationAllFreeCompanies;
@@ -531,6 +546,7 @@ namespace InventoryTools.Logic
             }
         }
 
+        [Obsolete("Remove with API14")]
         public bool? DestinationAllHouses
         {
             get => _destinationAllHouses;
@@ -540,6 +556,7 @@ namespace InventoryTools.Logic
             }
         }
 
+        [Obsolete("Remove with API14")]
         public bool? SourceIncludeCrossCharacter
         {
             get => _sourceIncludeCrossCharacter;
@@ -549,6 +566,7 @@ namespace InventoryTools.Logic
             }
         }
 
+        [Obsolete("Remove with API14")]
         public bool? DestinationIncludeCrossCharacter
         {
             get => _destinationIncludeCrossCharacter;
@@ -576,6 +594,7 @@ namespace InventoryTools.Logic
             }
         }
 
+        [Obsolete("Remove with API14")]
         public HashSet<InventoryCategory>? DestinationCategories
         {
             get => _destinationCategories;
@@ -585,6 +604,7 @@ namespace InventoryTools.Logic
             }
         }
 
+        [Obsolete("Remove with API14")]
         public HashSet<InventoryCategory>? SourceCategories
         {
             get => _sourceCategories;
@@ -594,6 +614,7 @@ namespace InventoryTools.Logic
             }
         }
 
+        [Obsolete("Remove with API14")]
         public bool? DestinationAllCharacters
         {
             get => _destinationAllCharacters;
@@ -603,6 +624,7 @@ namespace InventoryTools.Logic
             }
         }
 
+        [Obsolete("Remove with API14")]
         public string ShopSellingPrice
         {
             get => _shopSellingPrice;
@@ -614,6 +636,7 @@ namespace InventoryTools.Logic
             }
         }
 
+        [Obsolete("Remove with API14")]
         public string ShopBuyingPrice
         {
             get => _shopBuyingPrice;
@@ -625,6 +648,7 @@ namespace InventoryTools.Logic
             }
         }
 
+        [Obsolete("Remove with API14")]
         public string MarketAveragePrice
         {
             get => _marketAveragePrice;
@@ -636,6 +660,7 @@ namespace InventoryTools.Logic
             }
         }
 
+        [Obsolete("Remove with API14")]
         public string MarketTotalAveragePrice
         {
             get => _marketTotalAveragePrice;
@@ -647,6 +672,7 @@ namespace InventoryTools.Logic
             }
         }
 
+        [Obsolete("Remove with API14")]
         public bool? CanBeBought
         {
             get => _canBeBought;
@@ -658,6 +684,7 @@ namespace InventoryTools.Logic
             }
         }
 
+        [Obsolete("Remove with API14")]
         public bool? IsAvailableAtTimedNode
         {
             get => _isAvailableAtTimedNode;
@@ -801,6 +828,7 @@ namespace InventoryTools.Logic
             }
         }
 
+        [Obsolete("Remove with API14")]
         public HashSet<uint>? SourceWorlds
         {
             get => _sourceWorlds;
@@ -981,7 +1009,7 @@ namespace InventoryTools.Logic
         {
             if (_columns == null)
             {
-                _columns = new List<ColumnConfiguration>();
+                _columns = [];
             }
             _columns.Add(column);
             if (notify)
@@ -995,7 +1023,7 @@ namespace InventoryTools.Logic
         {
             if (_craftColumns == null)
             {
-                _craftColumns = new List<ColumnConfiguration>();
+                _craftColumns = [];
             }
             _craftColumns.Add(craftColumn);
             if (notify)
@@ -1009,7 +1037,7 @@ namespace InventoryTools.Logic
         {
             if (_curatedItems == null)
             {
-                _curatedItems = new();
+                _curatedItems = [];
             }
             _curatedItems.Add(curatedItem);
             ConfigurationDirty = true;
@@ -1019,7 +1047,7 @@ namespace InventoryTools.Logic
         {
             if (_curatedItems == null)
             {
-                _curatedItems = new();
+                _curatedItems = [];
             }
             _curatedItems.Remove(curatedItem);
             ConfigurationDirty = true;
@@ -1029,7 +1057,7 @@ namespace InventoryTools.Logic
         {
             if (_curatedItems == null)
             {
-                _curatedItems = new();
+                _curatedItems = [];
             }
             _curatedItems.Clear();
             ConfigurationDirty = true;
@@ -1092,9 +1120,9 @@ namespace InventoryTools.Logic
 
         public bool? GetBooleanFilter(string key)
         {
-            if (BooleanFilters.ContainsKey(key))
+            if (BooleanFilters.TryGetValue(key, out var value))
             {
-                return BooleanFilters[key];
+                return value;
             }
 
             return null;
@@ -1102,9 +1130,9 @@ namespace InventoryTools.Logic
 
         public Vector4? GetColorFilter(string key)
         {
-            if (ColorFilters.ContainsKey(key))
+            if (ColorFilters.TryGetValue(key, out var value))
             {
-                return ColorFilters[key];
+                return value;
             }
 
             return null;
@@ -1112,19 +1140,14 @@ namespace InventoryTools.Logic
 
         public string GetStringFilter(string key)
         {
-            if (StringFilters.ContainsKey(key))
-            {
-                return StringFilters[key];
-            }
-
-            return "";
+            return StringFilters.GetValueOrDefault(key, "");
         }
 
         public int? GetIntegerFilter(string key)
         {
-            if (IntegerFilters.ContainsKey(key))
+            if (IntegerFilters.TryGetValue(key, out var value))
             {
-                return (int?)IntegerFilters[key];
+                return value;
             }
 
             return null;
@@ -1132,9 +1155,9 @@ namespace InventoryTools.Logic
 
         public int? GetDecimalFilter(string key)
         {
-            if (DecimalFilters.ContainsKey(key))
+            if (DecimalFilters.TryGetValue(key, out var value))
             {
-                return (int?)DecimalFilters[key];
+                return (int?)value;
             }
 
             return null;
@@ -1142,19 +1165,19 @@ namespace InventoryTools.Logic
 
         public List<uint> GetUintChoiceFilter(string key)
         {
-            if (UintChoiceFilters.ContainsKey(key))
+            if (UintChoiceFilters.TryGetValue(key, out var value))
             {
-                return UintChoiceFilters[key];
+                return value;
             }
 
-            return new List<uint>();
+            return [];
         }
 
         public uint? GetUintFilter(string key)
         {
-            if (UintFilters.ContainsKey(key))
+            if (UintFilters.TryGetValue(key, out var value))
             {
-                return UintFilters[key];
+                return value;
             }
 
             return null;
@@ -1162,27 +1185,37 @@ namespace InventoryTools.Logic
 
         public List<ulong> GetUlongChoiceFilter(string key)
         {
-            if (UlongChoiceFilters.ContainsKey(key))
+            if (UlongChoiceFilters.TryGetValue(key, out var value))
             {
-                return UlongChoiceFilters[key];
+                return value;
             }
 
-            return new List<ulong>();
+            return [];
         }
 
         public List<string> GetStringChoiceFilter(string key)
         {
-            if (StringChoiceFilters.ContainsKey(key))
+            if (StringChoiceFilters.TryGetValue(key, out var value))
             {
-                return StringChoiceFilters[key];
+                return value;
             }
 
-            return new List<string>();
+            return [];
+        }
+
+        public void GetFilter(string key, out List<CharacterSearchScope>? value)
+        {
+            CharacterSearchScopes.TryGetValue(key, out value);
+        }
+
+        public void GetFilter(string key, out List<InventorySearchScope>? value)
+        {
+            InventorySearchScopes.TryGetValue(key, out value);
         }
 
         public void UpdateBooleanFilter(string key, bool value)
         {
-            if (BooleanFilters.ContainsKey(key) && BooleanFilters[key] == value)
+            if (BooleanFilters.TryGetValue(key, out var currentValue) && currentValue == value)
             {
                 return;
             }
@@ -1194,7 +1227,7 @@ namespace InventoryTools.Logic
 
         public void UpdateColorFilter(string key, Vector4 value)
         {
-            if (ColorFilters.ContainsKey(key) && ColorFilters[key] == value)
+            if (ColorFilters.TryGetValue(key, out var currentValue) && currentValue == value)
             {
                 return;
             }
@@ -1206,9 +1239,8 @@ namespace InventoryTools.Logic
 
         public void RemoveBooleanFilter(string key)
         {
-            if (BooleanFilters.ContainsKey(key))
+            if (BooleanFilters.Remove(key))
             {
-                BooleanFilters.Remove(key);
                 NeedsRefresh = true;
                 ConfigurationDirty = true;
             }
@@ -1216,9 +1248,8 @@ namespace InventoryTools.Logic
 
         public void RemoveColorFilter(string key)
         {
-            if (ColorFilters.ContainsKey(key))
+            if (ColorFilters.Remove(key))
             {
-                ColorFilters.Remove(key);
                 NeedsRefresh = true;
                 ConfigurationDirty = true;
             }
@@ -1226,7 +1257,7 @@ namespace InventoryTools.Logic
 
         public void UpdateStringFilter(string key, string value)
         {
-            if (StringFilters.ContainsKey(key) && StringFilters[key] == value)
+            if (StringFilters.TryGetValue(key, out var currentValue) && currentValue == value)
             {
                 return;
             }
@@ -1238,15 +1269,15 @@ namespace InventoryTools.Logic
 
         public void UpdateIntegerFilter(string key, int? value)
         {
-            if (IntegerFilters.ContainsKey(key) && IntegerFilters[key] == value)
+            if (IntegerFilters.TryGetValue(key, out var currentValue) && currentValue == value)
             {
                 return;
             }
-            if (IntegerFilters.ContainsKey(key) && value == null)
+            if (value == null)
             {
                 IntegerFilters.Remove(key);
             }
-            else if (value != null)
+            else
             {
                 IntegerFilters[key] = value.Value;
             }
@@ -1257,15 +1288,15 @@ namespace InventoryTools.Logic
 
         public void UpdateDecimalFilter(string key, decimal? value)
         {
-            if (DecimalFilters.ContainsKey(key) && DecimalFilters[key] == value)
+            if (DecimalFilters.TryGetValue(key, out var currentValue) && currentValue == value)
             {
                 return;
             }
-            if (DecimalFilters.ContainsKey(key) && value == null)
+            if (value == null)
             {
                 DecimalFilters.Remove(key);
             }
-            else if (value != null)
+            else
             {
                 DecimalFilters[key] = value.Value;
             }
@@ -1283,11 +1314,15 @@ namespace InventoryTools.Logic
 
         public void UpdateUintFilter(string key, uint? value)
         {
-            if (value == null && UintFilters.ContainsKey(key))
+            if (UintFilters.TryGetValue(key, out var currentValue) && currentValue == value)
+            {
+                return;
+            }
+            if (value == null)
             {
                 UintFilters.Remove(key);
             }
-            else if(value != null)
+            else
             {
                 UintFilters[key] = value.Value;
             }
@@ -1309,6 +1344,34 @@ namespace InventoryTools.Logic
             ConfigurationDirty = true;
         }
 
+        public void SetFilter(string key, List<CharacterSearchScope>? value)
+        {
+            if (value == null)
+            {
+                CharacterSearchScopes.Remove(key);
+            }
+            else
+            {
+                CharacterSearchScopes[key] = value;
+            }
+
+            ConfigurationDirty = true;
+        }
+
+        public void SetFilter(string key, List<InventorySearchScope>? value)
+        {
+            if (value == null)
+            {
+                InventorySearchScopes.Remove(key);
+            }
+            else
+            {
+                InventorySearchScopes[key] = value;
+            }
+
+            ConfigurationDirty = true;
+        }
+
         public Dictionary<string, bool> BooleanFilters
         {
             get
@@ -1320,6 +1383,18 @@ namespace InventoryTools.Logic
                 return _booleanFilters;
             }
             set => _booleanFilters = value;
+        }
+
+        public Dictionary<string, List<CharacterSearchScope>> CharacterSearchScopes
+        {
+            get => _characterSearchScopes ??= new Dictionary<string, List<CharacterSearchScope>>();
+            set => _characterSearchScopes = value;
+        }
+
+        public Dictionary<string, List<InventorySearchScope>> InventorySearchScopes
+        {
+            get => _inventorySearchScopes ??= new Dictionary<string, List<InventorySearchScope>>();
+            set => _inventorySearchScopes = value;
         }
 
         public Dictionary<string, Vector4> ColorFilters
@@ -1507,18 +1582,18 @@ namespace InventoryTools.Logic
         }
 
 
-        public FilterConfiguration? Clone()
+        public void CopyFrom(FilterConfiguration originalFilterConfiguration)
         {
             SearchResults = null;
-            var clone = this.Copy();
+            originalFilterConfiguration.CopyFields(this);
             SearchResults = null;
-            if (clone != null && this.FilterType == FilterType.CraftFilter)
+
+            if (this.FilterType == FilterType.CraftFilter)
             {
                 var newCraftList = _craftListFactory.Invoke();
                 var clonedCraftList = CraftList.Clone(newCraftList);
-                clone._craftList = clonedCraftList;
+                _craftList = clonedCraftList;
             }
-            return clone;
         }
     }
 

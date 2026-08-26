@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
-using ImGuiNET;
+using Dalamud.Bindings.ImGui;
 using InventoryTools.Extensions;
 using OtterGui;
 using Dalamud.Interface.Utility.Raii;
@@ -134,7 +134,7 @@ namespace InventoryTools.Logic.Filters.Abstract
         {
             DrawTable(configuration);
             ImGui.SameLine();
-            ImGuiService.HelpMarker(HelpText);
+            ImGuiService.HelpMarker(GetHelpText(configuration));
             if (HasValueSet(configuration) && ShowReset)
             {
                 ImGui.SameLine();

@@ -19,7 +19,7 @@ using CriticalCommonLib.Services;
 using CriticalCommonLib.Services.Mediator;
 using DalaMock.Host.Mediator;
 using Dalamud.Game.Text;
-using ImGuiNET;
+using Dalamud.Bindings.ImGui;
 using InventoryTools.Extensions;
 using InventoryTools.Logic;
 
@@ -40,6 +40,7 @@ using LuminaSupplemental.Excel.Model;
 using Microsoft.Extensions.Logging;
 using OtterGui.Log;
 using OtterGui.Widgets;
+using ImGuiTable = OtterGui.ImGuiTable;
 using ImGuiUtil = OtterGui.ImGuiUtil;
 using InventoryItem = FFXIVClientStructs.FFXIV.Client.Game.InventoryItem;
 
@@ -282,6 +283,11 @@ namespace InventoryTools.Ui
             {
                 ImGui.TextUnformatted("Item Level ".Loc() + Item.Base.LevelItem.RowId.ToString());
                 ImGui.TextUnformatted("Patch ".Loc() + Item.Patch);
+                if (Item.CanBeDesynthed && Item.Base.ClassJobRepair.RowId != 0)
+                {
+                    ImGui.TextUnformatted("Desynth with ".Loc() + (Item.Base.ClassJobRepair.ValueNullable?.Name.ToString().ToTitleCase() ?? "Unknown".Loc()));
+                }
+
                 var description = Item.Base.Description.ExtractText();
                 if (description != "")
                 {
@@ -310,7 +316,7 @@ namespace InventoryTools.Ui
                 {
                     ImGui.TextUnformatted("Buy from Calamity Salvager: ".Loc() + Item.BuyFromVendorPrice + SeIconChar.Gil.ToIconString());
                 }
-                ImGui.Image(ImGuiService.GetIconTexture(Item.Icon).ImGuiHandle, new Vector2(100, 100) * ImGui.GetIO().FontGlobalScale);
+                ImGui.Image(ImGuiService.GetIconTexture(Item.Icon).Handle, new Vector2(100, 100) * ImGui.GetIO().FontGlobalScale);
                 if (_tooltipModeSetting.CurrentValue(Configuration) != ImGuiTooltipMode.Never)
                 {
                     _tooltipService.DrawItemTooltip(new SearchResult(Item));
@@ -337,7 +343,7 @@ namespace InventoryTools.Ui
                     }
                 }
 
-                if (ImGui.ImageButton(ImGuiService.GetImageTexture("garlandtools").ImGuiHandle,
+                if (ImGui.ImageButton(ImGuiService.GetImageTexture("garlandtools").Handle,
                         new Vector2(32, 32) * ImGui.GetIO().FontGlobalScale))
                 {
                     $"https://www.garlandtools.org/db/#item/{Item.GarlandToolsId}".OpenBrowser();
@@ -345,7 +351,7 @@ namespace InventoryTools.Ui
                 ImGuiUtil.HoverTooltip("Open in Garland Tools".Loc());
                 ImGui.SameLine();
 
-                if (ImGui.ImageButton(ImGuiService.GetImageTexture("teamcraft").ImGuiHandle,
+                if (ImGui.ImageButton(ImGuiService.GetImageTexture("teamcraft").Handle,
                         new Vector2(32, 32) * ImGui.GetIO().FontGlobalScale))
                 {
                     $"https://ffxivteamcraft.com/db/en/item/{_itemId}".OpenBrowser();
@@ -353,7 +359,7 @@ namespace InventoryTools.Ui
                 ImGuiUtil.HoverTooltip("Open in Teamcraft".Loc());
                 ImGui.SameLine();
 
-                if (ImGui.ImageButton(ImGuiService.GetImageTexture("universalis").ImGuiHandle,
+                if (ImGui.ImageButton(ImGuiService.GetImageTexture("universalis").Handle,
                         new Vector2(32, 32) * ImGui.GetIO().FontGlobalScale))
                 {
                     $"https://universalis.app/market/{_itemId}".OpenBrowser();
@@ -361,7 +367,7 @@ namespace InventoryTools.Ui
                 ImGuiUtil.HoverTooltip("Open in Universalis".Loc());
                 ImGui.SameLine();
 
-                if (ImGui.ImageButton(ImGuiService.GetImageTexture("gamerescape").ImGuiHandle,
+                if (ImGui.ImageButton(ImGuiService.GetImageTexture("gamerescape").Handle,
                         new Vector2(32, 32) * ImGui.GetIO().FontGlobalScale))
                 {
                     var name = Item.NameString.Replace(' ', '_');
@@ -374,7 +380,7 @@ namespace InventoryTools.Ui
                 ImGuiUtil.HoverTooltip("Open in Gamer Escape".Loc());
                 ImGui.SameLine();
 
-                if (ImGui.ImageButton(ImGuiService.GetImageTexture("consolegameswiki").ImGuiHandle,
+                if (ImGui.ImageButton(ImGuiService.GetImageTexture("consolegameswiki").Handle,
                         new Vector2(32, 32) * ImGui.GetIO().FontGlobalScale))
                 {
                     var name = Item.NameString.Replace("#"," ").Replace("  ", " ").Replace(' ', '_');
@@ -389,7 +395,7 @@ namespace InventoryTools.Ui
                 if (Item.CanOpenCraftingLog)
                 {
                     ImGui.SameLine();
-                    if (ImGui.ImageButton(ImGuiService.GetIconTexture(66456).ImGuiHandle,
+                    if (ImGui.ImageButton(ImGuiService.GetIconTexture(66456).Handle,
                             new Vector2(32, 32) * ImGui.GetIO().FontGlobalScale))
                     {
                         var result = _gameInterface.OpenCraftingLog(_itemId);
@@ -404,7 +410,7 @@ namespace InventoryTools.Ui
                 if (Item.CanBeCrafted)
                 {
                     ImGui.SameLine();
-                    if (ImGui.ImageButton(ImGuiService.GetIconTexture(60858).ImGuiHandle,
+                    if (ImGui.ImageButton(ImGuiService.GetIconTexture(60858).Handle,
                             new Vector2(32, 32) * ImGui.GetIO().FontGlobalScale))
                     {
                         ImGui.OpenPopup("AddCraftList" + _itemId);
@@ -441,7 +447,7 @@ namespace InventoryTools.Ui
                 if (Item.CanBeGathered)
                 {
                     ImGui.SameLine();
-                    if (ImGui.ImageButton(ImGuiService.GetIconTexture(66457).ImGuiHandle,
+                    if (ImGui.ImageButton(ImGuiService.GetIconTexture(66457).Handle,
                             new Vector2(32, 32) * ImGui.GetIO().FontGlobalScale))
                     {
                         _gameInterface.OpenGatheringLog(_itemId);
@@ -450,7 +456,7 @@ namespace InventoryTools.Ui
                     ImGuiUtil.HoverTooltip("Gatherable - Open in Gathering Log".Loc());
 
                     ImGui.SameLine();
-                    if (ImGui.ImageButton(ImGuiService.GetIconTexture(63900).ImGuiHandle,
+                    if (ImGui.ImageButton(ImGuiService.GetIconTexture(63900).Handle,
                             new Vector2(32, 32) * ImGui.GetIO().FontGlobalScale))
                     {
                         _commandManager.ProcessCommand("/gather " + Item.NameString);
@@ -462,7 +468,7 @@ namespace InventoryTools.Ui
                 if (Item.ObtainedFishing)
                 {
                     ImGui.SameLine();
-                    if (ImGui.ImageButton(ImGuiService.GetIconTexture(66457).ImGuiHandle,
+                    if (ImGui.ImageButton(ImGuiService.GetIconTexture(66457).Handle,
                             new Vector2(32, 32) * ImGui.GetIO().FontGlobalScale))
                     {
                         _gameInterface.OpenFishingLog(_itemId, Item.ObtainedSpearFishing);
@@ -471,7 +477,7 @@ namespace InventoryTools.Ui
                     ImGuiUtil.HoverTooltip("Gatherable - Open in Fishing Log".Loc());
 
                     ImGui.SameLine();
-                    if (ImGui.ImageButton(ImGuiService.GetIconTexture(63900).ImGuiHandle,
+                    if (ImGui.ImageButton(ImGuiService.GetIconTexture(63900).Handle,
                             new Vector2(32, 32) * ImGui.GetIO().FontGlobalScale))
                     {
                         _commandManager.ProcessCommand("/gatherfish " + Item.NameString);
@@ -641,7 +647,7 @@ namespace InventoryTools.Ui
                         {
                             using (ImRaii.PushId(index))
                             {
-                                if (ImGui.ImageButton(ImGuiService.GetIconTexture(item.Icon).ImGuiHandle, new(32, 32)))
+                                if (ImGui.ImageButton(ImGuiService.GetIconTexture(item.Icon).Handle, new(32, 32)))
                                 {
                                     MediatorService.Publish(new OpenUintWindowMessage(typeof(ItemWindow), item.RowId));
                                 }
@@ -701,7 +707,7 @@ namespace InventoryTools.Ui
                         using (ImRaii.PushId(index))
                         {
                             var sharedModel = SharedModels[index];
-                            if (ImGui.ImageButton(ImGuiService.GetIconTexture(sharedModel.Icon).ImGuiHandle,
+                            if (ImGui.ImageButton(ImGuiService.GetIconTexture(sharedModel.Icon).Handle,
                                     new(32, 32)))
                             {
                                 MediatorService.Publish(
@@ -760,7 +766,7 @@ namespace InventoryTools.Ui
                             if (recipe.ItemResult != null)
                             {
                                 var icon = ImGuiService.GetIconTexture(recipe.ItemResult.Icon);
-                                if (ImGui.ImageButton(icon.ImGuiHandle,
+                                if (ImGui.ImageButton(icon.Handle,
                                         new Vector2(32, 32) * ImGui.GetIO().FontGlobalScale, new(0, 0), new(1, 1), 0))
                                 {
                                     MediatorService.Publish(new OpenUintWindowMessage(typeof(ItemWindow),
@@ -873,7 +879,7 @@ namespace InventoryTools.Ui
             if (obj.SortedCategory == InventoryCategory.GlamourChest && obj.GlamourId != 0)
             {
                 ImGui.SameLine();
-                ImGui.Image(this.ImGuiService.GetIconTexture(Icons.MannequinIcon).ImGuiHandle, new Vector2(16,16));
+                ImGui.Image(this.ImGuiService.GetIconTexture(Icons.MannequinIcon).Handle, new Vector2(16,16));
                 if (ImGui.IsItemHovered())
                 {
                     using (var tooltip = ImRaii.Tooltip())
@@ -1014,7 +1020,7 @@ namespace InventoryTools.Ui
 
                     ImGui.SameLine();
                     ImGui.SetCursorPosX(ImGui.GetWindowWidth() - 22 - ImGui.GetStyle().FramePadding.X);
-                    if (_refreshPricesButton.Draw(ImGuiService.GetImageTexture("refresh-web").ImGuiHandle, "refreshPrices"))
+                    if (_refreshPricesButton.Draw(ImGuiService.GetImageTexture("refresh-web").Handle, "refreshPrices"))
                     {
                         RequestMarketPrices();
                     }
@@ -1176,7 +1182,7 @@ namespace InventoryTools.Ui
                         {
                             using (ImRaii.PushId(index))
                             {
-                                if (ImGui.ImageButton(ImGuiService.GetIconTexture(60561).ImGuiHandle,
+                                if (ImGui.ImageButton(ImGuiService.GetIconTexture(60561).Handle,
                                         new Vector2(32 * ImGui.GetIO().FontGlobalScale,
                                             32 * ImGui.GetIO().FontGlobalScale),
                                         new Vector2(0, 0), new Vector2(1, 1), 0))
@@ -1211,7 +1217,7 @@ namespace InventoryTools.Ui
             using (ImRaii.PushId(obj.GetHashCode()))
             {
                 var source = obj.Item;
-                if (ImGui.ImageButton(ImGuiService.GetIconTexture(source.Icon).ImGuiHandle, new(32, 32)))
+                if (ImGui.ImageButton(ImGuiService.GetIconTexture(source.Icon).Handle, new(32, 32)))
                 {
                     _gameInterface.OpenGatheringLog(_itemId);
                 }

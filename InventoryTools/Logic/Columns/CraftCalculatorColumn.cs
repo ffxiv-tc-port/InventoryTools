@@ -6,7 +6,7 @@ using CriticalCommonLib.Models;
 using CriticalCommonLib.Services;
 using CriticalCommonLib.Services.Mediator;
 using DalaMock.Host.Mediator;
-using ImGuiNET;
+using Dalamud.Bindings.ImGui;
 using InventoryTools.Logic.Columns.Abstract;
 using InventoryTools.Logic.Columns.ColumnSettings;
 using InventoryTools.Logic.Editors;
@@ -85,7 +85,6 @@ public class CraftCalculatorColumn : IntegerColumn, IDisposable
 
                 if (scopeSetting == null)
                 {
-
                     var items = new List<CriticalCommonLib.Models.InventoryItem>();
                     var playerBags = _inventoryMonitor.GetSpecificInventory(_characterMonitor.ActiveCharacterId,
                         InventoryCategory.CharacterBags);

@@ -1,0 +1,15 @@
+{
+  "solution": "InventoryTools.sln",
+  "solutionFolder": null,
+  "mappings": {
+    "DalaMock.Host": "../DalaMock/DalaMock.Host/DalaMock.Host.csproj",
+    "DalaMock.Core": "../DalaMock/DalaMock/DalaMock.Core.csproj",
+    "DalaMock.Shared": "../DalaMock/DalaMock.Shared/DalaMock.Shared.csproj",
+    "AllaganLib.Data": "../AllaganLib/AllaganLib.Data/AllaganLib.Data.csproj",
+    "AllaganLib.GameSheets": "../AllaganLib/AllaganLib.GameSheets/AllaganLib.GameSheets.csproj",
+    "AllaganLib.Interface": "../AllaganLib/AllaganLib.Interface/AllaganLib.Interface.csproj",
+    "AllaganLib.Shared": "../AllaganLib/AllaganLib.Shared/AllaganLib.Shared.csproj",
+    "AllaganLib.Monitors": "../AllaganLib/AllaganLib.Monitors/AllaganLib.Monitors.csproj"
+  },
+  "removeProjects": true
+}

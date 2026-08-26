@@ -26,7 +26,7 @@ public class SourceInformationTooltip : BaseTooltip
     private readonly IKeyState _keyState;
     private readonly IUnlockTrackerService _unlockTrackerService;
 
-    public SourceInformationTooltip(ILogger<SourceInformationTooltip> logger, TooltipSourceInformationColorSetting colorSetting, ItemInfoRenderService itemInfoRenderService, ShowTooltipsSetting showTooltipsSetting, TooltipSourceInformationSetting sourceInformationSetting, TooltipSourceInformationEnabledSetting enabledSetting, TooltipSourceInformationModifierSetting modifierSetting, IKeyState keyState, ItemSheet itemSheet, InventoryToolsConfiguration configuration, IGameGui gameGui, IDalamudPluginInterface pluginInterface, IUnlockTrackerService unlockTrackerService) : base(6906, logger, itemSheet, configuration, gameGui, pluginInterface)
+    public SourceInformationTooltip(ILogger<SourceInformationTooltip> logger, TooltipSourceInformationColorSetting colorSetting, ItemInfoRenderService itemInfoRenderService, ShowTooltipsSetting showTooltipsSetting, TooltipSourceInformationSetting sourceInformationSetting, TooltipSourceInformationEnabledSetting enabledSetting, TooltipSourceInformationModifierSetting modifierSetting, IKeyState keyState, ItemSheet itemSheet, InventoryToolsConfiguration configuration, IGameGui gameGui, IChatGui chatGui, IUnlockTrackerService unlockTrackerService) : base(6906, logger, itemSheet, configuration, gameGui, chatGui)
     {
         _colorSetting = colorSetting;
         _itemInfoRenderService = itemInfoRenderService;
@@ -100,9 +100,14 @@ public class SourceInformationTooltip : BaseTooltip
             {
                 if (currentValue.TryGetValue(groupedLine.Key, out var value) && value.Group == false)
                 {
-                    foreach (var line in groupedLine)
+                    foreach (var line in groupedLine.Take(20))
                     {
                         textLines.Add(_itemInfoRenderService.GetSourceName(line));
+                    }
+
+                    if (groupedLine.Count() > 20)
+                    {
+                        textLines[^1] += " (" + (groupedLine.Count() - 20) + " more)";
                     }
                 }
                 else

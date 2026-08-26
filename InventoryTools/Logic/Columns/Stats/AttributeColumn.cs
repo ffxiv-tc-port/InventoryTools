@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using CriticalCommonLib.Services.Mediator;
 using DalaMock.Host.Mediator;
-using ImGuiNET;
+using Dalamud.Bindings.ImGui;
 using InventoryTools.Logic.Columns.Abstract;
 using InventoryTools.Logic.Columns.ColumnSettings;
 using InventoryTools.Mediator;
@@ -10,6 +10,7 @@ using Lumina.Excel;
 using Lumina.Excel.Sheets;
 using Microsoft.Extensions.Logging;
 using OtterGui;
+using OtterGui.Extensions;
 
 namespace InventoryTools.Logic.Columns.Stats;
 

@@ -26,7 +26,7 @@ public class UseInformationTooltip : BaseTooltip
     private readonly IKeyState _keyState;
     private readonly IUnlockTrackerService _unlockTrackerService;
 
-    public UseInformationTooltip(ILogger<UseInformationTooltip> logger, TooltipUseInformationColorSetting colorSetting, ItemInfoRenderService itemInfoRenderService, ShowTooltipsSetting showTooltipsSetting, TooltipUseInformationSetting useInformationSetting, TooltipUseInformationEnabledSetting enabledSetting, TooltipUseInformationModifierSetting modifierSetting, IKeyState keyState, ItemSheet itemSheet, InventoryToolsConfiguration configuration, IGameGui gameGui, IDalamudPluginInterface pluginInterface, IUnlockTrackerService unlockTrackerService, IPluginLog pluginLog) : base(6907, logger, itemSheet, configuration, gameGui, pluginInterface)
+    public UseInformationTooltip(ILogger<UseInformationTooltip> logger, TooltipUseInformationColorSetting colorSetting, ItemInfoRenderService itemInfoRenderService, ShowTooltipsSetting showTooltipsSetting, TooltipUseInformationSetting useInformationSetting, TooltipUseInformationEnabledSetting enabledSetting, TooltipUseInformationModifierSetting modifierSetting, IKeyState keyState, ItemSheet itemSheet, InventoryToolsConfiguration configuration, IGameGui gameGui, IChatGui chatGui, IUnlockTrackerService unlockTrackerService, IPluginLog pluginLog) : base(6907, logger, itemSheet, configuration, gameGui, chatGui)
     {
         _colorSetting = colorSetting;
         _itemInfoRenderService = itemInfoRenderService;
@@ -98,11 +98,16 @@ public class UseInformationTooltip : BaseTooltip
 
             foreach (var groupedLine in groupedLines)
             {
-                if (currentValue.ContainsKey(groupedLine.Key) && currentValue[groupedLine.Key].Group == false)
+                if (currentValue.TryGetValue(groupedLine.Key, out var value) && value.Group == false)
                 {
-                    foreach (var line in groupedLine)
+                    foreach (var line in groupedLine.Take(20))
                     {
                         textLines.Add(_itemInfoRenderService.GetUseName(line));
+                    }
+
+                    if (groupedLine.Count() > 20)
+                    {
+                        textLines[^1] += " (" + (groupedLine.Count() - 20) + " more)";
                     }
                 }
                 else

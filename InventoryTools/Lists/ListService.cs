@@ -9,7 +9,7 @@ using CriticalCommonLib.Services;
 using CriticalCommonLib.Services.Mediator;
 using DalaMock.Host.Mediator;
 using Dalamud.Plugin.Services;
-using ImGuiNET;
+using Dalamud.Bindings.ImGui;
 using InventoryTools.Extensions;
 using InventoryTools.Logic;
 using InventoryTools.Logic.Columns;
@@ -58,7 +58,6 @@ namespace InventoryTools.Lists
             configurationManagerService.ConfigurationChanged += ConfigOnConfigurationChanged;
             _mediatorService = mediatorService;
             _characterMonitor = characterMonitor;
-            _characterMonitor.OnCharacterRemoved += CharacterMonitorOnOnCharacterRemoved;
             _characterMonitor.OnCharacterUpdated += CharacterMonitorOnOnCharacterUpdated;
             _characterMonitor.OnCharacterJobChanged += CharacterMonitorOnOnCharacterJobChanged;
             _characterMonitor.OnActiveRetainerChanged += CharacterMonitorOnOnActiveRetainerChanged;
@@ -118,6 +117,10 @@ namespace InventoryTools.Lists
             foreach (var list in savedLists)
             {
                 ValidateAndInjectListColumns(list);
+                if (list.Name == string.Empty)
+                {
+                    list.Name = "Untitled List";
+                }
             }
             return new ConcurrentDictionary<string, FilterConfiguration>(savedLists.ToDictionary(c => c.Key, c => c));
         }
@@ -295,16 +298,6 @@ namespace InventoryTools.Lists
             _configuration.IsDirty = true;
         }
 
-
-        private void CharacterMonitorOnOnCharacterRemoved(ulong characterId)
-        {
-            foreach (var configuration in _lists.ToArray())
-            {
-                configuration.Value.SourceInventories.RemoveAll(c => c.Item1 == characterId);
-                configuration.Value.DestinationInventories.RemoveAll(c => c.Item1 == characterId);
-            }
-        }
-
         public List<FilterConfiguration> Lists => _lists.Select(c => c.Value).OrderBy(c => c.Order).ToList();
 
         public bool AddList(FilterConfiguration configuration)
@@ -359,7 +352,8 @@ namespace InventoryTools.Lists
 
         public FilterConfiguration DuplicateList(FilterConfiguration configuration, string newName)
         {
-            var newConfiguration = configuration.Clone() ?? _filterConfigFactory.Invoke();
+            var newConfiguration = _filterConfigFactory.Invoke();
+            newConfiguration.CopyFrom(configuration);
             newConfiguration.Key = Guid.NewGuid().ToString("N");
             newConfiguration.Name = newName;
             AddList(newConfiguration);
@@ -382,18 +376,8 @@ namespace InventoryTools.Lists
                 fixedName = newNameNN + " " + count;
             }
 
-            var clonedFilter = GetDefaultCraftList().Clone();
-            if (clonedFilter == null)
-            {
-                var filter = _filterConfigFactory.Invoke();
-                filter.Name = fixedName;
-                filter.FilterType = FilterType.CraftFilter;
-                AddDefaultColumns(filter);
-                filter.IsEphemeralCraftList = isEphemeralNN;
-                AddList(filter);
-                return filter;
-            }
-
+            var clonedFilter = _filterConfigFactory.Invoke();
+            clonedFilter.CopyFrom(GetDefaultCraftList());
             clonedFilter.Name = fixedName;
             clonedFilter.GenerateNewTableId();
             clonedFilter.GenerateNewCraftTableId();
@@ -1112,7 +1096,6 @@ namespace InventoryTools.Lists
             Logger.LogTrace("Stopping service {Type} ({This})", GetType().Name, this);
             _framework.Update -= OnUpdate;
             _configurationManagerService.ConfigurationChanged -= ConfigOnConfigurationChanged;
-            _characterMonitor.OnCharacterRemoved -= CharacterMonitorOnOnCharacterRemoved;
             _characterMonitor.OnCharacterUpdated -= CharacterMonitorOnOnCharacterUpdated;
             _characterMonitor.OnCharacterJobChanged -= CharacterMonitorOnOnCharacterJobChanged;
             _characterMonitor.OnActiveRetainerChanged -= CharacterMonitorOnOnActiveRetainerChanged;

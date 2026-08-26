@@ -6,7 +6,7 @@ using AllaganLib.GameSheets.Sheets;
 using CriticalCommonLib.Models;
 using Dalamud.Plugin;
 using Dalamud.Plugin.Services;
-using ImGuiNET;
+using Dalamud.Bindings.ImGui;
 
 namespace InventoryTools.Logic.ItemRenderers;
 
@@ -27,8 +27,8 @@ public class ItemFurnitureSourceRenderer : ItemInfoRenderer<ItemFurnitureSource>
     public override Action<ItemSource> DrawTooltip => source =>
     {
         var asSource = AsSource(source);
-        ImGui.Text("Category: ??".Loc(asSource.FurnitureCatalogItem.Value.Category.Value.Category.ExtractText()));
-        ImGui.Text("Patch Added: ??".Loc(asSource.FurnitureCatalogItem.Value.Patch));
+        ImGui.Text("Category: ??".Loc(asSource.FurnitureCatalogItemList.ValueNullable?.Category.Value.Category.ExtractText() ?? "N/A"));
+        ImGui.Text("Patch Added: ??".Loc(asSource.FurnitureCatalogItemList.ValueNullable?.Patch.ToString() ?? "N/A"));
     };
 
     public override Func<ItemSource, string> GetName => source =>

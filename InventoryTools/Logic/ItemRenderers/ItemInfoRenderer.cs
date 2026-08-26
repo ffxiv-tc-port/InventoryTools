@@ -13,8 +13,9 @@ using Dalamud.Interface.Textures;
 using Dalamud.Interface.Utility.Raii;
 using Dalamud.Plugin;
 using Dalamud.Plugin.Services;
-using ImGuiNET;
+using Dalamud.Bindings.ImGui;
 using InventoryTools.Extensions;
+using Lumina.Excel;
 using Lumina.Excel.Sheets;
 
 
@@ -52,7 +53,7 @@ public abstract class ItemInfoRenderer<T> : IItemInfoRenderer where T : ItemSour
 
                 var item = ItemSheet.GetRow(itemInfo.ItemId);
                 ImGui.Image(
-                    TextureProvider.GetFromGameIcon(new GameIconLookup(item.Icon, itemInfo.IsHighQuality ?? false)).GetWrapOrEmpty().ImGuiHandle,
+                    TextureProvider.GetFromGameIcon(new GameIconLookup(item.Icon, itemInfo.IsHighQuality ?? false)).GetWrapOrEmpty().Handle,
                     new Vector2(18, 18) * ImGui.GetIO().FontGlobalScale
                 );
                 ImGui.SameLine();
@@ -76,6 +77,31 @@ public abstract class ItemInfoRenderer<T> : IItemInfoRenderer where T : ItemSour
                         ImGui.Text("(Drops " + itemInfo.Min.Value + " - " + itemInfo.Max.Value + ")");
                     }
                 }
+            }
+        }
+    }
+
+    public void DrawItems(string sectionName, IReadOnlyList<RowRef<Item>> items)
+    {
+        if (items.Count == 0)
+        {
+            return;
+        }
+        ImGui.TextUnformatted(sectionName);
+        using (ImRaii.PushIndent())
+        {
+            foreach (var itemInfo in items)
+            {
+                if (itemInfo.RowId == 0)
+                    continue;
+
+                var item = ItemSheet.GetRow(itemInfo.RowId);
+                ImGui.Image(
+                    TextureProvider.GetFromGameIcon(new GameIconLookup(item.Icon)).GetWrapOrEmpty().Handle,
+                    new Vector2(18, 18) * ImGui.GetIO().FontGlobalScale
+                );
+                ImGui.SameLine();
+                ImGui.TextUnformatted($"{item.NameString}");
             }
         }
     }
