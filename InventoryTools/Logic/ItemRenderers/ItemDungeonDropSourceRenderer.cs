@@ -23,9 +23,9 @@ public class ItemDungeonDropSourceRenderer : ItemInfoRenderer<ItemDungeonDropSou
 
     public override RendererType RendererType => RendererType.Source;
     public override ItemInfoType Type => ItemInfoType.DungeonDrop;
-    public override string SingularName => "Dungeon Drop";
-    public override string PluralName => "Dungeon Drops";
-    public override string HelpText => "Can the item be dropped from monsters in dungeons?";
+    public override string SingularName => "Dungeon Drop".Loc();
+    public override string PluralName => "Dungeon Drops".Loc();
+    public override string HelpText => "Can the item be dropped from monsters in dungeons?".Loc();
     public override bool ShouldGroup => true;
     public override IReadOnlyList<ItemInfoRenderCategory> Categories => [ItemInfoRenderCategory.Duty];
 

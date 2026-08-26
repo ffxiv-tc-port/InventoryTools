@@ -59,7 +59,7 @@ public class CraftWorldPricePreference : SortedListFilter<uint, uint>
     }
 
     public override string Key { get; set; } = "CraftWorldPricePreference";
-    public override string Name { get; set; } = "World Price Preference";
+    public override string Name { get; set; } = "World Price Preference".Loc();
 
     public override string HelpText { get; set; } =
         "Which worlds should prices be sourced from?";
@@ -129,7 +129,7 @@ public class CraftWorldPricePreference : SortedListFilter<uint, uint>
                 ImGui.Separator();
                 if (_searchString == "")
                 {
-                    ImGui.TextUnformatted("Start typing to search...");
+                    ImGui.TextUnformatted("Start typing to search...".Loc());
                 }
                 foreach (var item in SearchWorlds.Where(c => !currentValue.ContainsKey(c.RowId)))
                 {

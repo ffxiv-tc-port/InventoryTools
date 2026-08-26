@@ -42,7 +42,7 @@ public class CraftCalculatorColumn : IntegerColumn, IDisposable
         return (int?)(_craftable.ContainsKey(searchResult.Item.RowId) ? _craftable[searchResult.Item.RowId] : 0);
     }
 
-    public override string Name { get; set; } = "Craft Calculator";
+    public override string Name { get; set; } = "Craft Calculator".Loc();
     public override float Width { get; set; } = 80;
 
     public override string HelpText { get; set; } =
@@ -73,7 +73,7 @@ public class CraftCalculatorColumn : IntegerColumn, IDisposable
 
         if (_craftCalculator == null || !_craftCalculator.IsRunning)
         {
-            if (ImGui.Button("Calculate Crafts"))
+            if (ImGui.Button("Calculate Crafts".Loc()))
             {
                 if (_craftCalculator == null)
                 {
@@ -147,7 +147,7 @@ public class CraftCalculatorColumn : IntegerColumn, IDisposable
         }
         else if (_craftCalculator.IsRunning)
         {
-            if (ImGui.Button("Stop Calculating Crafts"))
+            if (ImGui.Button("Stop Calculating Crafts".Loc()))
             {
                 _craftCalculator.CancelProcessing();
             }

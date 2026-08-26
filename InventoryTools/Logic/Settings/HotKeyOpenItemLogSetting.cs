@@ -25,7 +25,7 @@ namespace InventoryTools.Logic.Settings
         }
 
         public override string Key { get; set; } = "OpenItemLogHotKey";
-        public override string Name { get; set; } = "Open Item Log Hotkey";
+        public override string Name { get; set; } = "Open Item Log Hotkey".Loc();
 
         public override string HelpText { get; set; } =
             "The hotkey to open the relevant log entry(gathering, crafting, fishing) for an item when hovering it.";

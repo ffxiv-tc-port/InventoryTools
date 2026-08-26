@@ -9,8 +9,8 @@ public class ContextMenuAddToCuratedListSetting : GenericBooleanSetting
 {
     public ContextMenuAddToCuratedListSetting(ILogger<CraftOverlayRememberStateSetting> logger,
         ImGuiService imGuiService) : base("AddToCuratedListContextMenu",
-        "Context Menu - Add to Curated List",
-        "Add a submenu to add the item to a curated list?",
+        "Context Menu - Add to Curated List".Loc(),
+        "Add a submenu to add the item to a curated list?".Loc(),
         false,
         SettingCategory.ContextMenu,
         SettingSubCategory.General,
@@ -20,6 +20,6 @@ public class ContextMenuAddToCuratedListSetting : GenericBooleanSetting
     {
     }
 
-    public override string WizardName { get; } = "Add to Curated List";
+    public override string WizardName { get; } = "Add to Curated List".Loc();
 
 }

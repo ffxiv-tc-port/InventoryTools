@@ -18,8 +18,8 @@ namespace InventoryTools.Logic.Settings
         }
 
         public override string Key { get; set; } = "DisplayCrossCharacter";
-        public override string Name { get; set; } = "Show Cross-Character Inventories in Lists?";
-        public override string WizardName { get; } = "Cross-Character Inventories?";
+        public override string Name { get; set; } = "Show Cross-Character Inventories in Lists?".Loc();
+        public override string WizardName { get; } = "Cross-Character Inventories?".Loc();
 
         public override string HelpText { get; set; } =
             "Should characters not currently logged in and their associated retainers be available to view/search and filter against? Each list can have it's sources/destinations configured to include/exclude retainers/free companies that are related to the currently logged in character.";

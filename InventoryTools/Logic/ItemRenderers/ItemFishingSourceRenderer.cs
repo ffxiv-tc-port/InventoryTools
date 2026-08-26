@@ -26,8 +26,8 @@ public class ItemFishingSourceRenderer : ItemInfoRenderer<ItemFishingSource>
 
     public override RendererType RendererType => RendererType.Source;
     public override ItemInfoType Type => ItemInfoType.Fishing;
-    public override string HelpText => "Can the item be gathered via fishing?";
-    public override string SingularName => "Fishing";
+    public override string HelpText => "Can the item be gathered via fishing?".Loc();
+    public override string SingularName => "Fishing".Loc();
     public override bool ShouldGroup => true;
     public override IReadOnlyList<ItemInfoRenderCategory> Categories => [ItemInfoRenderCategory.Gathering, ItemInfoRenderCategory.Fishing];
 

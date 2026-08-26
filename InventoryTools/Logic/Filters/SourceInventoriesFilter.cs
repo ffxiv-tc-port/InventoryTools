@@ -23,7 +23,7 @@ namespace InventoryTools.Logic.Filters
         }
         public override int LabelSize { get; set; } = 240;
         public override string Key { get; set; } = "SourceInventories";
-        public override string Name { get; set; } = "Source - Inventories";
+        public override string Name { get; set; } = "Source - Inventories".Loc();
         public override string HelpText { get; set; } =
             "This is a list of source inventories to sort items from based on the filter configuration";
         public override FilterCategory FilterCategory { get; set; } = FilterCategory.Inventories;

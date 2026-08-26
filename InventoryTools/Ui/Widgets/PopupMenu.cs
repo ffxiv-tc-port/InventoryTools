@@ -146,16 +146,16 @@ public class PopupMenu
                 return ;
 
             ImGui.TextUnformatted(
-                _question + "\nThis operation cannot be undone!\n\n");
+                _question + "\nThis operation cannot be undone!\n\n".Loc());
             ImGui.Separator();
 
-            if (ImGui.Button("OK", new Vector2(120, 0) * ImGui.GetIO().FontGlobalScale))
+            if (ImGui.Button("OK".Loc(), new Vector2(120, 0) * ImGui.GetIO().FontGlobalScale))
             {
                 _callback?.Invoke(_id, true);
                 ImGui.CloseCurrentPopup();
             }
             ImGui.SameLine();
-            if (ImGui.Button("Cancel", new Vector2(120, 0) * ImGui.GetIO().FontGlobalScale))
+            if (ImGui.Button("Cancel".Loc(), new Vector2(120, 0) * ImGui.GetIO().FontGlobalScale))
             {
                 _callback?.Invoke(_id, false);
                 ImGui.CloseCurrentPopup();

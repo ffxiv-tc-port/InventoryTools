@@ -41,7 +41,7 @@ public class CraftPrecraftGroupFilter : ChoiceFilter<PrecraftGroupSetting>
     }
 
     public override string Key { get; set; } = "CraftPrecraftGroupFilter";
-    public override string Name { get; set; } = "Group Precrafts By";
+    public override string Name { get; set; } = "Group Precrafts By".Loc();
 
     public override string HelpText { get; set; } =
         "How should precrafts be grouped together?";

@@ -89,11 +89,11 @@ public class LocationDisplayTooltip : BaseTooltip
                                 var willRetrieve = craftItem.QuantityWillRetrieve;
                                 if (missingOverall != 0 || willRetrieve != 0)
                                 {
-                                    var missingText = "Missing: ";
+                                    var missingText = "Missing: ".Loc();
                                     if (craftItem.IngredientPreference.Type is IngredientPreferenceType.Buy
                                         or IngredientPreferenceType.Item or IngredientPreferenceType.HouseVendor)
                                     {
-                                        missingText = "Buy: ";
+                                        missingText = "Buy: ".Loc();
                                     }
                                     var needText = missingText + missingOverall;
                                     if (filterResult != null)

@@ -47,8 +47,8 @@ public class UseTypeSelectorSetting : MultiChoiceColumnSetting<(ItemInfoType,str
 
 
     public override string Key { get; set; } = "UseTypes";
-    public override string Name { get; set; } = "Types";
-    public override string HelpText { get; set; } = "Which use types should this display?";
+    public override string Name { get; set; } = "Types".Loc();
+    public override string HelpText { get; set; } = "Which use types should this display?".Loc();
     public override List<(ItemInfoType,string)>? DefaultValue { get; set; } = null;
     public override List<(ItemInfoType,string)> GetChoices(ColumnConfiguration configuration)
     {

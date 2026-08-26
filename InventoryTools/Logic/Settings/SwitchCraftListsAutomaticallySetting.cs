@@ -18,7 +18,7 @@ namespace InventoryTools.Logic.Settings
         }
 
         public override string Key { get; set; } = "SwitchCraftListsAutomatically";
-        public override string Name { get; set; } = "Switch craft lists automatically?";
+        public override string Name { get; set; } = "Switch craft lists automatically?".Loc();
 
         public override string HelpText { get; set; } =
             "Should the active craft list automatically change when moving between each craft list? The active craft list will only change if there is an active craft list already selected.";

@@ -30,9 +30,9 @@ public class UptimeColumn : TimeIntervalColumn
         _mapSheet = mapSheet;
     }
 
-    public override string Name { get; set; } = "Next Gather Uptime";
+    public override string Name { get; set; } = "Next Gather Uptime".Loc();
     public override float Width { get; set; } = 100;
-    public override string HelpText { get; set; } = "Shows how long an item will be available to gather if it's already spawned, and when the next time an item will be available to gather";
+    public override string HelpText { get; set; } = "Shows how long an item will be available to gather if it's already spawned, and when the next time an item will be available to gather".Loc();
     public override ColumnCategory ColumnCategory { get; } = ColumnCategory.Basic;
     public override bool HasFilter { get; set; } = false;
     public override ColumnFilterType FilterType { get; set; } = ColumnFilterType.Text;

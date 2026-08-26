@@ -18,9 +18,9 @@ public partial class TooltipDisplayRetrieveAmountSetting : BooleanSetting
     }
 
     public override string Key { get; set; } = "DisplayRetrievalAmount";
-    public override string Name { get; set; } = "Add Amount to Retrieve";
+    public override string Name { get; set; } = "Add Amount to Retrieve".Loc();
 
-    public override string WizardName { get; } = "Amount to Retrieve";
+    public override string WizardName { get; } = "Amount to Retrieve".Loc();
 
     public override string HelpText { get; set; } =
         "Should the amount required to be retrieved be shown in the tooltip?";

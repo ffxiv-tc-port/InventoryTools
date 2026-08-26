@@ -18,9 +18,9 @@ public class ItemArmoireSourceRenderer : ItemInfoRenderer<ItemArmoireSource>
 
     public override RendererType RendererType => RendererType.Use;
     public override ItemInfoType Type => ItemInfoType.Armoire;
-    public override string SingularName => "Stored in Armoire";
+    public override string SingularName => "Stored in Armoire".Loc();
     public override bool ShouldGroup => true;
-    public override string HelpText => "Can the item be placed in the armoire?";
+    public override string HelpText => "Can the item be placed in the armoire?".Loc();
 
     public override Action<ItemSource> DrawTooltip => source =>
     {
@@ -40,6 +40,6 @@ public class ItemArmoireSourceRenderer : ItemInfoRenderer<ItemArmoireSource>
     public override Func<ItemSource, string> GetDescription => source =>
     {
         var asSource = AsSource(source);
-        return $"Can be placed in the {asSource.Cabinet.CabinetCategory?.Base.Category.Value.Text}";
+        return "Can be placed in the ??".Loc(asSource.Cabinet.CabinetCategory?.Base.Category.Value.Text);
     };
 }

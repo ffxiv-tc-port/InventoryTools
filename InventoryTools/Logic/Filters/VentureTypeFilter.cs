@@ -17,8 +17,8 @@ public class VentureTypeFilter : StringFilter
     }
 
     public override string Key { get; set; } = "VentureTypeFilter";
-    public override string Name { get; set; } = "Venture Type";
-    public override string HelpText { get; set; } = "The type of the venture";
+    public override string Name { get; set; } = "Venture Type".Loc();
+    public override string HelpText { get; set; } = "The type of the venture".Loc();
     public override FilterCategory FilterCategory { get; set; } = FilterCategory.Acquisition;
 
     public override bool? FilterItem(FilterConfiguration configuration, InventoryItem item)

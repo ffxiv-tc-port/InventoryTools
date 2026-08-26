@@ -19,16 +19,16 @@ public class ItemFurnitureSourceRenderer : ItemInfoRenderer<ItemFurnitureSource>
 
     public override RendererType RendererType => RendererType.Use;
     public override ItemInfoType Type => ItemInfoType.FurnitureItem;
-    public override string SingularName => "Interior Furniture";
-    public override string HelpText => "Can the item be placed inside houses?";
+    public override string SingularName => "Interior Furniture".Loc();
+    public override string HelpText => "Can the item be placed inside houses?".Loc();
     public override bool ShouldGroup => true;
     public override IReadOnlyList<ItemInfoRenderCategory>? Categories => [ItemInfoRenderCategory.House];
 
     public override Action<ItemSource> DrawTooltip => source =>
     {
         var asSource = AsSource(source);
-        ImGui.Text($"Category: {asSource.FurnitureCatalogItem.Value.Category.Value.Category.ExtractText()}");
-        ImGui.Text($"Patch Added: {asSource.FurnitureCatalogItem.Value.Patch}");
+        ImGui.Text("Category: ??".Loc(asSource.FurnitureCatalogItem.Value.Category.Value.Category.ExtractText()));
+        ImGui.Text("Patch Added: ??".Loc(asSource.FurnitureCatalogItem.Value.Patch));
     };
 
     public override Func<ItemSource, string> GetName => source =>

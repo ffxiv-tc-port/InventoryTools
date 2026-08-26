@@ -40,13 +40,13 @@ public class FavouritesColumn : CheckboxColumn
         {
             _configuration.ToggleFavouriteItem(itemId);
         }
-        ImGuiUtil.HoverTooltip("Click to favourite/unfavourite.");
+        ImGuiUtil.HoverTooltip("Click to favourite/unfavourite.".Loc());
         return null;
     }
 
-    public override string Name { get; set; } = "Favourite?";
+    public override string Name { get; set; } = "Favourite?".Loc();
     public override float Width { get; set; } = 80;
-    public override string HelpText { get; set; } = "Is this item in your list of favourites?";
+    public override string HelpText { get; set; } = "Is this item in your list of favourites?".Loc();
 
     public override FilterType DefaultIn => Logic.FilterType.SearchFilter | Logic.FilterType.SortingFilter | Logic.FilterType.GameItemFilter;
 }

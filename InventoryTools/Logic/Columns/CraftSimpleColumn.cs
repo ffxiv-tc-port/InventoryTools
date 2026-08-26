@@ -95,7 +95,7 @@ namespace InventoryTools.Logic.Columns
                 }
                 else
                 {
-                    ImGui.Text("N/A");
+                    ImGui.Text("N/A".Loc());
                 }
 
                 var craftPrices = searchResult.CraftItem.CraftPrices;
@@ -144,7 +144,7 @@ namespace InventoryTools.Logic.Columns
                 if (ImGui.IsItemHovered(ImGuiHoveredFlags.None))
                 {
                     using var tt = ImRaii.Tooltip();
-                    ImGui.Text("Missing Ingredients: ");
+                    ImGui.Text("Missing Ingredients: ".Loc());
                     foreach (var missingIngredient in searchResult.CraftItem.MissingIngredients)
                     {
                         var itemId = missingIngredient.Key.Item1;
@@ -162,8 +162,8 @@ namespace InventoryTools.Logic.Columns
             return null;
         }
 
-        public override string Name { get; set; } = "Next Step in Craft";
-        public override string RenderName => "Next Step";
+        public override string Name { get; set; } = "Next Step in Craft".Loc();
+        public override string RenderName => "Next Step".Loc();
 
         public override float Width { get; set; } = 200;
         public override bool? CraftOnly => true;

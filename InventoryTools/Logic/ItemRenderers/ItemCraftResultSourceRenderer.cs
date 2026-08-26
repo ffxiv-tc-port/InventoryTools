@@ -33,10 +33,10 @@ public class ItemCraftResultSourceRenderer : ItemInfoRenderer<ItemCraftResultSou
 
     public override RendererType RendererType => RendererType.Source;
     public override ItemInfoType Type => ItemInfoType.CraftRecipe;
-    public override string SingularName => "Craft Recipe";
+    public override string SingularName => "Craft Recipe".Loc();
     public override bool ShouldGroup => true;
     public override IReadOnlyList<ItemInfoRenderCategory> Categories => [ItemInfoRenderCategory.Crafting];
-    public override string HelpText => "Can the item be crafted via a craft recipe?";
+    public override string HelpText => "Can the item be crafted via a craft recipe?".Loc();
     public override Func<ItemSource, List<MessageBase>?>? OnClick => source =>
     {
         var asSource = AsSource(source);
@@ -52,12 +52,12 @@ public class ItemCraftResultSourceRenderer : ItemInfoRenderer<ItemCraftResultSou
     public override Action<ItemSource> DrawTooltip => source =>
     {
         var asSource = AsSource(source);
-        ImGui.Text($"Craft Type: {asSource.Recipe.Base.CraftType.Value.Name}");
-        ImGui.Text($"Yield: {asSource.Recipe.Base.AmountResult}");
-        ImGui.Text($"Difficulty: {asSource.Recipe.Base.DifficultyFactor}");
-        ImGui.Text($"Required Craftsmanship: {asSource.Recipe.Base.RequiredCraftsmanship}");
+        ImGui.Text("Craft Type: ??".Loc(asSource.Recipe.Base.CraftType.Value.Name));
+        ImGui.Text("Yield: ??".Loc(asSource.Recipe.Base.AmountResult));
+        ImGui.Text("Difficulty: ??".Loc(asSource.Recipe.Base.DifficultyFactor));
+        ImGui.Text("Required Craftsmanship: ??".Loc(asSource.Recipe.Base.RequiredCraftsmanship));
 
-        ImGui.Text("Ingredients:");
+        ImGui.Text("Ingredients:".Loc());
         using (ImRaii.PushIndent())
         {
             foreach (var ingredient in asSource.Recipe.IngredientCounts)

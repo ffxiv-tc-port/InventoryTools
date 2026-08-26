@@ -29,9 +29,9 @@ public class SourceIconGroupingSetting : Setting<Dictionary<Type, bool>?>
         _sourceRenderers = itemInfoRenderers.Where(c => c.RendererType == RendererType.Source).ToDictionary(c => c.ItemSourceType, c => c);
         _choices = new Dictionary<SourceIconGrouping, string>()
         {
-            {SourceIconGrouping.Default, "Default"},
-            {SourceIconGrouping.Grouped, "Grouped"},
-            {SourceIconGrouping.Ungrouped, "Ungrouped"}
+            {SourceIconGrouping.Default, "Default".Loc()},
+            {SourceIconGrouping.Grouped, "Grouped".Loc()},
+            {SourceIconGrouping.Ungrouped, "Ungrouped".Loc()}
         };
     }
 
@@ -131,8 +131,8 @@ public class SourceIconGroupingSetting : Setting<Dictionary<Type, bool>?>
     }
 
     public override string Key { get; set; } = "SourceIconGrouping";
-    public override string Name { get; set; } = "Source Acquisition Icon Grouping";
-    public override string HelpText { get; set; } = "When source acquisition icons are displayed, how should they be grouped?";
+    public override string Name { get; set; } = "Source Acquisition Icon Grouping".Loc();
+    public override string HelpText { get; set; } = "When source acquisition icons are displayed, how should they be grouped?".Loc();
     public override SettingCategory SettingCategory { get; set; } = SettingCategory.Items;
     public override SettingSubCategory SettingSubCategory { get; } = SettingSubCategory.SourceGrouping;
     public override string Version { get; } = "1.11.0.10";

@@ -15,7 +15,7 @@ public class LayoutFeature : Feature
     {
     }
 
-    public override string Name { get; } = "Layout";
+    public override string Name { get; } = "Layout".Loc();
     public override string Description { get; } =
         "How should the main items window and craft windows be laid out? Should we display your lists as tabs or in a side bar?";
 }

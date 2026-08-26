@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using AllaganLib.GameSheets.Caches;
@@ -33,9 +33,9 @@ public class IngredientSearchFilter : UintMultipleChoiceFilter
         _craftListFactory = craftListFactory;
     }
     public override string Key { get; set; } = "IngredientSearchFilter";
-    public override string Name { get; set; } = "Ingredient Search Filter";
+    public override string Name { get; set; } = "Ingredient Search Filter".Loc();
 
-    public override string HelpText { get; set; } = "Select craftable items and the filter will determine the ingredients used in the craft and will only list those ingredients. The add all from filter button will add all the items from the selected filter to the list.";
+    public override string HelpText { get; set; } = "Select craftable items and the filter will determine the ingredients used in the craft and will only list those ingredients. The add all from filter button will add all the items from the selected filter to the list.".Loc();
 
     public override FilterCategory FilterCategory { get; set; } = FilterCategory.Searching;
 
@@ -71,7 +71,7 @@ public class IngredientSearchFilter : UintMultipleChoiceFilter
     {
         base.DrawSearchBox(configuration);
         ImGui.SameLine();
-        if (ImGui.Button("Add all from filter"))
+        if (ImGui.Button("Add all from filter".Loc()))
         {
             ImGui.OpenPopup("AddAllFilterSelect");
         }

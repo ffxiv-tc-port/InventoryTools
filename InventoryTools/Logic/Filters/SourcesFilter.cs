@@ -24,7 +24,7 @@ namespace InventoryTools.Logic.Filters
         }
         public override int Order { get; set; } = 1;
         public override string Key { get; set; } = "Sources";
-        public override string Name { get; set; } = "Sources";
+        public override string Name { get; set; } = "Sources".Loc();
 
         public override string HelpText { get; set; } =
             "This lists all the sources that are applicable given the sources picked above.";
@@ -43,7 +43,7 @@ namespace InventoryTools.Logic.Filters
             ImGui.NewLine();
             ImGui.Separator();
             ImGui.NewLine();
-            ImGui.Text("Source Information: ");
+            ImGui.Text("Source Information: ".Loc());
             ImGui.SameLine();
             ImGuiService.HelpMarker(HelpText);
             var allCharacters = _characterMonitor.Characters;

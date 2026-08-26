@@ -70,8 +70,8 @@ public class MarketboardWorldSetting : ChoiceColumnSetting<(uint,string)?>
     }
 
     public override string Key { get; set; } = "MBWorld";
-    public override string Name { get; set; } = "World";
-    public override string HelpText { get; set; } = "The world for this column to display?";
+    public override string Name { get; set; } = "World".Loc();
+    public override string HelpText { get; set; } = "The world for this column to display?".Loc();
     public override (uint,string)? DefaultValue { get; set; } = null;
     public override List<(uint,string)?> GetChoices(ColumnConfiguration configuration)
     {

@@ -28,7 +28,7 @@ namespace InventoryTools.Logic.Filters
         }
         public override int LabelSize { get; set; } = 240;
         public override string Key { get; set; } = "DestinationInventoryCategories";
-        public override string Name { get; set; } = "Destination - Inventory Categories";
+        public override string Name { get; set; } = "Destination - Inventory Categories".Loc();
         public override string HelpText { get; set; } =
             "This is a list of destinations categories to sort items into. It will attempt to sort items into any bag of the given category.";
 

@@ -32,9 +32,9 @@ public class ItemBattleLeveSourceRenderer : ItemInfoRenderer<ItemBattleLeveSourc
 
     public override RendererType RendererType => RendererType.Source;
     public override ItemInfoType Type => ItemInfoType.BattleLeve;
-    public override string SingularName => "Battle Leve";
-    public override string PluralName => "Battle Leves";
-    public override string HelpText => "Is this item obtained from a battle leve?";
+    public override string SingularName => "Battle Leve".Loc();
+    public override string PluralName => "Battle Leves".Loc();
+    public override string HelpText => "Is this item obtained from a battle leve?".Loc();
     public override bool ShouldGroup => true;
     public override IReadOnlyList<ItemInfoRenderCategory> Categories => [ItemInfoRenderCategory.Leve];
     public override Action<ItemSource> DrawTooltip => source =>
@@ -64,6 +64,6 @@ public class ItemBattleLeveSourceRenderer : ItemInfoRenderer<ItemBattleLeveSourc
         var asSource = AsSource(source);
         var leveRow = asSource.Leve.Value;
         return
-            $"{leveRow.Name.ExtractText()} ({leveRow.ClassJobCategory.Value.Name.ExtractText()}) ({leveRow.ExpReward} xp) ({leveRow.AllowanceCost} allowances)";
+            "?? (??) (?? xp) (?? allowances)".Loc(leveRow.Name.ExtractText(), leveRow.ClassJobCategory.Value.Name.ExtractText(), leveRow.ExpReward, leveRow.AllowanceCost);
     };
 }

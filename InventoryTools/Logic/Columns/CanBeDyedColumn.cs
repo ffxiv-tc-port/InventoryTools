@@ -17,9 +17,9 @@ namespace InventoryTools.Logic.Columns
         }
 
 
-        public override string Name { get; set; } = "Is Dyeable?";
+        public override string Name { get; set; } = "Is Dyeable?".Loc();
         public override float Width { get; set; } = 80.0f;
-        public override string HelpText { get; set; } = "Can the item be dyed?";
+        public override string HelpText { get; set; } = "Can the item be dyed?".Loc();
         public override bool HasFilter { get; set; } = true;
         public override ColumnFilterType FilterType { get; set; } = ColumnFilterType.Boolean;
     }

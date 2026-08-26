@@ -51,7 +51,7 @@ namespace InventoryTools.Ui
             }
             else
             {
-                WindowName = "Unknown Mob";
+                WindowName = "Unknown Mob".Loc();
             }
         }
 
@@ -61,7 +61,7 @@ namespace InventoryTools.Ui
         private List<MobSpawnPosition>? _mobSpawns;
 
         private BNpcNameRow? bNpc => _bNpcNameSheet.GetRowOrDefault(_bNpcId);
-        public override string GenericName => "Mob";
+        public override string GenericName => "Mob".Loc();
         public override bool DestroyOnClose => true;
         public override void Draw()
         {
@@ -72,15 +72,15 @@ namespace InventoryTools.Ui
 
             if (bNpc == null)
             {
-                ImGui.TextUnformatted("bNpc with the ID " + _bNpcId + " could not be found.");
+                ImGui.TextUnformatted("bNpc with the ID ".Loc() + _bNpcId + " could not be found.".Loc());
             }
             else
             {
-                ImGui.Text("Type: " + string.Join(", ", bNpc.MobTypes.Select(c => c.ToString())));
+                ImGui.Text("Type: ".Loc() + string.Join(", ", bNpc.MobTypes.Select(c => c.ToString())));
 
                 if (bNpc.NotoriousMonster != null)
                 {
-                    ImGui.Text("Rank: " + bNpc.NotoriousMonster?.RankFormatted());
+                    ImGui.Text("Rank: ".Loc() + bNpc.NotoriousMonster?.RankFormatted());
                 }
 
                 var garlandId = bNpc.GarlandToolsId;
@@ -92,7 +92,7 @@ namespace InventoryTools.Ui
                         $"https://www.garlandtools.org/db/#mob/{garlandId}".OpenBrowser();
                     }
 
-                    ImGuiUtil.HoverTooltip("Open in Garland Tools");
+                    ImGuiUtil.HoverTooltip("Open in Garland Tools".Loc());
                     ImGui.SameLine();
                 }
 
@@ -101,12 +101,12 @@ namespace InventoryTools.Ui
                 {
                     $"https://ffxivteamcraft.com/db/en/mob/{_bNpcId}".OpenBrowser();
                 }
-                ImGuiUtil.HoverTooltip("Open in Teamcraft");
+                ImGuiUtil.HoverTooltip("Open in Teamcraft".Loc());
 
                 ImGui.Separator();
 
 
-                if (_mobDrops != null && ImGui.CollapsingHeader("Drops (" + _mobDrops.Count + ")", ImGuiTreeNodeFlags.DefaultOpen | ImGuiTreeNodeFlags.CollapsingHeader))
+                if (_mobDrops != null && ImGui.CollapsingHeader("Drops (".Loc() + _mobDrops.Count + ")", ImGuiTreeNodeFlags.DefaultOpen | ImGuiTreeNodeFlags.CollapsingHeader))
                 {
                     ImGuiStylePtr style = ImGui.GetStyle();
                     float windowVisibleX2 = ImGui.GetWindowPos().X + ImGui.GetWindowContentRegionMax().X;
@@ -161,7 +161,7 @@ namespace InventoryTools.Ui
 
                 ImGui.NewLine();
 
-                if (_mobSpawns != null && ImGui.CollapsingHeader("Locations (" + _mobSpawns.Count + ")", ImGuiTreeNodeFlags.DefaultOpen | ImGuiTreeNodeFlags.CollapsingHeader))
+                if (_mobSpawns != null && ImGui.CollapsingHeader("Locations (".Loc() + _mobSpawns.Count + ")", ImGuiTreeNodeFlags.DefaultOpen | ImGuiTreeNodeFlags.CollapsingHeader))
                 {
                     ImGuiStylePtr style = ImGui.GetStyle();
                     float windowVisibleX2 = ImGui.GetWindowPos().X + ImGui.GetWindowContentRegionMax().X;
@@ -189,7 +189,7 @@ namespace InventoryTools.Ui
                             if (ImGui.IsItemHovered())
                             {
                                 using var tt = ImRaii.Tooltip();
-                                ImGui.TextUnformatted((territory.Base.PlaceName.ValueNullable?.Name.ExtractText() ?? "Unknown") + " - " +
+                                ImGui.TextUnformatted((territory.Base.PlaceName.ValueNullable?.Name.ExtractText() ?? "Unknown".Loc()) + " - " +
                                                       spawn.Position.X +
                                                       " : " + spawn.Position.Y);
                             }
@@ -207,10 +207,10 @@ namespace InventoryTools.Ui
                 ImGui.NewLine();
 
                 #if DEBUG
-                if (ImGui.CollapsingHeader("Debug"))
+                if (ImGui.CollapsingHeader("Debug".Loc()))
                 {
-                    ImGui.TextUnformatted("bNpc ID: " + _bNpcId);
-                    if (ImGui.Button("Copy"))
+                    ImGui.TextUnformatted("bNpc ID: ".Loc() + _bNpcId);
+                    if (ImGui.Button("Copy".Loc()))
                     {
                         _clipboardService.CopyToClipboard(_bNpcId.ToString());
                     }

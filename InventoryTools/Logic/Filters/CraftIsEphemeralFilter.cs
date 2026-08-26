@@ -1,4 +1,4 @@
-﻿using AllaganLib.GameSheets.Sheets.Rows;
+using AllaganLib.GameSheets.Sheets.Rows;
 using CriticalCommonLib.Models;
 
 using InventoryTools.Logic.Filters.Abstract;
@@ -10,7 +10,7 @@ namespace InventoryTools.Logic.Filters;
 public class CraftIsEphemeralFilter : BooleanFilter
 {
     public override string Key { get; set; } = "CraftIsEphemeral";
-    public override string Name { get; set; } = "Ephemeral?";
+    public override string Name { get; set; } = "Ephemeral?".Loc();
 
     public override string HelpText { get; set; } =
         "Is this craft list ephemeral? If checked, once all the items in the craft list are deleted, the list will delete itself. This is only checked as each craft is completed.";
@@ -37,7 +37,7 @@ public class CraftIsEphemeralFilter : BooleanFilter
         configuration.IsEphemeralCraftList = newValue ?? false;
     }
 
-    private readonly string[] _choices = new []{"Yes", "No"};
+    private readonly string[] _choices = new []{"Yes", "No".Loc()};
 
     public override string[] GetChoices()
     {

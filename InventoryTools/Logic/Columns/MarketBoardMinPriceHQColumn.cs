@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using CriticalCommonLib.MarketBoard;
 using CriticalCommonLib.Services;
 using CriticalCommonLib.Services.Mediator;
@@ -118,8 +118,8 @@ namespace InventoryTools.Logic.Columns
 
             return Loading;
         }
-        public override string Name { get; set; } = "Market Board Minimum Price HQ";
-        public override string RenderName => "MB Min. Price HQ";
+        public override string Name { get; set; } = "Market Board Minimum Price HQ".Loc();
+        public override string RenderName => "MB Min. Price HQ".Loc();
         public override float Width { get; set; } = 250.0f;
 
         public override string HelpText { get; set; } =

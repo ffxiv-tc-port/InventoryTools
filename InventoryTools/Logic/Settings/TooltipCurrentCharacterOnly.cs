@@ -19,7 +19,7 @@ namespace InventoryTools.Logic.Settings
         }
 
         public override string Key { get; set; } = "TooltipCurrentCharacter";
-        public override string Name { get; set; } = "Limit to items on the current character?";
+        public override string Name { get; set; } = "Limit to items on the current character?".Loc();
 
         public override string HelpText { get; set; } =
             "Limits the information displayed on the tooltip to inventories belonging to the currently logged in character.";

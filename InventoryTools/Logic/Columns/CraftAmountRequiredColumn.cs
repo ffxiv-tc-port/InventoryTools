@@ -152,22 +152,22 @@ namespace InventoryTools.Logic.Columns
             if (itemHovered || ImGui.IsItemHovered(ImGuiHoveredFlags.None))
             {
                 using var tt = ImRaii.Tooltip();
-                ImGui.Text("Ingredient Breakdown:");
-                ImGui.TextUnformatted("Amount Originally Required: " + searchResult.CraftItem.QuantityRequired);
-                ImGui.TextUnformatted("Amount Required: " + searchResult.CraftItem.QuantityNeededPreUpdate);
-                ImGui.TextUnformatted("Amount in Inventory: " + searchResult.CraftItem.QuantityReady);
-                ImGui.TextUnformatted("Amount to Retrieve: " + searchResult.CraftItem.QuantityAvailable);
+                ImGui.Text("Ingredient Breakdown:".Loc());
+                ImGui.TextUnformatted("Amount Originally Required: ".Loc() + searchResult.CraftItem.QuantityRequired);
+                ImGui.TextUnformatted("Amount Required: ".Loc() + searchResult.CraftItem.QuantityNeededPreUpdate);
+                ImGui.TextUnformatted("Amount in Inventory: ".Loc() + searchResult.CraftItem.QuantityReady);
+                ImGui.TextUnformatted("Amount to Retrieve: ".Loc() + searchResult.CraftItem.QuantityAvailable);
                 ImGui.Separator();
-                ImGui.TextUnformatted("Amount Missing: " + searchResult.CraftItem.QuantityMissingOverall);
+                ImGui.TextUnformatted("Amount Missing: ".Loc() + searchResult.CraftItem.QuantityMissingOverall);
                 if (searchResult.Item.CanBeCrafted)
                 {
-                    ImGui.TextUnformatted("Amount Craftable: " + searchResult.CraftItem.QuantityCanCraft);
+                    ImGui.TextUnformatted("Amount Craftable: ".Loc() + searchResult.CraftItem.QuantityCanCraft);
                     if (searchResult.CraftItem.Yield != 1)
                     {
                         ImGui.Separator();
-                        ImGui.TextUnformatted("Craft Operations Required: " +
+                        ImGui.TextUnformatted("Craft Operations Required: ".Loc() +
                                               searchResult.CraftItem.QuantityNeeded / searchResult.CraftItem.Yield);
-                        ImGui.TextUnformatted("Recipe Yield: " + searchResult.CraftItem.Yield);
+                        ImGui.TextUnformatted("Recipe Yield: ".Loc() + searchResult.CraftItem.Yield);
                     }
                 }
 
@@ -175,7 +175,7 @@ namespace InventoryTools.Logic.Columns
                 if (searchResult.CraftItem.Recipe != null)
                 {
                     ImGui.Separator();
-                    ImGui.TextUnformatted("Ingredients: ");
+                    ImGui.TextUnformatted("Ingredients: ".Loc());
                     using (ImRaii.PushIndent())
                     {
                         foreach (var ingredient in searchResult.CraftItem.Recipe.IngredientCounts)
@@ -191,11 +191,11 @@ namespace InventoryTools.Logic.Columns
             return null;
         }
         public override FilterType AvailableIn { get; } = Logic.FilterType.CraftFilter;
-        public override string Name { get; set; } = "Amount Required";
-        public override string RenderName => "Required";
+        public override string Name { get; set; } = "Amount Required".Loc();
+        public override string RenderName => "Required".Loc();
         public override float Width { get; set; } = 60;
         public override bool? CraftOnly => true;
-        public override string HelpText { get; set; } = "The amount required with inventory and external sources factored in/The amount required without inventory and external sources factored in.";
+        public override string HelpText { get; set; } = "The amount required with inventory and external sources factored in/The amount required without inventory and external sources factored in.".Loc();
         public override bool HasFilter { get; set; } = false;
         public override ColumnFilterType FilterType { get; set; } = ColumnFilterType.Text;
 

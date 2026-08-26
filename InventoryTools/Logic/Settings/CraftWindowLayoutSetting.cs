@@ -20,10 +20,10 @@ public class CraftWindowLayoutSetting : ChoiceSetting<WindowLayout>
     }
 
     public override string Key { get; set; } = "CraftWindowLayout";
-    public override string Name { get; set; } = "Craft Window Layout";
+    public override string Name { get; set; } = "Craft Window Layout".Loc();
 
-    public override string WizardName { get; } = "Craft Window";
-    public override string HelpText { get; set; } = "Set the layout of the craft window";
+    public override string WizardName { get; } = "Craft Window".Loc();
+    public override string HelpText { get; set; } = "Set the layout of the craft window".Loc();
     public override SettingCategory SettingCategory { get; set; } = SettingCategory.Windows;
     public override SettingSubCategory SettingSubCategory { get; } = SettingSubCategory.WindowLayout;
 
@@ -33,9 +33,9 @@ public class CraftWindowLayoutSetting : ChoiceSetting<WindowLayout>
 
     public override Dictionary<WindowLayout, string> Choices { get; } = new Dictionary<WindowLayout, string>()
     {
-        { WindowLayout.Sidebar, "Sidebar" },
-        { WindowLayout.Tabs , "Tabs" },
-        { WindowLayout.Single , "Single" }
+        { WindowLayout.Sidebar, "Sidebar".Loc() },
+        { WindowLayout.Tabs , "Tabs".Loc() },
+        { WindowLayout.Single , "Single".Loc() }
     };
     public override string Version => "1.7.0.0";
 

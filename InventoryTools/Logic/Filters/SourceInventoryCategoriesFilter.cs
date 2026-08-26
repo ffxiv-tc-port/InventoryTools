@@ -29,7 +29,7 @@ namespace InventoryTools.Logic.Filters
 
         public override int LabelSize { get; set; } = 240;
         public override string Key { get; set; } = "SourceInventoryCategories";
-        public override string Name { get; set; } = "Source - Inventory Categories";
+        public override string Name { get; set; } = "Source - Inventory Categories".Loc();
         public override string HelpText { get; set; } =
             "This is a list of sources categories to search in. It will attempt to search for items in any bag of the given category.";
 

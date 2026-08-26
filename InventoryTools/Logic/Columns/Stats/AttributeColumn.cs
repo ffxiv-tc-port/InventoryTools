@@ -75,7 +75,7 @@ public class AttributeColumn : IntegerColumn
     }
 
 
-    public override string Name { get; set; } = "Attribute";
+    public override string Name { get; set; } = "Attribute".Loc();
     public override float Width { get; set; } = 80;
-    public override string HelpText { get; set; } = "An bonus attributes of the item(Strength, HP, Perception, etc)";
+    public override string HelpText { get; set; } = "An bonus attributes of the item(Strength, HP, Perception, etc)".Loc();
 }

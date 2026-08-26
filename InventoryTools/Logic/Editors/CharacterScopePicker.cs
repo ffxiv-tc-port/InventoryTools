@@ -7,6 +7,7 @@ using CriticalCommonLib.Models;
 using CriticalCommonLib.Services;
 using Dalamud.Interface.Utility.Raii;
 using ImGuiNET;
+using InventoryTools;
 using InventoryTools.Services;
 using InventoryTools.Ui.Widgets;
 using Lumina.Excel;
@@ -434,7 +435,7 @@ public class CharacterScopePicker
         {
             if (combo)
             {
-                ImGui.Text("Character Scope Editor");
+                ImGui.Text("Character Scope Editor".Loc());
                 using(var child = ImRaii.Child("selected", new Vector2(200, 0) * ImGui.GetIO().FontGlobalScale , true, ImGuiWindowFlags.NoScrollbar))
                 {
                     if (child)
@@ -445,7 +446,7 @@ public class CharacterScopePicker
                             {
                                 if (searchScopes.Count == 0)
                                 {
-                                    ImGui.TextWrapped("No scopes defined yet. Press add to start.");
+                                    ImGui.TextWrapped("No scopes defined yet. Press add to start.".Loc());
                                 }
 
                                 for (var index = 0; index < searchScopes.Count; index++)
@@ -476,14 +477,14 @@ public class CharacterScopePicker
                         {
                             if (commandBar)
                             {
-                                if (ImGui.Button("Add"))
+                                if (ImGui.Button("Add".Loc()))
                                 {
                                     _selectedScope = new CharacterSearchScope();
                                     searchScopes.Add(_selectedScope);
                                     changed = true;
                                 }
                                 ImGui.SameLine();
-                                if (ImGui.Button("Save"))
+                                if (ImGui.Button("Save".Loc()))
                                 {
                                     ImGui.CloseCurrentPopup();
                                 }
@@ -497,9 +498,9 @@ public class CharacterScopePicker
                 {
                     if (_selectedScope == null)
                     {
-                        ImGui.TextWrapped("The character scope editor allows you define which characters you want to search across.");
-                        ImGui.TextWrapped("By default, every character Allagan Tools knows about is searched.");
-                        ImGui.TextWrapped("By providing a set of scopes, you are narrowing down from which characters are displayed/counted.");
+                        ImGui.TextWrapped("The character scope editor allows you define which characters you want to search across.".Loc());
+                        ImGui.TextWrapped("By default, every character Allagan Tools knows about is searched.".Loc());
+                        ImGui.TextWrapped("By providing a set of scopes, you are narrowing down from which characters are displayed/counted.".Loc());
                     }
                     else
                     {
@@ -512,14 +513,14 @@ public class CharacterScopePicker
                                     var isCharacter = _selectedScope.CharacterId != null;
                                     var isWorld = _selectedScope.WorldId != null;
                                     var isActiveCharacter = _selectedScope.ActiveCharacter != null;
-                                    ImGui.Text("Search Scope:");
+                                    ImGui.Text("Search Scope:".Loc());
                                     ImGui.Separator();
                                     if (ImGui.RadioButton("All",!isCharacter && !isWorld && !isActiveCharacter))
                                     {
                                         _selectedScope.Reset();
                                     }
                                     ImGui.SameLine();
-                                    _imGuiService.HelpMarker("Match against all characters");
+                                    _imGuiService.HelpMarker("Match against all characters".Loc());
                                     ImGui.NewLine();
 
                                     if (ImGui.RadioButton("Character",isCharacter))
@@ -528,7 +529,7 @@ public class CharacterScopePicker
                                         _selectedScope.CharacterId = 0;
                                     }
                                     ImGui.SameLine();
-                                    _imGuiService.HelpMarker("Match against a specific character(player character, retainer, free company, etc)");
+                                    _imGuiService.HelpMarker("Match against a specific character(player character, retainer, free company, etc)".Loc());
 
                                     if (_selectedScope.CharacterId != null)
                                     {
@@ -563,7 +564,7 @@ public class CharacterScopePicker
                                         _selectedScope.ActiveCharacter = true;
                                     }
                                     ImGui.SameLine();
-                                    _imGuiService.HelpMarker("Match against the currently logged in character.");
+                                    _imGuiService.HelpMarker("Match against the currently logged in character.".Loc());
                                     ImGui.NewLine();
 
                                     if (ImGui.RadioButton("World",isWorld))
@@ -572,7 +573,7 @@ public class CharacterScopePicker
                                         _selectedScope.WorldId = 0;
                                     }
                                     ImGui.SameLine();
-                                    _imGuiService.HelpMarker("Match against a specific world");
+                                    _imGuiService.HelpMarker("Match against a specific world".Loc());
                                     if (_selectedScope.WorldId != null)
                                     {
                                         var selectedWorld = _selectedScope.WorldId == 0 ? null : _worldSheet.GetRowOrDefault(_selectedScope.WorldId.Value);
@@ -642,20 +643,20 @@ public class CharacterScopePicker
                                             }
                                         }
                                         ImGui.SameLine();
-                                        _imGuiService.HelpMarker("When 'All' or 'World' is selected, choose the types of characters you want to filter against. Select an item again to unselect it.");
+                                        _imGuiService.HelpMarker("When 'All' or 'World' is selected, choose the types of characters you want to filter against. Select an item again to unselect it.".Loc());
                                     }
 
                                     ImGui.Separator();
                                     ImGui.NewLine();
                                     var invert = _selectedScope.Invert;
-                                    if (ImGui.Checkbox("Invert", ref invert))
+                                    if (ImGui.Checkbox("Invert".Loc(), ref invert))
                                     {
                                         _selectedScope.Invert = invert;
                                         changed = true;
                                     }
 
                                     ImGui.SameLine();
-                                    _imGuiService.HelpMarker("When checked, match against the opposite of what is selected.");
+                                    _imGuiService.HelpMarker("When checked, match against the opposite of what is selected.".Loc());
                                 }
                             }
 
@@ -663,13 +664,13 @@ public class CharacterScopePicker
                             {
                                 if (commandBar)
                                 {
-                                    if (ImGui.Button("Save"))
+                                    if (ImGui.Button("Save".Loc()))
                                     {
                                         _selectedScope = null;
                                         changed = true;
                                     }
                                     ImGui.SameLine();
-                                    if (ImGui.Button("Delete") && _selectedScope != null)
+                                    if (ImGui.Button("Delete".Loc()) && _selectedScope != null)
                                     {
                                         searchScopes.Remove(_selectedScope);
                                         _selectedScope = null;

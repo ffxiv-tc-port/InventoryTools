@@ -34,7 +34,7 @@ public abstract class ItemFieldOpCofferSourceRenderer<T> : ItemInfoRenderer<T> w
             ImGui.SameLine();
             if (asSource.Min == asSource.Max)
             {
-                ImGui.Text("(Drops 1)");
+                ImGui.Text("(Drops 1)".Loc());
             }
             else
             {
@@ -69,8 +69,8 @@ public class ItemPagosTreasureSourceRenderer : ItemFieldOpCofferSourceRenderer<I
     {
     }
 
-    public override string SingularName => "Eureka Pagos (Treasure Coffer)";
-    public override string HelpText => "Does this item drop from a pagos treasure coffer?";
+    public override string SingularName => "Eureka Pagos (Treasure Coffer)".Loc();
+    public override string HelpText => "Does this item drop from a pagos treasure coffer?".Loc();
 }
 
 public class ItemPyrosTreasureSourceRenderer : ItemFieldOpCofferSourceRenderer<ItemPyrosTreasureCofferSource>
@@ -82,8 +82,8 @@ public class ItemPyrosTreasureSourceRenderer : ItemFieldOpCofferSourceRenderer<I
     {
     }
 
-    public override string SingularName => "Eureka Pyros (Treasure Coffer)";
-    public override string HelpText => "Does this item drop from a pyros treasure coffer?";
+    public override string SingularName => "Eureka Pyros (Treasure Coffer)".Loc();
+    public override string HelpText => "Does this item drop from a pyros treasure coffer?".Loc();
 }
 
 public class ItemHydatosTreasureSourceRenderer : ItemFieldOpCofferSourceRenderer<ItemHydatosTreasureCofferSource>
@@ -95,8 +95,8 @@ public class ItemHydatosTreasureSourceRenderer : ItemFieldOpCofferSourceRenderer
     {
     }
 
-    public override string SingularName => "Eureka Hydatos (Treasure Coffer)";
-    public override string HelpText => "Does this item drop from a hydatos treasure coffer?";
+    public override string SingularName => "Eureka Hydatos (Treasure Coffer)".Loc();
+    public override string HelpText => "Does this item drop from a hydatos treasure coffer?".Loc();
 }
 
 public class ItemOccultTreasureSourceRenderer : ItemFieldOpCofferSourceRenderer<ItemOccultTreasureCofferSource>
@@ -108,8 +108,8 @@ public class ItemOccultTreasureSourceRenderer : ItemFieldOpCofferSourceRenderer<
     {
     }
 
-    public override string SingularName => "Occult Crescent (Treasure Coffer)";
-    public override string HelpText => "Does this item drop from a occult crescent treasure coffer?";
+    public override string SingularName => "Occult Crescent (Treasure Coffer)".Loc();
+    public override string HelpText => "Does this item drop from a occult crescent treasure coffer?".Loc();
 }
 
 public class ItemOccultPotSourceRenderer : ItemFieldOpCofferSourceRenderer<ItemOccultPotSource>
@@ -121,8 +121,8 @@ public class ItemOccultPotSourceRenderer : ItemFieldOpCofferSourceRenderer<ItemO
     {
     }
 
-    public override string SingularName => "Occult Crescent (Pot)";
-    public override string HelpText => "Does this item drop from a occult crescent pot?";
+    public override string SingularName => "Occult Crescent (Pot)".Loc();
+    public override string HelpText => "Does this item drop from a occult crescent pot?".Loc();
 }
 
 public class ItemOccultGoldenCofferSourceRenderer : ItemFieldOpCofferSourceRenderer<ItemOccultGoldenCofferSource>
@@ -134,6 +134,6 @@ public class ItemOccultGoldenCofferSourceRenderer : ItemFieldOpCofferSourceRende
     {
     }
 
-    public override string SingularName => "Occult Crescent (Golden Coffer)";
-    public override string HelpText => "Does this item drop from a occult crescent golden coffer?";
+    public override string SingularName => "Occult Crescent (Golden Coffer)".Loc();
+    public override string HelpText => "Does this item drop from a occult crescent golden coffer?".Loc();
 }

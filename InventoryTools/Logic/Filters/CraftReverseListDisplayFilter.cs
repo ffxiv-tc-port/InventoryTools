@@ -13,7 +13,7 @@ public class CraftReverseListDisplayFilter : BooleanFilter
     }
 
     public override string Key { get; set; } = "CraftReverseListDisplay";
-    public override string Name { get; set; } = "Reverse Craft List Order?";
+    public override string Name { get; set; } = "Reverse Craft List Order?".Loc();
 
     public override string HelpText { get; set; } =
         "Should the craft list be displayed in reverse order? i.e. Should outputs start at the bottom? (This is only applicable when the Craft Display Mode is single table)";

@@ -23,7 +23,7 @@ public class ItemFateShopUseRenderer : ItemFateShopSourceRenderer
     {
     }
 
-    public override string HelpText => "Can the item be spent at a bicolor gemstone shop?";
+    public override string HelpText => "Can the item be spent at a bicolor gemstone shop?".Loc();
 
     public override RendererType RendererType => RendererType.Use;
 
@@ -49,9 +49,9 @@ public class ItemFateShopSourceRenderer : ItemInfoRenderer<ItemFateShopSource>
 
     public override RendererType RendererType => RendererType.Source;
     public override ItemInfoType Type => ItemInfoType.FateShop;
-    public override string SingularName => "Bicolor Gemstone Shop";
-    public override string PluralName => "Bicolor Gemstone Shops";
-    public override string HelpText => "Can the item be purchased from a bicolour gem shop?";
+    public override string SingularName => "Bicolor Gemstone Shop".Loc();
+    public override string PluralName => "Bicolor Gemstone Shops".Loc();
+    public override string HelpText => "Can the item be purchased from a bicolour gem shop?".Loc();
     public override bool ShouldGroup => true;
     public override IReadOnlyList<ItemInfoRenderCategory> Categories => [ItemInfoRenderCategory.Shop];
 
@@ -66,8 +66,8 @@ public class ItemFateShopSourceRenderer : ItemInfoRenderer<ItemFateShopSource>
     {
         var asSource = AsSource(source);
 
-        ImGui.Text($"Shop: {asSource.Shop.Name}");
-        ImGui.Text("Rewards:");
+        ImGui.Text("Shop: ??".Loc(asSource.Shop.Name));
+        ImGui.Text("Rewards:".Loc());
         using (ImRaii.PushIndent())
         {
             foreach (var reward in asSource.ShopListing.Rewards)
@@ -86,7 +86,7 @@ public class ItemFateShopSourceRenderer : ItemInfoRenderer<ItemFateShopSource>
                 }
             }
         }
-        ImGui.Text("Costs:");
+        ImGui.Text("Costs:".Loc());
         using (ImRaii.PushIndent())
         {
             foreach (var cost in asSource.ShopListing.Costs)
@@ -118,10 +118,10 @@ public class ItemFateShopSourceRenderer : ItemInfoRenderer<ItemFateShopSource>
         {
             var rewards = String.Join(", ",
                 asSource.ShopListing.Rewards.Select(c => c.Item.NameString + " (" + c.Count + ")"));
-            return $"Costs {costs} - Rewards {rewards}";
+            return "Costs ?? - Rewards ??".Loc(costs, rewards);
         }
 
-        return $"Costs {costs}";
+        return "Costs ??".Loc(costs);
     };
 
     public override Func<ItemSource, int> GetIcon => source =>
@@ -136,6 +136,6 @@ public class ItemFateShopSourceRenderer : ItemInfoRenderer<ItemFateShopSource>
         var description = $"{asSource.Shop.Name}";
         var rewards = string.Join(", ", asSource.ShopListing.Rewards.Select(c => c.Item.NameString + " x " + c.Count + ""));
         var costs = string.Join(", ", asSource.ShopListing.Costs.Select(c => c.Item.NameString + " x " + c.Count + ""));
-        return $"{description} ({rewards}) for ({costs})";
+        return "?? (??) for (??)".Loc(description, rewards, costs);
     };
 }

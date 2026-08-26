@@ -22,8 +22,8 @@ public class ItemTripleTriadSourceRenderer : ItemInfoRenderer<ItemTripleTriadSou
 
     public override RendererType RendererType => RendererType.Source;
     public override ItemInfoType Type => ItemInfoType.TripleTriad;
-    public override string SingularName => "Triple Triad Card";
-    public override string HelpText => "Is this item acquired from playing triple triad?";
+    public override string SingularName => "Triple Triad Card".Loc();
+    public override string HelpText => "Is this item acquired from playing triple triad?".Loc();
     public override bool ShouldGroup => true;
 
     public override Action<ItemSource> DrawTooltip => (source) =>

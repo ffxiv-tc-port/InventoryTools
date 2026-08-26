@@ -67,10 +67,10 @@ public class ContextMenuItemSearchScopeSetting : Setting<List<InventorySearchSco
     }
 
     public override string Key { get; set; } = "ItemSearchScope";
-    public override string Name { get; set; } = "Context Menu - Search Scope";
-    public override string HelpText { get; set; } = "When searching for an item across the inventories AT knows about, which inventories should be searched?";
+    public override string Name { get; set; } = "Context Menu - Search Scope".Loc();
+    public override string HelpText { get; set; } = "When searching for an item across the inventories AT knows about, which inventories should be searched?".Loc();
 
-    public override string WizardName { get; } = "Search Scope";
+    public override string WizardName { get; } = "Search Scope".Loc();
     public override SettingCategory SettingCategory { get; set; } = SettingCategory.ContextMenu;
     public override SettingSubCategory SettingSubCategory { get; } = SettingSubCategory.General;
     public override string Version => "1.7.0.13";

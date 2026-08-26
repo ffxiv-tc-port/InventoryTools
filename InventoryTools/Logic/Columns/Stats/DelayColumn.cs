@@ -23,7 +23,7 @@ public class DelayColumn : DecimalColumn
         return (decimal)searchResult.Item.Base.Delayms / 1000;
     }
 
-    public override string Name { get; set; } = "Delay";
+    public override string Name { get; set; } = "Delay".Loc();
     public override float Width { get; set; } = 80;
-    public override string HelpText { get; set; } = "The time it takes between each automatic attack while engaged with and in range of an enemy in seconds.";
+    public override string HelpText { get; set; } = "The time it takes between each automatic attack while engaged with and in range of an enemy in seconds.".Loc();
 }

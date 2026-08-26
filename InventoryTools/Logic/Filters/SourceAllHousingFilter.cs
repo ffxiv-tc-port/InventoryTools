@@ -11,8 +11,8 @@ namespace InventoryTools.Logic.Filters
     {
         public override int LabelSize { get; set; } = 240;
         public override string Key { get; set; } = "SourceAllHousing";
-        public override string Name { get; set; } = "Source - All Houses?";
-        public override string HelpText { get; set; } = "Use every house as a source.";
+        public override string Name { get; set; } = "Source - All Houses?".Loc();
+        public override string HelpText { get; set; } = "Use every house as a source.".Loc();
         public override FilterCategory FilterCategory { get; set; } = FilterCategory.Inventories;
         public override FilterType AvailableIn { get; set; } = FilterType.SearchFilter | FilterType.SortingFilter | FilterType.CraftFilter | FilterType.HistoryFilter;
         public override bool? FilterItem(FilterConfiguration configuration, InventoryItem item)

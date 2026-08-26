@@ -9,7 +9,7 @@ namespace InventoryTools.Logic.Settings
     {
         public Dictionary<string, string> StaticChoices = new Dictionary<string, string>()
         {
-            {"Always", "Always"}, {"When Searching", "When Searching"}
+            {"Always", "Always".Loc()}, {"When Searching", "When Searching"}
         };
 
         public override string DefaultValue { get; set; } = "When Searching";
@@ -25,8 +25,8 @@ namespace InventoryTools.Logic.Settings
         }
 
         public override string Key { get; set; } = "HighlightWhen";
-        public override string Name { get; set; } = "Highlight When?";
-        public override string HelpText { get; set; } = "When highlighting is turned on for a list, should it always be active or should it only be active when a column is being searched in";
+        public override string Name { get; set; } = "Highlight When?".Loc();
+        public override string HelpText { get; set; } = "When highlighting is turned on for a list, should it always be active or should it only be active when a column is being searched in".Loc();
         public override SettingCategory SettingCategory { get; set; } = SettingCategory.Highlighting;
         public override SettingSubCategory SettingSubCategory { get; } = SettingSubCategory.General;
 

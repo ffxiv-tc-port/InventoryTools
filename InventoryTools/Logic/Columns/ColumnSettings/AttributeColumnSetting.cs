@@ -36,8 +36,8 @@ public class AttributeColumnSetting : ChoiceColumnSetting<uint?>
     }
 
     public override string Key { get; set; } = "Attribute";
-    public override string Name { get; set; } = "Attribute";
-    public override string HelpText { get; set; } = "The attribute to show";
+    public override string Name { get; set; } = "Attribute".Loc();
+    public override string HelpText { get; set; } = "The attribute to show".Loc();
     public override uint? DefaultValue { get; set; } = 1;
     public override List<uint?> GetChoices(ColumnConfiguration configuration)
     {

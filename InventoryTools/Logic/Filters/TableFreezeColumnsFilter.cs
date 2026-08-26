@@ -12,7 +12,7 @@ namespace InventoryTools.Logic.Filters
         public override FilterType AvailableIn { get; set; } =
             FilterType.SearchFilter | FilterType.CraftFilter | FilterType.SortingFilter | FilterType.GameItemFilter | FilterType.HistoryFilter | FilterType.CuratedList;
         public override string Key { get; set; } = "TableFreezeRows";
-        public override string Name { get; set; } = "Freeze Columns";
+        public override string Name { get; set; } = "Freeze Columns".Loc();
 
         public override string HelpText { get; set; } =
             "The number of columns starting at 1 to freeze(always display when scrolling).";

@@ -18,7 +18,7 @@ public class TooltipHeaderLinesSetting : IntegerSetting
     }
 
     public override string Key { get; set; } = "TooltipDisplayHeader";
-    public override string Name { get; set; } = "Header New Lines";
+    public override string Name { get; set; } = "Header New Lines".Loc();
 
     public override string HelpText { get; set; } =
         "How many new lines should be added above any tooltip modifications made by this plugin?";

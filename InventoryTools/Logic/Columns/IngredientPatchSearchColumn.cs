@@ -33,7 +33,7 @@ public class IngredientPatchSearchColumn : DecimalColumn
 
 
 
-    public override string Name { get; set; } = "Ingredient Patch Search";
+    public override string Name { get; set; } = "Ingredient Patch Search".Loc();
     public override float Width { get; set; } = 100;
 
     public override string HelpText { get; set; } =

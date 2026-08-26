@@ -60,8 +60,8 @@ namespace InventoryTools.Logic.Columns
             return null;
         }
 
-        public override string Name { get; set; } = "Amount to Retrieve";
-        public override string RenderName => "Retrieve";
+        public override string Name { get; set; } = "Amount to Retrieve".Loc();
+        public override string RenderName => "Retrieve".Loc();
         public override float Width { get; set; } = 60;
         public override bool? CraftOnly => false;
 

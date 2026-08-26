@@ -32,19 +32,19 @@ public class IngredientPreferenceLocalizer
                         {
                             itemName3 =
                                 (_itemSheet.GetRow(ingredientPreference.LinkedItem3Id.Value)
-                                    ?.NameString ?? "Unknown Item") + " - " +
+                                    ?.NameString ?? "Unknown Item".Loc()) + " - " +
                                 ingredientPreference.LinkedItem3Quantity.Value;
                         }
 
                         itemName2 =
                             (_itemSheet.GetRow(ingredientPreference.LinkedItem2Id.Value)
-                                ?.NameString ?? "Unknown Item") + " - " +
+                                ?.NameString ?? "Unknown Item".Loc()) + " - " +
                             ingredientPreference.LinkedItem2Quantity.Value;
                     }
 
                     var itemName =
                         _itemSheet.GetRow(ingredientPreference.LinkedItemId.Value)?.NameString ??
-                        "Unknown Item";
+                        "Unknown Item".Loc();
                     if (itemName3 != null)
                     {
                         itemName = itemName + "," + itemName2 + "," + itemName3;
@@ -57,30 +57,30 @@ public class IngredientPreferenceLocalizer
                     return itemName + " - " + ingredientPreference.LinkedItemQuantity.Value;
                 }
 
-                return "No item selected";
+                return "No item selected".Loc();
             case IngredientPreferenceType.Reduction:
                 if (ingredientPreference.LinkedItemId != null && ingredientPreference.LinkedItemQuantity != null)
                 {
                     var itemName =
                         _itemSheet.GetRow(ingredientPreference.LinkedItemId.Value)?.NameString ??
-                        "Unknown Item";
-                    return "Reduction (" + itemName + " - " + ingredientPreference.LinkedItemQuantity.Value + ")";
+                        "Unknown Item".Loc();
+                    return "Reduction (".Loc() + itemName + " - " + ingredientPreference.LinkedItemQuantity.Value + ")";
                 }
 
-                return "No item selected";
+                return "No item selected".Loc();
             case IngredientPreferenceType.Desynthesis:
                 if (ingredientPreference.LinkedItemId != null && ingredientPreference.LinkedItemQuantity != null)
                 {
                     var itemName =
                         _itemSheet.GetRow(ingredientPreference.LinkedItemId.Value)?.NameString ??
-                        "Unknown Item";
-                    return "Desynthesis (" + itemName + " - " + ingredientPreference.LinkedItemQuantity.Value + ")";
+                        "Unknown Item".Loc();
+                    return "Desynthesis (".Loc() + itemName + " - " + ingredientPreference.LinkedItemQuantity.Value + ")";
                 }
 
-                return "No item selected";
+                return "No item selected".Loc();
         }
 
-        return ingredientPreference.Type.FormattedName();
+        return ingredientPreference.Type.FormattedName().Loc();
     }
 
     public int? SourceIcon(IngredientPreference ingredientPreference)

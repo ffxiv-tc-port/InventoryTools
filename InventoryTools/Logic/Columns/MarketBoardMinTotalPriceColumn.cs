@@ -84,8 +84,8 @@ namespace InventoryTools.Logic.Columns
             return base.CurrentValue(columnConfiguration, searchResult);
         }
 
-        public override string Name { get; set; } = "Market Board Minimum Total Price(Qty * Price) NQ/HQ";
-        public override string RenderName => "MB Min. Total NQ/HQ";
+        public override string Name { get; set; } = "Market Board Minimum Total Price(Qty * Price) NQ/HQ".Loc();
+        public override string RenderName => "MB Min. Total NQ/HQ".Loc();
 
         public override FilterType DefaultIn => Logic.FilterType.CraftFilter;
     }

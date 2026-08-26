@@ -18,7 +18,7 @@ namespace InventoryTools.Logic.ItemRenderers;
 public class ItemCollectablesShopUseRenderer : ItemCollectablesShopSourceRenderer
 {
     private readonly ItemSheet _itemSheet;
-    public override string HelpText => "Can the item be spent at a collectables exchange shop?";
+    public override string HelpText => "Can the item be spent at a collectables exchange shop?".Loc();
     public ItemCollectablesShopUseRenderer(MapSheet mapSheet, ItemSheet itemSheet, ITextureProvider textureProvider,
         IDalamudPluginInterface dalamudPluginInterface) : base(mapSheet, itemSheet, textureProvider, dalamudPluginInterface)
     {
@@ -33,7 +33,7 @@ public class ItemCollectablesShopUseRenderer : ItemCollectablesShopSourceRendere
             ? new List<string>()
             : shopSource.MapIds.Select(c => MapSheet.GetRow(c).FormattedName)).Distinct().ToList();
 
-        ImGui.Text("Items that can be purchased:");
+        ImGui.Text("Items that can be purchased:".Loc());
 
         using (ImRaii.PushIndent())
         {
@@ -63,9 +63,9 @@ public class ItemCollectablesShopSourceRenderer : ItemInfoRenderer<ItemCollectab
 
     public override RendererType RendererType => RendererType.Source;
     public override ItemInfoType Type => ItemInfoType.CollectablesShop;
-    public override string SingularName => "Collectables Exchange Shop";
-    public override string PluralName => "Collectables Exchange Shops";
-    public override string HelpText => "Can the item be purchased from a collectables exchange shop?";
+    public override string SingularName => "Collectables Exchange Shop".Loc();
+    public override string PluralName => "Collectables Exchange Shops".Loc();
+    public override string HelpText => "Can the item be purchased from a collectables exchange shop?".Loc();
     public override bool ShouldGroup => true;
 
     public override byte MaxColumns => 1;
@@ -101,6 +101,6 @@ public class ItemCollectablesShopSourceRenderer : ItemInfoRenderer<ItemCollectab
         var description = $"{asSource.Shop.Name}";
         var rewards = string.Join(", ", asSource.CollectablesShopListing.Rewards.Select(c => c.Item.NameString + " x " + c.Count + ""));
         var costs = string.Join(", ", asSource.CollectablesShopListing.Costs.Select(c => c.Item.NameString + " x " + c.Count + ""));
-        return $"{description} ({rewards}) for ({costs})";
+        return "?? (??) for (??)".Loc(description, rewards, costs);
     };
 }

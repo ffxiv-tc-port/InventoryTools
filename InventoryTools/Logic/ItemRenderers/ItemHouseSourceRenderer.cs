@@ -34,7 +34,7 @@ public abstract class ItemHouseSourceRenderer<T> : ItemInfoRenderer<T> where T :
         var setName = asSource.HousingPreset.Value.Singular.ExtractText();
         if (setName == string.Empty)
         {
-            ImGui.Text("Not default in any house.");
+            ImGui.Text("Not default in any house.".Loc());
         }
         else
         {
@@ -75,9 +75,9 @@ public class ItemHouseDoorSourceRenderer : ItemHouseSourceRenderer<ItemHouseDoor
     {
     }
 
-    public override string SingularName => "House Fixture (Door)";
+    public override string SingularName => "House Fixture (Door)".Loc();
 
-    public override string HelpText => "Can the item be placed in the door fixture slot in houses?";
+    public override string HelpText => "Can the item be placed in the door fixture slot in houses?".Loc();
 }
 
 
@@ -88,8 +88,8 @@ public class ItemHouseFlooringSourceRenderer : ItemHouseSourceRenderer<ItemHouse
     {
     }
 
-    public override string SingularName => "House Fixture (Flooring)";
-    public override string HelpText => "Can the item be placed in the floor fixture slot in houses?";
+    public override string SingularName => "House Fixture (Flooring)".Loc();
+    public override string HelpText => "Can the item be placed in the floor fixture slot in houses?".Loc();
 }
 
 public class ItemHouseLightingSourceRenderer : ItemHouseSourceRenderer<ItemHouseLightingSource>
@@ -99,8 +99,8 @@ public class ItemHouseLightingSourceRenderer : ItemHouseSourceRenderer<ItemHouse
     {
     }
 
-    public override string SingularName => "House Fixture (Lighting)";
-    public override string HelpText => "Can the item be placed in the lighting fixture slot in houses?";
+    public override string SingularName => "House Fixture (Lighting)".Loc();
+    public override string HelpText => "Can the item be placed in the lighting fixture slot in houses?".Loc();
 }
 
 public class ItemHouseRoofSourceRenderer : ItemHouseSourceRenderer<ItemHouseRoofSource>
@@ -110,8 +110,8 @@ public class ItemHouseRoofSourceRenderer : ItemHouseSourceRenderer<ItemHouseRoof
     {
     }
 
-    public override string SingularName => "House Fixture (Roof)";
-    public override string HelpText => "Can the item be placed in the roof fixture slot in houses?";
+    public override string SingularName => "House Fixture (Roof)".Loc();
+    public override string HelpText => "Can the item be placed in the roof fixture slot in houses?".Loc();
 }
 
 public class ItemHouseWallpaperSourceRenderer : ItemHouseSourceRenderer<ItemHouseWallpaperSource>
@@ -121,8 +121,8 @@ public class ItemHouseWallpaperSourceRenderer : ItemHouseSourceRenderer<ItemHous
     {
     }
 
-    public override string SingularName => "House Fixture (Wallpaper)";
-    public override string HelpText => "Can the item be placed in the interior wall fixture slot in houses?";
+    public override string SingularName => "House Fixture (Wallpaper)".Loc();
+    public override string HelpText => "Can the item be placed in the interior wall fixture slot in houses?".Loc();
 }
 
 public class ItemHouseWallSourceRenderer : ItemHouseSourceRenderer<ItemHouseWallSource>
@@ -132,8 +132,8 @@ public class ItemHouseWallSourceRenderer : ItemHouseSourceRenderer<ItemHouseWall
     {
     }
 
-    public override string SingularName => "House Fixture (Wall)";
-    public override string HelpText => "Can the item be placed in the exterior wall fixture slot in houses?";
+    public override string SingularName => "House Fixture (Wall)".Loc();
+    public override string HelpText => "Can the item be placed in the exterior wall fixture slot in houses?".Loc();
 }
 
 public class ItemHouseWindowSourceRenderer : ItemHouseSourceRenderer<ItemHouseWindowSource>
@@ -143,6 +143,6 @@ public class ItemHouseWindowSourceRenderer : ItemHouseSourceRenderer<ItemHouseWi
     {
     }
 
-    public override string SingularName => "House Fixture (Window)";
-    public override string HelpText => "Can the item be placed in the window fixture slot in houses?";
+    public override string SingularName => "House Fixture (Window)".Loc();
+    public override string HelpText => "Can the item be placed in the window fixture slot in houses?".Loc();
 }

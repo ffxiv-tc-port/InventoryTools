@@ -18,20 +18,20 @@ namespace InventoryTools.Logic.Settings;
 
 public class TooltipUseInformationEnabledSetting : GenericBooleanSetting
 {
-    public TooltipUseInformationEnabledSetting(ILogger<TooltipUseInformationEnabledSetting> logger, ImGuiService imGuiService) : base("TooltipUseInformationEnabled", "Use Information Enabled", "Should use information be shown in the tooltip? For example, the item is used in a recipe or as currency at a shop, etc", false, SettingCategory.ToolTips, SettingSubCategory.UseInformation, "1.11.0.11", logger, imGuiService)
+    public TooltipUseInformationEnabledSetting(ILogger<TooltipUseInformationEnabledSetting> logger, ImGuiService imGuiService) : base("TooltipUseInformationEnabled", "Use Information Enabled".Loc(), "Should use information be shown in the tooltip? For example, the item is used in a recipe or as currency at a shop, etc".Loc(), false, SettingCategory.ToolTips, SettingSubCategory.UseInformation, "1.11.0.11", logger, imGuiService)
     {
     }
-    public override string WizardName { get; } = "Show Use Information";
+    public override string WizardName { get; } = "Show Use Information".Loc();
     public override uint? Order { get; } = 0;
 }
 
 public class TooltipUseInformationModifierSetting : GenericEnumChoiceSetting<TooltipSourceModifier>
 {
-    public TooltipUseInformationModifierSetting(ILogger<TooltipUseInformationModifierSetting> logger, ImGuiService imGuiService) : base("TooltipUseInformationModifier", "Use Information Modifier Key", "Should the tooltip only be shown if a modifier key is pressed?", TooltipSourceModifier.Always, new()
+    public TooltipUseInformationModifierSetting(ILogger<TooltipUseInformationModifierSetting> logger, ImGuiService imGuiService) : base("TooltipUseInformationModifier", "Use Information Modifier Key".Loc(), "Should the tooltip only be shown if a modifier key is pressed?".Loc(), TooltipSourceModifier.Always, new()
     {
-        {TooltipSourceModifier.Always, "Always"},
-        {TooltipSourceModifier.Control, "Control"},
-        {TooltipSourceModifier.Shift, "Shift"},
+        {TooltipSourceModifier.Always, "Always".Loc()},
+        {TooltipSourceModifier.Control, "Control".Loc()},
+        {TooltipSourceModifier.Shift, "Shift".Loc()},
     }, SettingCategory.ToolTips, SettingSubCategory.UseInformation, "1.11.0.11", logger, imGuiService)
     {
     }
@@ -50,9 +50,9 @@ public class TooltipUseInformationSetting : Setting<Dictionary<ItemInfoType, Too
         _itemInfoRenderers = itemInfoRenderers.Where(c => c.RendererType == RendererType.Use).ToDictionary(c => c.Type, c => c);
         _choices = new Dictionary<SourceIconGrouping, string>()
         {
-            {SourceIconGrouping.Default, "Default"},
-            {SourceIconGrouping.Grouped, "Grouped"},
-            {SourceIconGrouping.Ungrouped, "Ungrouped"}
+            {SourceIconGrouping.Default, "Default".Loc()},
+            {SourceIconGrouping.Grouped, "Grouped".Loc()},
+            {SourceIconGrouping.Ungrouped, "Ungrouped".Loc()}
         };
     }
 
@@ -257,7 +257,7 @@ public class TooltipUseInformationSetting : Setting<Dictionary<ItemInfoType, Too
     }
 
     public override string Key { get; set; } = "TooltipUseInformation";
-    public override string Name { get; set; } = "Use Information Configuration";
+    public override string Name { get; set; } = "Use Information Configuration".Loc();
 
     public override uint? Order { get; } = 3;
 

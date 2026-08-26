@@ -19,7 +19,7 @@ namespace InventoryTools.Logic.Settings
         }
 
         public override string Key { get; set; } = "TooltipDisplayMBAverage";
-        public override string Name { get; set; } = "Add Market Average NQ/HQ Price";
+        public override string Name { get; set; } = "Add Market Average NQ/HQ Price".Loc();
 
         public override string HelpText { get; set; } =
             "When hovering an item, should the tooltip contain the average market price for both NQ and HQ. Please make sure 'Automatically download prices' is enabled.";

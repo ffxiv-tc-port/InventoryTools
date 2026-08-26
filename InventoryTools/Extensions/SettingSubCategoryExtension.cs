@@ -10,61 +10,61 @@ namespace InventoryTools.Extensions
             switch (settingSubCategory)
             {
                 case SettingSubCategory.Experimental:
-                    return "Experimental";
+                    return "Experimental".Loc();
                 case SettingSubCategory.Fun:
-                    return "Fun";
+                    return "Fun".Loc();
                 case SettingSubCategory.Highlighting:
-                    return "Highlighting";
+                    return "Highlighting".Loc();
                 case SettingSubCategory.DestinationHighlighting:
-                    return "Destination Highlighting";
+                    return "Destination Highlighting".Loc();
                 case SettingSubCategory.RetainerHighlighting:
-                    return "Retainer Highlighting";
+                    return "Retainer Highlighting".Loc();
                 case SettingSubCategory.Market:
-                    return "Market";
+                    return "Market".Loc();
                 case SettingSubCategory.General:
-                    return "General";
+                    return "General".Loc();
                 case SettingSubCategory.Subsetting:
-                    return "Settings";
+                    return "Settings".Loc();
                 case SettingSubCategory.Visuals:
-                    return "Visuals";
+                    return "Visuals".Loc();
                 case SettingSubCategory.WindowLayout:
-                    return "Window Layout";
+                    return "Window Layout".Loc();
                 case SettingSubCategory.AutoSave:
-                    return "Auto Save";
+                    return "Auto Save".Loc();
                 case SettingSubCategory.FilterSettings:
-                    return "List Settings";
+                    return "List Settings".Loc();
                 case SettingSubCategory.ActiveLists:
-                    return "Active Lists";
+                    return "Active Lists".Loc();
                 case SettingSubCategory.ContextMenus:
-                    return "Context/Right Click Menu";
+                    return "Context/Right Click Menu".Loc();
                 case SettingSubCategory.Hotkeys:
-                    return "Hotkeys";
+                    return "Hotkeys".Loc();
                 case SettingSubCategory.IgnoreEscape:
-                    return "Ignore Escape Key";
+                    return "Ignore Escape Key".Loc();
                 case SettingSubCategory.SourceGrouping:
-                    return "Source Grouping";
+                    return "Source Grouping".Loc();
                 case SettingSubCategory.UseGrouping:
-                    return "Use Grouping";
+                    return "Use Grouping".Loc();
                 case SettingSubCategory.Colours:
-                    return "Colours";
+                    return "Colours".Loc();
                 case SettingSubCategory.AddItemLocations:
-                    return "Add Item Locations";
+                    return "Add Item Locations".Loc();
                 case SettingSubCategory.MarketPricing:
-                    return "Market Pricing";
+                    return "Market Pricing".Loc();
                 case SettingSubCategory.AmountToRetrieve:
-                    return "Amount To Retrieve";
+                    return "Amount To Retrieve".Loc();
                 case SettingSubCategory.ItemUnlockStatus:
-                    return "Item Unlock Status";
+                    return "Item Unlock Status".Loc();
                 case SettingSubCategory.SourceInformation:
-                    return "Source Information";
+                    return "Source Information".Loc();
                 case SettingSubCategory.UseInformation:
-                    return "Use Information";
+                    return "Use Information".Loc();
                 case SettingSubCategory.AcquisitionTracker:
-                    return "Acquisition Tracker";
+                    return "Acquisition Tracker".Loc();
                 case SettingSubCategory.IngredientPatch:
-                    return "Ingredient Patch";
+                    return "Ingredient Patch".Loc();
             }
-            return settingSubCategory.ToString();
+            return settingSubCategory.ToString().Loc();
         }
     }
 }

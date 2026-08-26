@@ -29,7 +29,7 @@ public class CraftDefaultRetrieveFromRetainerOutputFilter : ChoiceFilter<CraftRe
     }
 
     public override string Key { get; set; } = "CraftDefaultRetrieveFromRetainer";
-    public override string Name { get; set; } = "Retainer Retrieval (Output)";
+    public override string Name { get; set; } = "Retainer Retrieval (Output)".Loc();
 
     public override string HelpText { get; set; } =
         "What should the default 'Retrieve from Retainer' setting be for 'Output' items?";

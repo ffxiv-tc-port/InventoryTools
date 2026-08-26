@@ -24,8 +24,8 @@ public class FiltersFeature : Feature
     {
     }
 
-    public override string Name { get; } = "Sample Item Lists";
-    public override string Description { get; } = "Select which sample item lists you'd like to install by default. These are good examples of the types of lists that are possible within Allagan Tools.";
+    public override string Name { get; } = "Sample Item Lists".Loc();
+    public override string Description { get; } = "Select which sample item lists you'd like to install by default. These are good examples of the types of lists that are possible within Allagan Tools.".Loc();
 
     public override void OnFinish()
     {
@@ -71,8 +71,8 @@ public class SampleFilter1Setting : BooleanSetting, ISampleFilterSetting
     }
 
     public override string Key { get; set; } = "sample1";
-    public override string Name { get; set; } = "100 gil or less";
-    public override string HelpText { get; set; } = "Shows you any items that sell for under 100 gil at shops.";
+    public override string Name { get; set; } = "100 gil or less".Loc();
+    public override string HelpText { get; set; } = "Shows you any items that sell for under 100 gil at shops.".Loc();
     public override SettingCategory SettingCategory { get; set; } = SettingCategory.None;
     public override SettingSubCategory SettingSubCategory { get; } = SettingSubCategory.None;
     public override string Version => "1.7.0.0";
@@ -116,8 +116,8 @@ public class SampleFilter2Setting : BooleanSetting, ISampleFilterSetting
     }
 
     public override string Key { get; set; } = "sample2";
-    public override string Name { get; set; } = "Duplicate Items";
-    public override string HelpText { get; set; } = "Finds any items where there are 2 seperate stacks in retainers & characters and attempts to sort them into a single stack. This is great for making sure your retainers are as compacted as possible.";
+    public override string Name { get; set; } = "Duplicate Items".Loc();
+    public override string HelpText { get; set; } = "Finds any items where there are 2 seperate stacks in retainers & characters and attempts to sort them into a single stack. This is great for making sure your retainers are as compacted as possible.".Loc();
     public override SettingCategory SettingCategory { get; set; } = SettingCategory.None;
     public override SettingSubCategory SettingSubCategory { get; } = SettingSubCategory.None;
     public override string Version => "1.7.0.0";
@@ -163,8 +163,8 @@ public class SampleFilter3Setting : BooleanSetting, ISampleFilterSetting
     }
 
     public override string Key { get; set; } = "sample3";
-    public override string Name { get; set; } = "Material clean-up";
-    public override string HelpText { get; set; } = "Finds all gatherable items in your characters inventory and attempts to show you where to put them in your retainers.";
+    public override string Name { get; set; } = "Material clean-up".Loc();
+    public override string HelpText { get; set; } = "Finds all gatherable items in your characters inventory and attempts to show you where to put them in your retainers.".Loc();
     public override SettingCategory SettingCategory { get; set; } = SettingCategory.None;
     public override SettingSubCategory SettingSubCategory { get; } = SettingSubCategory.None;
     public override string Version => "1.7.0.0";

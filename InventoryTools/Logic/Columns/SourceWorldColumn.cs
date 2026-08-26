@@ -26,7 +26,7 @@ public class SourceWorldColumn : TextColumn
         return "";
     }
 
-    public override string Name { get; set; } = "Source World";
+    public override string Name { get; set; } = "Source World".Loc();
     public override float Width { get; set; } = 120;
 
     public override string HelpText { get; set; } =

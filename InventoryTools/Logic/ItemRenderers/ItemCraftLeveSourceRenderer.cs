@@ -32,9 +32,9 @@ public class ItemCraftLeveSourceRenderer : ItemInfoRenderer<ItemCraftLeveSource>
 
     public override RendererType RendererType => RendererType.Source;
     public override ItemInfoType Type => ItemInfoType.CraftLeve;
-    public override string SingularName => "Craft Leve";
-    public override string PluralName => "Craft Leves";
-    public override string HelpText => "Is this item obtained from a craft leve?";
+    public override string SingularName => "Craft Leve".Loc();
+    public override string PluralName => "Craft Leves".Loc();
+    public override string HelpText => "Is this item obtained from a craft leve?".Loc();
     public override bool ShouldGroup => true;
     public override IReadOnlyList<ItemInfoRenderCategory> Categories => [ItemInfoRenderCategory.Leve];
     public override Action<ItemSource> DrawTooltip => source =>
@@ -64,6 +64,6 @@ public class ItemCraftLeveSourceRenderer : ItemInfoRenderer<ItemCraftLeveSource>
         var asSource = AsSource(source);
         var leveRow = asSource.Leve.Value;
         return
-            $"{leveRow.Name.ExtractText()} ({leveRow.ClassJobCategory.Value.Name.ExtractText()}) ({leveRow.ExpReward} xp) ({leveRow.AllowanceCost} allowances)";
+            "?? (??) (?? xp) (?? allowances)".Loc(leveRow.Name.ExtractText(), leveRow.ClassJobCategory.Value.Name.ExtractText(), leveRow.ExpReward, leveRow.AllowanceCost);
     };
 }

@@ -252,8 +252,8 @@ public class AmountOwnedTooltip : BaseTooltip
 
             if (storageCount > 0)
             {
-                textLines.Add($"Owned: {storageCount}\n");
-                textLines.Add($"Locations:\n");
+                textLines.Add("Owned: ??\n".Loc(storageCount));
+                textLines.Add("Locations:\n".Loc());
                 for (var index = 0; index < locations.Count; index++)
                 {
                     var location = locations[index];

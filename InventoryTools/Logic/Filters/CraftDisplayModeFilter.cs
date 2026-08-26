@@ -26,7 +26,7 @@ public class CraftDisplayModeFilter : ChoiceFilter<CraftDisplayMode>
     }
 
     public override string Key { get; set; } = "CraftDisplayMode";
-    public override string Name { get; set; } = "Craft Display Mode";
+    public override string Name { get; set; } = "Craft Display Mode".Loc();
 
     public override string HelpText { get; set; } =
         "Should the craft items be placed in a single table or grouped into multiple tabs.";

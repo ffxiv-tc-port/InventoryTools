@@ -88,7 +88,7 @@ public class ImGuiMenuService
             _listService.Lists.Where(c => c.FilterType == FilterType.CuratedList).ToArray();
         if (curatedLists.Length != 0)
         {
-            using var menu = ImRaii.Menu("Add to Curated List");
+            using var menu = ImRaii.Menu("Add to Curated List".Loc());
             if(menu)
             {
                 foreach (var filter in curatedLists)
@@ -101,7 +101,7 @@ public class ImGuiMenuService
             }
         }
 
-        if (ImGui.MenuItem("Add to new Curated List"))
+        if (ImGui.MenuItem("Add to new Curated List".Loc()))
         {
             var filter = _listService.AddNewCuratedList();
             filter.AddCuratedItem(new CuratedItem(searchResult.Item.RowId));
@@ -109,7 +109,7 @@ public class ImGuiMenuService
             filter.NeedsRefresh = true;
         }
 
-        if (filterConfiguration != null && searchResult.CuratedItem != null && ImGui.MenuItem("Remove from Curated List"))
+        if (filterConfiguration != null && searchResult.CuratedItem != null && ImGui.MenuItem("Remove from Curated List".Loc()))
         {
             filterConfiguration.RemoveCuratedItem(searchResult.CuratedItem);
             filterConfiguration.NeedsRefresh = true;
@@ -121,7 +121,7 @@ public class ImGuiMenuService
                 c.FilterType == Logic.FilterType.CraftFilter && !c.CraftListDefault).ToArray();
         if (craftFilters.Length != 0)
         {
-            using var menu = ImRaii.Menu("Add to Craft List");
+            using var menu = ImRaii.Menu("Add to Craft List".Loc());
             if(menu)
             {
                 foreach (var filter in craftFilters)
@@ -135,7 +135,7 @@ public class ImGuiMenuService
             }
         }
 
-        if (ImGui.MenuItem("Add to new Craft List"))
+        if (ImGui.MenuItem("Add to new Craft List".Loc()))
         {
              var filter = _listService.AddNewCraftList();
              filter.CraftList.AddCraftItem(searchResult.Item.RowId);
@@ -143,7 +143,7 @@ public class ImGuiMenuService
              messages.Add(new FocusListMessage(typeof(CraftsWindow), filter));
              filter.NeedsRefresh = true;
         }
-        if (ImGui.MenuItem("Add to new Craft List (ephemeral)"))
+        if (ImGui.MenuItem("Add to new Craft List (ephemeral)".Loc()))
         {
              var filter = _listService.AddNewCraftList(null,true);
              filter.CraftList.AddCraftItem(searchResult.Item.RowId);
@@ -157,7 +157,7 @@ public class ImGuiMenuService
         {
             if (searchResult.CraftItem.IsOutputItem)
             {
-                if (ImGui.MenuItem("Remove from Craft List"))
+                if (ImGui.MenuItem("Remove from Craft List".Loc()))
                 {
                     filterConfiguration.CraftList.RemoveCraftItem(searchResult.Item.RowId, searchResult.CraftItem.Flags);
                     filterConfiguration.NeedsRefresh = true;
@@ -169,7 +169,7 @@ public class ImGuiMenuService
                 ImGui.Separator();
                 if (searchResult.Item.CompanyCraftSequence != null && searchResult.Item.CompanyCraftSequence.CompanyCraftParts.Length > 1)
                 {
-                    if (searchResult.CraftItem.Phase != null && ImGui.MenuItem("Switch to All Phases"))
+                    if (searchResult.CraftItem.Phase != null && ImGui.MenuItem("Switch to All Phases".Loc()))
                     {
                         filterConfiguration.CraftList.SetCraftPhase(searchResult.Item.RowId, null, searchResult.CraftItem.Phase);
                         filterConfiguration.NeedsRefresh = true;
@@ -250,19 +250,19 @@ public class ImGuiMenuService
     {
         ImGui.Text(searchResult.Item.NameString);
         ImGui.Separator();
-        if (ImGui.MenuItem("Open in Garland Tools"))
+        if (ImGui.MenuItem("Open in Garland Tools".Loc()))
         {
             $"https://www.garlandtools.org/db/#item/{searchResult.Item.GarlandToolsId}".OpenBrowser();
         }
-        if (ImGui.MenuItem("Open in Teamcraft"))
+        if (ImGui.MenuItem("Open in Teamcraft".Loc()))
         {
             $"https://ffxivteamcraft.com/db/en/item/{searchResult.Item.RowId}".OpenBrowser();
         }
-        if (ImGui.MenuItem("Open in Universalis"))
+        if (ImGui.MenuItem("Open in Universalis".Loc()))
         {
             $"https://universalis.app/market/{searchResult.Item.RowId}".OpenBrowser();
         }
-        if (ImGui.MenuItem("Open in Gamer Escape"))
+        if (ImGui.MenuItem("Open in Gamer Escape".Loc()))
         {
             var name = searchResult.Item.NameString.Replace(' ', '_');
             name = name.Replace('–', '-');
@@ -271,7 +271,7 @@ public class ImGuiMenuService
                 name = name.Substring(2);
             $"https://ffxiv.gamerescape.com/wiki/{HttpUtility.UrlEncode(name)}?useskin=Vector".OpenBrowser();
         }
-        if (ImGui.MenuItem("Open in Console Games Wiki"))
+        if (ImGui.MenuItem("Open in Console Games Wiki".Loc()))
         {
             var name = searchResult.Item.NameString.Replace("#"," ").Replace("  ", " ").Replace(' ', '_');
             name = name.Replace('–', '-');
@@ -281,22 +281,22 @@ public class ImGuiMenuService
             $"https://ffxiv.consolegameswiki.com/wiki/{HttpUtility.UrlEncode(name)}".OpenBrowser();
         }
         ImGui.Separator();
-        if (ImGui.MenuItem("Copy Name"))
+        if (ImGui.MenuItem("Copy Name".Loc()))
         {
             _clipboardService.CopyToClipboard(searchResult.Item.NameString);
         }
-        if (ImGui.MenuItem("Link"))
+        if (ImGui.MenuItem("Link".Loc()))
         {
             _chatUtilities.LinkItem(searchResult.Item);
         }
-        if (searchResult.Item.CanTryOn && ImGui.MenuItem("Try On"))
+        if (searchResult.Item.CanTryOn && ImGui.MenuItem("Try On".Loc()))
         {
             if (_tryOn.CanUseTryOn)
             {
                 _tryOn.TryOnItem(searchResult.Item);
             }
         }
-        if (ImGui.MenuItem("Search"))
+        if (ImGui.MenuItem("Search".Loc()))
         {
             messages.Add(new ItemSearchRequestedMessage(searchResult.Item.RowId, InventoryItem.ItemFlags.None));
         }
@@ -316,7 +316,7 @@ public class ImGuiMenuService
             _configuration.ToggleFavouriteItem(searchResult.Item.RowId);
         }
 
-        if (ImGui.MenuItem("More Information"))
+        if (ImGui.MenuItem("More Information".Loc()))
         {
             messages.Add(new OpenUintWindowMessage(typeof(ItemWindow), searchResult.Item.RowId));
         }
@@ -334,7 +334,7 @@ public class ImGuiMenuService
             hasActions = true;
             if (searchResult.Item.Recipes.Count == 1 || searchResult.CraftItem != null && searchResult.CraftItem.Recipe != null)
             {
-                if (ImGui.MenuItem("Open Crafting Log"))
+                if (ImGui.MenuItem("Open Crafting Log".Loc()))
                 {
                     if (searchResult.CraftItem?.Recipe != null)
                     {
@@ -349,7 +349,7 @@ public class ImGuiMenuService
 
             if (searchResult.Item.Recipes.Count > 1)
             {
-                using (var menu = ImRaii.Menu("Open Crafting Log(Recipes)"))
+                using (var menu = ImRaii.Menu("Open Crafting Log(Recipes)".Loc()))
                 {
                     if(menu)
                     {
@@ -365,19 +365,19 @@ public class ImGuiMenuService
             }
         }
 
-        if (searchResult.Item.HasSourcesByCategory(ItemInfoCategory.Gathering) && ImGui.MenuItem("Open Gathering Log"))
+        if (searchResult.Item.HasSourcesByCategory(ItemInfoCategory.Gathering) && ImGui.MenuItem("Open Gathering Log".Loc()))
         {
             _gameInterface.OpenGatheringLog(searchResult.Item.RowId);
         }
 
-        if (searchResult.Item.ObtainedFishing && ImGui.MenuItem("Open Fishing Log"))
+        if (searchResult.Item.ObtainedFishing && ImGui.MenuItem("Open Fishing Log".Loc()))
         {
             _gameInterface.OpenFishingLog(searchResult.Item.RowId, searchResult.Item.ObtainedSpearFishing);
         }
 
         if (searchResult.Item.HasSourcesByCategory(ItemInfoCategory.Gathering))
         {
-            if (ImGui.MenuItem("Gather (Gatherbuddy)"))
+            if (ImGui.MenuItem("Gather (Gatherbuddy)".Loc()))
             {
                 _commandManager.ProcessCommand("/gather " + searchResult.Item.Base.Name.ExtractText());
             }
@@ -387,7 +387,7 @@ public class ImGuiMenuService
 
             var groupedGatheringSources = gatheringSources.SelectMany(c => c.GatheringItem.GatheringPoints).DistinctBy(c => c.RowId).GroupBy(c => c.Map.RowId).ToDictionary(c => c.Key, c => c);
 
-            using (var menu = ImRaii.Menu("Gather (Advanced)"))
+            using (var menu = ImRaii.Menu("Gather (Advanced)".Loc()))
             {
                 if(menu)
                 {
@@ -415,7 +415,7 @@ public class ImGuiMenuService
                 }
             }
 
-            using(var menu = ImRaii.Menu("Open Map"))
+            using(var menu = ImRaii.Menu("Open Map".Loc()))
             {
                 if (menu)
                 {
@@ -446,11 +446,11 @@ public class ImGuiMenuService
         if (searchResult.Item.HasSourcesByType(ItemInfoType.Fishing))
         {
             hasActions = true;
-            if (ImGui.MenuItem("Gather (Gatherbuddy)"))
+            if (ImGui.MenuItem("Gather (Gatherbuddy)".Loc()))
             {
                 _commandManager.ProcessCommand("/gatherfish " + searchResult.Item.Base.Name.ExtractText());
             }
-            using(var menu = ImRaii.Menu("Gather (Advanced)"))
+            using(var menu = ImRaii.Menu("Gather (Advanced)".Loc()))
             {
                 if (menu)
                 {
@@ -489,7 +489,7 @@ public class ImGuiMenuService
                     }
                 }
             }
-            using(var menu = ImRaii.Menu("Open Map"))
+            using(var menu = ImRaii.Menu("Open Map".Loc()))
             {
                 if (menu)
                 {
@@ -533,12 +533,12 @@ public class ImGuiMenuService
         if (searchResult.Item.HasSourcesByType(ItemInfoType.Spearfishing))
         {
             hasActions = true;
-            if (ImGui.MenuItem("Gather (Gatherbuddy)"))
+            if (ImGui.MenuItem("Gather (Gatherbuddy)".Loc()))
             {
                 _commandManager.ProcessCommand("/gatherfish " + searchResult.Item.Base.Name.ExtractText());
             }
 
-            using (var gatherMenu = ImRaii.Menu("Gather (Advanced)"))
+            using (var gatherMenu = ImRaii.Menu("Gather (Advanced)".Loc()))
             {
                 if(gatherMenu)
                 {
@@ -580,7 +580,7 @@ public class ImGuiMenuService
                 }
             }
 
-            using var openMapMenu = ImRaii.Menu("Open Map");
+            using var openMapMenu = ImRaii.Menu("Open Map".Loc());
             if(openMapMenu)
             {
                 var gatheringSources = searchResult.Item
@@ -631,7 +631,7 @@ public class ImGuiMenuService
 
             if (hasShopSources)
             {
-                using (var menu = ImRaii.Menu("Buy"))
+                using (var menu = ImRaii.Menu("Buy".Loc()))
                 {
                     if (menu)
                     {
@@ -684,7 +684,7 @@ public class ImGuiMenuService
 
         if (searchResult.Item.HasSourcesByType(ItemInfoType.Monster))
         {
-            using (var menu = ImRaii.Menu("Hunt"))
+            using (var menu = ImRaii.Menu("Hunt".Loc()))
             {
                 if (menu)
                 {

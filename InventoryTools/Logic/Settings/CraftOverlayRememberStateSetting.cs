@@ -9,8 +9,8 @@ public class CraftOverlayRememberStateSetting : GenericBooleanSetting
 {
     public CraftOverlayRememberStateSetting(ILogger<CraftOverlayRememberStateSetting> logger,
         ImGuiService imGuiService) : base("CraftOverlayRememberState",
-        "Remember State",
-        "Should the craft overlay stay open between plugin reloads/game reloads?",
+        "Remember State".Loc(),
+        "Should the craft overlay stay open between plugin reloads/game reloads?".Loc(),
         true,
         SettingCategory.CraftOverlay,
         SettingSubCategory.General,
