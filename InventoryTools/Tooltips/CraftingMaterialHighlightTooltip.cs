@@ -62,7 +62,8 @@ public class CraftingMaterialHighlightTooltip : BaseTooltip
         _showTooltipsSetting = showTooltipsSetting;
         _needle = addonSheet.GetRowOrDefault(CraftingMaterialAddonRow)?.Text.ExtractText().Trim() ?? "";
 
-        // Information, not Debug: users run at log level 2. Note this fires from the constructor,
+        // Information, not Debug: users run at log level 1, so Debug is captured but drowned
+        // by the 100k+ Debug lines a single log file holds. Note this fires from the constructor,
         // which happens whether or not the setting is on - so on its own it only proves the Addon
         // row resolved, NOT that the tweak ever ran. The pair of one-shot logs below is what
         // distinguishes those two.
