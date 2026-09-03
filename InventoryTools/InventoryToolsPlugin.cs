@@ -275,6 +275,8 @@ namespace InventoryTools
             builder.RegisterSingletonSelfAndInterfaces<TooltipService>();
             builder.RegisterSingletonSelfAndInterfaces<TryOn>();
             builder.RegisterSingletonSelfAndInterfaces<UnlockTrackerService>();
+            //universalis 的逐世界可用性判定(CriticalCommonLib)。沒有實作任何介面,所以直接 AsSelf。
+            builder.RegisterType<UniversalisAvailability>().AsSelf().SingleInstance();
             builder.RegisterSingletonSelfAndInterfaces<VersionInfo>();
             builder.RegisterSingletonSelfAndInterfaces<WindowSystemFactory>();
             builder.RegisterSingletonSelfAndInterfaces<CsvLoaderService>();

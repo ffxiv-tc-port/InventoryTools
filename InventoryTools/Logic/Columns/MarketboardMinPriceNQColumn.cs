@@ -99,13 +99,13 @@ namespace InventoryTools.Logic.Columns
                 }
             }
 
-            // 台服沒有 universalis 資料來源:畫成 EmptyText(N/A),不要永遠停在 loading...
+            // 試過的世界全部查不到 universalis 資料時:畫成 EmptyText(N/A),不要永遠停在 loading...
             return _marketCache.MarketDataAvailable ? Loading : null;
         }
         public override string Name { get; set; } = "Market Board Minimum Price NQ".Loc();
         public override string RenderName => "MB Min. Price NQ".Loc();
         public override string HelpText { get; set; } =
-            "Shows the minimum price of the NQ form of the item. If no world is selected, your home world is used. 此資料原本來自 universalis；台服無此服務，故此欄位無市場資料。";
+            "Shows the minimum price of the NQ form of the item. If no world is selected, your home world is used. 此資料來自 universalis 的社群上傳，涵蓋台服 8 個世界；沒有人上傳過的道具會顯示為無資料。";
         public override float Width { get; set; } = 250.0f;
         public override bool HasFilter { get; set; } = true;
         public override ColumnFilterType FilterType { get; set; } = ColumnFilterType.Text;
