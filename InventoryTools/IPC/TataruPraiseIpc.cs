@@ -38,6 +38,25 @@ public class TataruPraiseIpc
     /// <summary><c>Func&lt;bool&gt;</c>：總開關開著而且池裡真的有已合成的語音。</summary>
     public const string TagIsAvailable = "TataruPraise.IsAvailable";
 
+    /// <summary>
+    /// <c>Func&lt;string, bool&gt;</c>：<b>指定的那個情境</b>現在出得了聲嗎
+    /// （總開關開著＋這個情境沒被關掉＋這個情境至少有一句已合成的語音）。
+    /// </summary>
+    /// <remarks>
+    /// 🔴 <b>閘門要問的是這一個，不是 <see cref="TagIsAvailable"/>。</b>後者問的是
+    /// 「整池<b>有某個情境</b>播得出來」，於是「別的情境有語音、<b>背包快滿</b>一句都沒有」時
+    /// 照樣通過，接著 <c>Praise</c> 回 <c>false</c>——呼叫端就分不出「不能出聲」與「這次剛好沒出聲」。
+    /// <para>
+    /// 📌 它刻意<b>不看冷卻</b>：冷卻是「這次剛好不出聲」，不是「不能出聲」。
+    /// </para>
+    /// <para>
+    /// 🔴 舊版 TataruPraise 沒有註冊這個端點，<c>InvokeFunc</c> 會擲 <c>IpcNotReadyError</c>，
+    /// 剛好落進下面既有的 catch＝安靜不出聲，這是正確的 fail-safe。
+    /// <b>失敗時絕不可以退回去叫 <see cref="TagIsAvailable"/></b>——那樣就把這個端點的意義整個抵銷掉了。
+    /// </para>
+    /// </remarks>
+    public const string TagIsAvailableFor = "TataruPraise.IsAvailableFor";
+
     /// <summary><c>Func&lt;string, bool&gt;</c>：從指定情境的誇獎池挑一句來念。</summary>
     public const string TagPraise = "TataruPraise.Praise";
 
@@ -74,9 +93,11 @@ public class TataruPraiseIpc
     {
         try
         {
-            // 先問 IsAvailable：對方的總開關關著、或池裡一句已合成的都沒有，就不要浪費它的冷卻。
+            // 先問 IsAvailableFor(「背包快滿」)：對方的總開關關著、這個情境被使用者關掉、
+            // 或這個情境一句已合成的都沒有，就不要浪費它的冷卻。
             // 這一步同時兼作「對方在不在」的探測——沒註冊就會在這裡擲 IpcNotReadyError。
-            if (!_pluginInterface.GetIpcSubscriber<bool>(TagIsAvailable).InvokeFunc())
+            if (!_pluginInterface.GetIpcSubscriber<string, bool>(TagIsAvailableFor)
+                    .InvokeFunc(CategoryBagAlmostFull))
             {
                 return false;
             }
@@ -98,7 +119,7 @@ public class TataruPraiseIpc
             {
                 _loggedNotInstalled = true;
                 _pluginLog.Information(
-                    $"[{PluginName}] 想請它在背包快滿時念一句，但它沒有安裝或尚未載入（IPC「{TagIsAvailable}」沒有人註冊）。" +
+                    $"[{PluginName}] 想請它在背包快滿時念一句，但它沒有安裝或尚未載入（IPC「{TagIsAvailableFor}」沒有人註冊）。" +
                     "這個功能會維持靜默，InventoryTools 其餘功能完全不受影響。");
             }
 
