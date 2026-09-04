@@ -277,6 +277,9 @@ namespace InventoryTools
             builder.RegisterSingletonSelfAndInterfaces<UnlockTrackerService>();
             //universalis 的逐世界可用性判定(CriticalCommonLib)。沒有實作任何介面,所以直接 AsSelf。
             builder.RegisterType<UniversalisAvailability>().AsSelf().SingleInstance();
+            //TataruPraise 橋接與背包空間提醒。兩者都沒有實作任何介面,所以直接 AsSelf。
+            builder.RegisterType<TataruPraiseIpc>().AsSelf().SingleInstance();
+            builder.RegisterType<BagSpacePraiseService>().AsSelf().SingleInstance();
             builder.RegisterSingletonSelfAndInterfaces<VersionInfo>();
             builder.RegisterSingletonSelfAndInterfaces<WindowSystemFactory>();
             builder.RegisterSingletonSelfAndInterfaces<CsvLoaderService>();

@@ -59,6 +59,7 @@ namespace InventoryTools
         private readonly UseOldCraftTrackerSetting _useOldCraftTrackerSetting;
         private readonly IMarketCache _marketCache;
         private readonly IEnumerable<ISampleFilter> _sampleFilters;
+        private readonly BagSpacePraiseService _bagSpacePraiseService;
         private Dictionary<uint, InventoryMonitor.ItemChangesItem> _recentlyAddedSeen = new();
 
         public bool WasRecentlySeen(uint itemId)
@@ -93,7 +94,8 @@ namespace InventoryTools
             CraftTrackerTrackCraftsFilter trackCraftsFilter, CraftTrackerTrackGatheringFilter trackGatheringFilter,
             CraftTrackerTrackShoppingFilter trackShoppingFilter, CraftTrackerTrackCombatDropFilter trackCombatDropFilter,
             CraftTrackerTrackOtherFilter trackOtherFilter, UseOldCraftTrackerSetting useOldCraftTrackerSetting,
-            CraftTrackerTrackMarketBoardFilter trackMarketBoardFilter) : base(logger, mediatorService)
+            CraftTrackerTrackMarketBoardFilter trackMarketBoardFilter,
+            BagSpacePraiseService bagSpacePraiseService) : base(logger, mediatorService)
         {
             _configurationManagerService = configurationManagerService;
             _chatUtilities = chatUtilities;
@@ -121,6 +123,7 @@ namespace InventoryTools
             _trackMarketBoardFilter = trackMarketBoardFilter;
             _marketCache = marketCache;
             _sampleFilters = sampleFilters;
+            _bagSpacePraiseService = bagSpacePraiseService;
             MediatorService.Subscribe<PluginLoadedMessage>(this, PluginLoaded);
         }
 
@@ -325,6 +328,11 @@ namespace InventoryTools
                     _recentlyAddedSeen.Add(item.ItemId, item);
                 }
             }
+
+            // 背包空間提醒:門檻判斷與去重全部在服務裡(見 BagSpacePraiseService),這裡只負責通知它
+            // 「背包剛剛動過」。這個事件是 InventoryMonitor 用 RunOnFrameworkThread 送出來的,
+            // 所以這裡確定在主執行緒上 —— IPC 的實作是跑在呼叫端的執行緒上的,這一點不能破。
+            _bagSpacePraiseService.Evaluate();
         }
 
 
