@@ -280,6 +280,11 @@ namespace InventoryTools
             //TataruPraise 橋接與背包空間提醒。兩者都沒有實作任何介面,所以直接 AsSelf。
             builder.RegisterType<TataruPraiseIpc>().AsSelf().SingleInstance();
             builder.RegisterType<BagSpacePraiseService>().AsSelf().SingleInstance();
+            //製作清單「哪裡買」用的兩座橋（ItemVendorLocation 查商人、Lifestream 帶人過去）與它們的查詢快取。
+            //三者都沒有實作任何介面,所以直接 AsSelf。兩座橋在對方沒安裝時全都是安靜的 no-op。
+            builder.RegisterType<ItemVendorLocationIpc>().AsSelf().SingleInstance();
+            builder.RegisterType<LifestreamIpc>().AsSelf().SingleInstance();
+            builder.RegisterType<VendorLookupService>().AsSelf().SingleInstance();
             builder.RegisterSingletonSelfAndInterfaces<VersionInfo>();
             builder.RegisterSingletonSelfAndInterfaces<WindowSystemFactory>();
             builder.RegisterSingletonSelfAndInterfaces<CsvLoaderService>();

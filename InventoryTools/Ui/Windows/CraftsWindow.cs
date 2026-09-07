@@ -71,6 +71,7 @@ namespace InventoryTools.Ui
         private readonly IKeyState _keyState;
         private readonly ItemSheet _itemSheet;
         private readonly IFramework _framework;
+        private readonly VendorLookupService _vendorLookupService;
         private IEnumerable<IMenuWindow> _menuWindows;
         private ThrottleDispatcher _throttleDispatcher;
 
@@ -100,7 +101,8 @@ namespace InventoryTools.Ui
             IClipboardService clipboardService,
             IKeyState keyState,
             ItemSheet itemSheet,
-            IFramework framework) : base(logger, mediator, imGuiService, configuration, "Crafts Window".Loc())
+            IFramework framework,
+            VendorLookupService vendorLookupService) : base(logger, mediator, imGuiService, configuration, "Crafts Window".Loc())
         {
             _tableService = tableService;
             _configuration = configuration;
@@ -126,6 +128,7 @@ namespace InventoryTools.Ui
             _keyState = keyState;
             _itemSheet = itemSheet;
             _framework = framework;
+            _vendorLookupService = vendorLookupService;
             Flags = ImGuiWindowFlags.MenuBar;
         }
         public override void Initialize()
@@ -2428,6 +2431,8 @@ namespace InventoryTools.Ui
                 }
             }
 
+            this.DrawVendorSummary(craftTable);
+
             using (var contentChild = ImRaii.Child("Content", new Vector2(0, -44) * ImGui.GetIO().FontGlobalScale, true))
             {
                 if (contentChild.Success)
@@ -2613,6 +2618,72 @@ namespace InventoryTools.Ui
         }
 
         private string? _newName;
+        /// <summary>
+        /// 製作清單頂端的一行摘要：缺幾件、其中幾件 NPC 買得到。
+        /// </summary>
+        /// <remarks>
+        /// 🔴 <b>「不知道」不可以被算進「買不到」。</b>ItemVendorLocation 沒安裝時
+        /// 這一行會改口說「不知道」，而不是報一個看起來很正常的 0。
+        /// <para>
+        /// 📌 查詢本身在 <see cref="VendorLookupService"/> 裡有快取，而且這個方法只在視窗繪製時跑，
+        /// 所以「每幀重數一次」的成本是一串字典查詢。
+        /// </para>
+        /// </remarks>
+        private void DrawVendorSummary(CraftItemTable craftTable)
+        {
+            //CraftItems 是整份重新指派上去的（TableService），所以先抓住這一份再走訪，
+            //不會走到一半被換掉。
+            var craftItems = craftTable.CraftItems;
+            var missing = 0;
+            var buyable = 0;
+            var unknown = 0;
+            foreach (var searchResult in craftItems)
+            {
+                var craftItem = searchResult.CraftItem;
+                if (craftItem == null || craftItem.IsOutputItem || craftItem.QuantityMissingOverall == 0)
+                {
+                    continue;
+                }
+
+                missing++;
+                switch (_vendorLookupService.Lookup(craftItem.ItemId).State)
+                {
+                    case VendorLookupState.Found:
+                        buyable++;
+                        break;
+                    case VendorLookupState.Unknown:
+                        unknown++;
+                        break;
+                }
+            }
+
+            if (missing == 0)
+            {
+                return;
+            }
+
+            using (ImRaii.PushColor(ImGuiCol.Text, ImGuiColors.DalamudGrey))
+            {
+                if (unknown == missing)
+                {
+                    ImGui.TextWrapped("Missing ?? items; whether NPCs sell them is unknown.".Loc(missing));
+                }
+                else if (unknown != 0)
+                {
+                    ImGui.TextWrapped("Missing ?? items, ?? of which can be bought from an NPC, ?? unknown.".Loc(missing, buyable, unknown));
+                }
+                else
+                {
+                    ImGui.TextWrapped("Missing ?? items, ?? of which can be bought from an NPC.".Loc(missing, buyable));
+                }
+            }
+
+            if (unknown != 0)
+            {
+                ImGuiUtil.HoverTooltip("ItemVendorLocation is not installed, so whether an NPC sells this is unknown.".Loc());
+            }
+        }
+
         private void DrawSettingsPanel(FilterConfiguration filterConfiguration)
         {
             using (var contentChild = ImRaii.Child("Content", new Vector2(0, -44) * ImGui.GetIO().FontGlobalScale, true))
