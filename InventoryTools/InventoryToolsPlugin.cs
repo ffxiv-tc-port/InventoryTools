@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Net;
 using System.Net.Http;
 using System.Reflection;
 using AllaganLib.Data.Service;
@@ -121,7 +122,15 @@ namespace InventoryTools
             var dataAccess = Assembly.GetExecutingAssembly();
             var cclAssembly = typeof(CriticalCommonLib.Services.ICharacterMonitor).Assembly;
 
-            builder.Register(c => new HttpClient()).As<HttpClient>();
+            // universalis 的批次查價回應很大:2026-09-10 實測台服世界一次 50 筆是 223 KB
+            // 未壓縮 / 約 28 KB gzip。這裡原本建的是裸 HttpClient,不帶 Accept-Encoding 也
+            // 不解壓,每一批都整包未壓縮下載。CriticalCommonLib 裡舊的非 hosted Universalis
+            // 實作本來就設了 AutomaticDecompression,這裡補回來。
+            // (HostedUniversalis 是這個容器裡唯一注入 HttpClient 的地方。)
+            builder.Register(c => new HttpClient(new HttpClientHandler
+            {
+                AutomaticDecompression = DecompressionMethods.All,
+            })).As<HttpClient>();
 
             // API13：IClientState.LocalContentId 過時，替代品 IPlayerState.ContentId。
             // CriticalCommonLib 需要 IPlayerState，但 DalaMock 的 HostedPlugin 沒有把它註冊進容器
