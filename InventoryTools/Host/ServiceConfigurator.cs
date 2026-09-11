@@ -2,6 +2,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using CriticalCommonLib.MarketBoard;
 using CriticalCommonLib.Services;
+using InventoryTools.Misc;
 using InventoryTools.Services;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
@@ -23,8 +24,9 @@ public class ServiceConfigurator : IHostedService
     private readonly IHostedUniversalisConfiguration _hostedUniversalisConfiguration;
     private readonly HostedInventoryHistory _hostedInventoryHistory;
     private readonly MarketCacheConfiguration _marketCacheConfiguration;
+    private readonly UniversalisAvailability _universalisAvailability;
 
-    public ServiceConfigurator(ILogger<ServiceConfigurator> logger, ConfigurationManagerService configurationManagerService, InventoryToolsConfiguration configuration, IMarketCache marketCache, ICharacterMonitor characterMonitor, IInventoryMonitor inventoryMonitor, IMobTracker mobTracker, IHostedUniversalisConfiguration hostedUniversalisConfiguration, HostedInventoryHistory hostedInventoryHistory, MarketCacheConfiguration marketCacheConfiguration)
+    public ServiceConfigurator(ILogger<ServiceConfigurator> logger, ConfigurationManagerService configurationManagerService, InventoryToolsConfiguration configuration, IMarketCache marketCache, ICharacterMonitor characterMonitor, IInventoryMonitor inventoryMonitor, IMobTracker mobTracker, IHostedUniversalisConfiguration hostedUniversalisConfiguration, HostedInventoryHistory hostedInventoryHistory, MarketCacheConfiguration marketCacheConfiguration, UniversalisAvailability universalisAvailability)
     {
         _logger = logger;
         _configurationManagerService = configurationManagerService;
@@ -36,6 +38,7 @@ public class ServiceConfigurator : IHostedService
         _hostedUniversalisConfiguration = hostedUniversalisConfiguration;
         _hostedInventoryHistory = hostedInventoryHistory;
         _marketCacheConfiguration = marketCacheConfiguration;
+        _universalisAvailability = universalisAvailability;
     }
 
     public void ConfigureServices()
@@ -55,6 +58,10 @@ public class ServiceConfigurator : IHostedService
 
         _marketCacheConfiguration.AutoRequest = _configuration.AutomaticallyDownloadMarketPrices;
         _marketCacheConfiguration.CacheMaxAgeHours = _configuration.MarketRefreshTimeHours;
+
+        SeedExcludedWorlds();
+        _universalisAvailability.SetExcludedWorlds(_configuration.MarketBoardExcludedWorldIds);
+
         _hostedUniversalisConfiguration.SaleHistoryLimit = _configuration.MarketSaleHistoryLimit;
         if (_configuration.HistoryEnabled)
         {
@@ -65,6 +72,33 @@ public class ServiceConfigurator : IHostedService
             _hostedInventoryHistory.Disable();
         }
 
+    }
+
+    /// <summary>
+    /// 出廠排除清單的一次性灌入。只在旗標還沒立起來時跑一次,所以使用者把某個世界從
+    /// 排除清單裡拿掉之後,下次啟動不會被加回去。
+    /// </summary>
+    private void SeedExcludedWorlds()
+    {
+        if (_configuration.MarketBoardExcludedWorldsSeeded)
+        {
+            return;
+        }
+
+        var excluded = _configuration.MarketBoardExcludedWorldIds;
+        foreach (var worldId in PublicWorlds.DefaultExcludedWorldIds)
+        {
+            if (!excluded.Contains(worldId))
+            {
+                excluded.Add(worldId);
+                _logger.LogInformation(
+                    "查價排除清單:首次套用出廠值,世界 {WorldId} 不再自動查價,也不會出現在查價目標清單裡。",
+                    worldId);
+            }
+        }
+
+        _configuration.MarketBoardExcludedWorldIds = excluded;
+        _configuration.MarketBoardExcludedWorldsSeeded = true;
     }
 
     public Task StartAsync(CancellationToken cancellationToken)

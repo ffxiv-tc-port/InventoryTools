@@ -4,6 +4,7 @@ using System.Linq;
 using System.Numerics;
 using AllaganLib.GameSheets.Sheets;
 using CriticalCommonLib.Crafting;
+using CriticalCommonLib.MarketBoard;
 using CriticalCommonLib.Extensions;
 using CriticalCommonLib.Models;
 using CriticalCommonLib.Services.Mediator;
@@ -34,13 +35,15 @@ public class CraftSettingsColumn : IColumn
     private readonly MapSheet _mapSheet;
     private readonly ItemSheet _itemSheet;
     private readonly ExcelSheet<World> _worldSheet;
+    private readonly UniversalisAvailability _universalisAvailability;
     private readonly CraftItemLocalizer _craftItemLocalizer;
     private readonly IngredientPreferenceLocalizer _ingredientPreferenceLocalizer;
     public ImGuiService ImGuiService { get; }
 
     public CraftSettingsColumn(ILogger<CraftSettingsColumn> logger, ImGuiService imGuiService,
         CraftingCache craftingCache, RecipeSheet recipeSheet, MapSheet mapSheet, ItemSheet itemSheet,
-        ExcelSheet<World> worldSheet, CraftItemLocalizer craftItemLocalizer, IngredientPreferenceLocalizer ingredientPreferenceLocalizer)
+        ExcelSheet<World> worldSheet, CraftItemLocalizer craftItemLocalizer, IngredientPreferenceLocalizer ingredientPreferenceLocalizer,
+        UniversalisAvailability universalisAvailability)
     {
         _logger = logger;
         _craftingCache = craftingCache;
@@ -48,6 +51,7 @@ public class CraftSettingsColumn : IColumn
         _mapSheet = mapSheet;
         _itemSheet = itemSheet;
         _worldSheet = worldSheet;
+        _universalisAvailability = universalisAvailability;
         _craftItemLocalizer = craftItemLocalizer;
         _ingredientPreferenceLocalizer = ingredientPreferenceLocalizer;
         ImGuiService = imGuiService;
@@ -633,7 +637,8 @@ public class CraftSettingsColumn : IColumn
                         configuration.NotifyConfigurationChange();
                         return true;
                     }
-                    var worlds = _worldSheet.Where(c => c.IsPublicWorld()).OrderBy(c => c.Name.ExtractText()).ToList();
+                    // 被排除的伺服器不當查價目標。
+                    var worlds = _worldSheet.Where(c => c.IsPriceableWorld(_universalisAvailability)).OrderBy(c => c.Name.ExtractText()).ToList();
                     foreach (var world in worlds)
                     {
                         if (ImGui.Selectable(world.Name.ExtractText()))

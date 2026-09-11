@@ -832,6 +832,43 @@ namespace InventoryTools
             }
         }
 
+        /// <summary>
+        /// 使用者指定「不要查價、也不要出現在查價目標清單裡」的世界。
+        ///
+        /// 🔴 出廠預設(排除台服已停運的拉姆 4034)刻意**不**寫在這裡的初始式上:
+        /// InventoryTools 的設定是自己走 JsonConvert.DeserializeObject 讀的,沒有設
+        /// ObjectCreationHandling ⇒ 走 Newtonsoft 預設的 Auto ⇒ 對「現值不是 null 的
+        /// 集合成員」是**併入**而不是取代。把 4034 寫進初始式的話,使用者存成 [] 之後
+        /// 下次讀回來又會變成 [4034],**永遠刪不掉而且完全無聲**。
+        /// (2026-09-11 用 ~/.claude/tools/dotnet/newtonsoft_lazyprop_merge 以本外掛
+        ///  逐字相同的 JsonSerializerSettings 實測過:初始式 [4034] + JSON [] 讀回來是
+        ///  [4034];初始式留空則忠實還原 JSON。)
+        /// ⇒ 出廠值改由 MarketBoardExcludedWorldsSeeded 這個一次性旗標在啟動時灌。
+        /// </summary>
+        public List<uint> MarketBoardExcludedWorldIds
+        {
+            get => _marketBoardExcludedWorldIds ??= new List<uint>();
+            set
+            {
+                _marketBoardExcludedWorldIds = value;
+                IsDirty = true;
+            }
+        }
+
+        /// <summary>
+        /// 出廠排除清單是否已經灌過。灌過就再也不灌,使用者把某個世界從排除清單裡拿掉
+        /// 之後不會被下次啟動加回去。
+        /// </summary>
+        public bool MarketBoardExcludedWorldsSeeded
+        {
+            get => _marketBoardExcludedWorldsSeeded;
+            set
+            {
+                _marketBoardExcludedWorldsSeeded = value;
+                IsDirty = true;
+            }
+        }
+
 
         public bool SeenWizardVersion(string versionNumber)
         {
@@ -956,6 +993,8 @@ namespace InventoryTools
         private bool _marketBoardUseActiveWorld = true;
         private bool _marketBoardUseHomeWorld = true;
         private List<uint>? _marketBoardWorldIds;
+        private List<uint>? _marketBoardExcludedWorldIds;
+        private bool _marketBoardExcludedWorldsSeeded;
         private HighlightWhen _highlightWhenEnum;
 
         public ModifiableHotkey? GetHotkey(string hotkey)

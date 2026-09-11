@@ -4,6 +4,7 @@ using AllaganLib.GameSheets.Sheets.Rows;
 using AllaganLib.Shared.Extensions;
 using CriticalCommonLib;
 using CriticalCommonLib.Extensions;
+using CriticalCommonLib.MarketBoard;
 using CriticalCommonLib.Models;
 
 using Dalamud.Bindings.ImGui;
@@ -21,10 +22,12 @@ namespace InventoryTools.Logic.Filters;
 public class CraftWorldPricePreference : SortedListFilter<uint, uint>
 {
     private readonly ExcelSheet<World> _worldSheet;
+    private readonly UniversalisAvailability _universalisAvailability;
 
-    public CraftWorldPricePreference(ILogger<CraftWorldPricePreference> logger, ImGuiService imGuiService, ExcelSheet<World> worldSheet) : base(logger, imGuiService)
+    public CraftWorldPricePreference(ILogger<CraftWorldPricePreference> logger, ImGuiService imGuiService, ExcelSheet<World> worldSheet, UniversalisAvailability universalisAvailability) : base(logger, imGuiService)
     {
         _worldSheet = worldSheet;
+        _universalisAvailability = universalisAvailability;
     }
 
     public override Dictionary<uint, (string, string?)> CurrentValue(FilterConfiguration configuration)
@@ -146,6 +149,7 @@ public class CraftWorldPricePreference : SortedListFilter<uint, uint>
 
     private string _searchString = "";
     private List<World>? _searchWorlds = null;
+    private int _searchWorldsRevision = -1;
     public List<World> SearchWorlds
     {
         get
@@ -155,9 +159,12 @@ public class CraftWorldPricePreference : SortedListFilter<uint, uint>
                 _searchWorlds = new List<World>();
                 return _searchWorlds;
             }
-            if (_searchWorlds == null)
+            // 排除清單改過之後要重算,否則使用者會看到「改了卻沒有變化」直到重開外掛。
+            var exclusionRevision = _universalisAvailability.ExclusionRevision;
+            if (_searchWorlds == null || _searchWorldsRevision != exclusionRevision)
             {
-                _searchWorlds = _worldSheet.Where(c => c.IsPublicWorld() && c.Name.ExtractText().ToParseable().PassesFilter(SearchString.ToParseable())).Take(100).ToList();
+                _searchWorlds = _worldSheet.Where(c => c.IsPriceableWorld(_universalisAvailability) && c.Name.ExtractText().ToParseable().PassesFilter(SearchString.ToParseable())).Take(100).ToList();
+                _searchWorldsRevision = exclusionRevision;
             }
 
             return _searchWorlds;

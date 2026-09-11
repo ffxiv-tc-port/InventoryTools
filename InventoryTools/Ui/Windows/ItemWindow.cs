@@ -84,6 +84,7 @@ namespace InventoryTools.Ui
         private readonly ItemLocalizer _itemLocalizer;
         private readonly TeleporterService _teleporterService;
         private readonly CraftList.Factory _craftListFactory;
+        private readonly UniversalisAvailability _universalisAvailability;
         private HashSet<uint> _marketRefreshing = new();
         private HoverButton _refreshPricesButton = new();
 
@@ -94,7 +95,7 @@ namespace InventoryTools.Ui
             IInventoryMonitor inventoryMonitor, ICharacterMonitor characterMonitor, IClipboardService clipboardService,
             ItemInfoRenderService itemInfoRenderService, BNpcNameSheet bNpcNameSheet, MapSheet mapSheet, IUnlockTrackerService unlockTrackerService,
             ImGuiTooltipService tooltipService, ImGuiTooltipModeSetting tooltipModeSetting, ItemLocalizer itemLocalizer, TeleporterService teleporterService,
-            CraftList.Factory craftListFactory,
+            CraftList.Factory craftListFactory, UniversalisAvailability universalisAvailability,
             string name = "Item Window") : base(
             logger, mediator, imGuiService, configuration, name)
         {
@@ -120,6 +121,7 @@ namespace InventoryTools.Ui
             _itemLocalizer = itemLocalizer;
             _teleporterService = teleporterService;
             _craftListFactory = craftListFactory;
+            _universalisAvailability = universalisAvailability;
         }
 
         private void MarketCacheUpdated(MarketCacheUpdatedMessage obj)
@@ -136,7 +138,8 @@ namespace InventoryTools.Ui
             base.Initialize(itemId);
              Flags = ImGuiWindowFlags.NoSavedSettings;
             _itemId = itemId;
-            var worlds = _worldSheet.Where(c => c.IsPublicWorld()).ToList();
+            // 被排除的伺服器不出現在這個道具視窗的查價伺服器選單裡。
+            var worlds = _worldSheet.Where(c => c.IsPriceableWorld(_universalisAvailability)).ToList();
             _picker = new WorldPicker(worlds, true, _otterLogger);
             MediatorService.Subscribe<MarketCacheUpdatedMessage>(this, MarketCacheUpdated);
             if (Item != null)

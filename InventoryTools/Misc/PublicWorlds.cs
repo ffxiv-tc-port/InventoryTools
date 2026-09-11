@@ -1,3 +1,5 @@
+using System.Collections.Generic;
+using CriticalCommonLib.MarketBoard;
 using Lumina.Excel.Sheets;
 
 namespace InventoryTools.Misc;
@@ -28,4 +30,22 @@ public static class PublicWorlds
     /// </summary>
     public static bool IsPublicWorld(this World world)
         => world.IsPublic || world.IsTaiwanWorld();
+
+    /// <summary>
+    /// 出廠就排除的世界,只在使用者第一次跑到這個功能時灌一次(之後由使用者自己的
+    /// 設定說了算,見 InventoryToolsConfiguration.MarketBoardExcludedWorldsSeeded)。
+    ///
+    /// 4034 = TcRamuh「拉姆」:台服已停止營運,切不過去(2026-09-11 使用者實機回報)。
+    /// 🔴 這件事離線資料表證不了 —— World.csv 裡 4034 照樣在,而台服 8 個世界的
+    /// IsPublic 全部是 False,universalis 的世界清單裡它也還在。所以只能靠這份清單。
+    /// </summary>
+    public static readonly IReadOnlyList<uint> DefaultExcludedWorldIds = new uint[] { 4034 };
+
+    /// <summary>
+    /// 「這個世界可以拿來當查價目標嗎」。用在會送出查價請求、或讓使用者挑查價目標的
+    /// 地方;**不要**用在「這個角色/這件道具在哪個世界」這類身分顯示的地方——那裡排掉
+    /// 世界會讓既有資料顯示不出來。
+    /// </summary>
+    public static bool IsPriceableWorld(this World world, UniversalisAvailability availability)
+        => world.IsPublicWorld() && !availability.IsWorldExcluded(world.RowId);
 }
