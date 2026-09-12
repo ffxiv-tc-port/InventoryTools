@@ -2551,12 +2551,14 @@ namespace InventoryTools.Ui
 
                     ImGuiService.VerticalCenter("Pending Market Requests: ".Loc() + _universalis.QueuedCount);
 
-                    if (_universalis.LastFailure != null)
+                    // 🔴 只讀一次:背景查價工作會把它清成 null,分兩次讀 .Value 會擲例外。
+                    var lastFailure = _universalis.LastFailure;
+                    if (lastFailure != null)
                     {
                         ImGui.SameLine();
                         ImGui.Image(ImGuiService.GetIconTexture(Icons.ExclamationIcon).Handle,
                             new Vector2(22, 22));
-                        ImGuiUtil.HoverTooltip("There was an error when contacting Universalis at ??. This likely means Universalis is having issues. Allagan Tools will back off requests for 30 seconds whenever this happens.".Loc(_universalis.LastFailure.Value.ToString(CultureInfo.CurrentCulture)));
+                        ImGuiUtil.HoverTooltip("There was an error when contacting Universalis at ??. This likely means Universalis is having issues. Allagan Tools will back off requests for 30 seconds whenever this happens.".Loc(lastFailure.Value.ToString(CultureInfo.CurrentCulture)));
                     }
 
                     if (_universalis.TooManyRequests)
