@@ -20,9 +20,9 @@ namespace InventoryTools.Logic.Columns
             return searchResult.Item.EquipRace.FormattedName();
         }
 
-        public override string Name { get; set; } = "Equipped By (Race)";
+        public override string Name { get; set; } = "Equipped By (Race)".Loc();
         public override float Width { get; set; } = 200;
-        public override string HelpText { get; set; } = "Shows if an item can be equipped by a specific race.";
+        public override string HelpText { get; set; } = "Shows if an item can be equipped by a specific race.".Loc();
         public override bool HasFilter { get; set; } = true;
         public override ColumnFilterType FilterType { get; set; } = ColumnFilterType.Choice;
 

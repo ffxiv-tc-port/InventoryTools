@@ -105,42 +105,42 @@ namespace InventoryTools.Ui
         public override void Initialize()
         {
             Key = "filters";
-            WindowName = "Items";
+            WindowName = "Items".Loc();
             _settingsMenu = new PopupMenu("configMenu", PopupMenu.PopupMenuButtons.All,
                 new List<PopupMenu.IPopupMenuItem>()
                 {
-                    new PopupMenu.PopupMenuItemSelectable("Mob Window", "mobs", OpenMobsWindow,
-                        "Open the mobs window."),
-                    new PopupMenu.PopupMenuItemSelectable("Npcs Window", "npcs", OpenNpcsWindow,
-                        "Open the npcs window."),
-                    new PopupMenu.PopupMenuItemSelectable("Duties Window", "duties", OpenDutiesWindow,
-                        "Open the duties window."),
-                    new PopupMenu.PopupMenuItemSelectable("Airships Window", "airships", OpenAirshipsWindow,
-                        "Open the airships window."),
-                    new PopupMenu.PopupMenuItemSelectable("Submarines Window", "submarines", OpenSubmarinesWindow,
-                        "Open the submarines window."),
-                    new PopupMenu.PopupMenuItemSelectable("Retainer Ventures Window", "ventures",
-                        OpenRetainerVenturesWindow, "Open the retainer ventures window."),
+                    new PopupMenu.PopupMenuItemSelectable("Mob Window".Loc(), "mobs", OpenMobsWindow,
+                        "Open the mobs window.".Loc()),
+                    new PopupMenu.PopupMenuItemSelectable("Npcs Window".Loc(), "npcs", OpenNpcsWindow,
+                        "Open the npcs window.".Loc()),
+                    new PopupMenu.PopupMenuItemSelectable("Duties Window".Loc(), "duties", OpenDutiesWindow,
+                        "Open the duties window.".Loc()),
+                    new PopupMenu.PopupMenuItemSelectable("Airships Window".Loc(), "airships", OpenAirshipsWindow,
+                        "Open the airships window.".Loc()),
+                    new PopupMenu.PopupMenuItemSelectable("Submarines Window".Loc(), "submarines", OpenSubmarinesWindow,
+                        "Open the submarines window.".Loc()),
+                    new PopupMenu.PopupMenuItemSelectable("Retainer Ventures Window".Loc(), "ventures",
+                        OpenRetainerVenturesWindow, "Open the retainer ventures window.".Loc()),
                     new PopupMenu.PopupMenuItemSeparator(),
-                    new PopupMenu.PopupMenuItemSelectable("Help", "help", OpenHelpWindow, "Open the help window."),
+                    new PopupMenu.PopupMenuItemSelectable("Help".Loc(), "help", OpenHelpWindow, "Open the help window.".Loc()),
                 });
 
             _tabLayout = Utils.GenerateRandomId();
             _addFilterMenu = new PopupMenu("addFilter", PopupMenu.PopupMenuButtons.LeftRight,
                 new List<PopupMenu.IPopupMenuItem>()
                 {
-                    new PopupMenu.PopupMenuItemSelectableAskName("Search List", "adf1", "New Search List",
+                    new PopupMenu.PopupMenuItemSelectableAskName("Search List".Loc(), "adf1", "New Search List".Loc(),
                         AddSearchFilter,
-                        "This will create a new list that let's you search for specific items within your characters and retainers inventories."),
-                    new PopupMenu.PopupMenuItemSelectableAskName("Sort List", "af2", "New Sort List", AddSortFilter,
-                        "This will create a new list that let's you search for specific items within your characters and retainers inventories then determine where they should be moved to."),
-                    new PopupMenu.PopupMenuItemSelectableAskName("Game Item List", "af3", "New Game Item List",
-                        AddGameItemFilter, "This will create a list that lets you search for all items in the game."),
-                    new PopupMenu.PopupMenuItemSelectableAskName("History List", "af4", "New History List",
+                        SharedText.NewSearchListDescription.Loc()),
+                    new PopupMenu.PopupMenuItemSelectableAskName("Sort List".Loc(), "af2", "New Sort List".Loc(), AddSortFilter,
+                        SharedText.NewSortListDescription.Loc()),
+                    new PopupMenu.PopupMenuItemSelectableAskName("Game Item List".Loc(), "af3", "New Game Item List".Loc(),
+                        AddGameItemFilter, SharedText.NewGameItemListDescription.Loc()),
+                    new PopupMenu.PopupMenuItemSelectableAskName("History List".Loc(), "af4", "New History List".Loc(),
                         AddHistoryFilter,
-                        "This will create a list that lets you view historical data of how your inventory has changed."),
-                    new PopupMenu.PopupMenuItemSelectableAskName("Curated List", "af5", "New Curated List",
-                        AddCuratedFilter, "This will create a list that lets you add individual items to it manually."),
+                        SharedText.NewHistoryListDescription.Loc()),
+                    new PopupMenu.PopupMenuItemSelectableAskName("Curated List".Loc(), "af5", "New Curated List".Loc(),
+                        AddCuratedFilter, "This will create a list that lets you add individual items to it manually.".Loc()),
                 });
             _menuWindows = _context.Resolve<IEnumerable<IMenuWindow>>().OrderBy(c => c.GenericName).Where(c => c.GetType() != this.GetType());
             MediatorService.Subscribe<ListInvalidatedMessage>(this, _ => Invalidate());
@@ -199,11 +199,11 @@ namespace InventoryTools.Ui
                 var importedList = _importExportService.FromTCString(_clipboardService.PasteFromClipboard());
                 if (importedList == null)
                 {
-                    _chatUtilities.PrintError("The contents of your clipboard could not be parsed.");
+                    _chatUtilities.PrintError(SharedText.ClipboardCouldNotBeParsed.Loc());
                 }
                 else
                 {
-                    _chatUtilities.Print("The contents of your clipboard were imported.");
+                    _chatUtilities.Print(SharedText.ClipboardImported.Loc());
                     this.SelectedConfiguration.AddItemsToList(importedList);
                 }
             }
@@ -216,7 +216,7 @@ namespace InventoryTools.Ui
             {
                 var tcString = _importExportService.ToTCString(SelectedConfiguration.CuratedItems?.ToList() ?? []);
                 _clipboardService.CopyToClipboard(tcString);
-                _chatUtilities.Print("The curated list's contents were copied to your clipboard.");
+                _chatUtilities.Print("The curated list's contents were copied to your clipboard.".Loc());
             }
         }
 
@@ -239,8 +239,8 @@ namespace InventoryTools.Ui
             {
                 foreach (var item in data.listData)
                 {
-                    bool isHq = item.Item1 > 1000000;
-                    var itemId = item.Item1 % 500000;
+                    bool isHq = item.Item1 >= ListImportExportService.HqItemIdOffset;
+                    var itemId = item.Item1 % ListImportExportService.HqItemIdOffset;
                     SelectedConfiguration.AddCuratedItem(new CuratedItem(itemId, item.Item2,
                         isHq ? InventoryItem.ItemFlags.HighQuality : InventoryItem.ItemFlags.None));
                 }
@@ -293,18 +293,18 @@ namespace InventoryTools.Ui
                 _popupMenus[configuration] = new PopupMenu("fm" + configuration.Key, PopupMenu.PopupMenuButtons.Right,
                     new List<PopupMenu.IPopupMenuItem>()
                     {
-                        new PopupMenu.PopupMenuItemSelectable("Edit", "ef_" + configuration.Key, EditFilter,
-                            "Edit the filter."),
-                        new PopupMenu.PopupMenuItemSelectableAskName("Duplicate", "df_" + configuration.Key,
-                            configuration.Name, DuplicateFilter, "Duplicate the filter."),
-                        new PopupMenu.PopupMenuItemSelectable(layout == WindowLayout.Tabs ? "Move Left" : "Move Up",
+                        new PopupMenu.PopupMenuItemSelectable("Edit".Loc(), "ef_" + configuration.Key, EditFilter,
+                            "Edit the filter.".Loc()),
+                        new PopupMenu.PopupMenuItemSelectableAskName("Duplicate".Loc(), "df_" + configuration.Key,
+                            configuration.Name, DuplicateFilter, "Duplicate the filter.".Loc()),
+                        new PopupMenu.PopupMenuItemSelectable(layout == WindowLayout.Tabs ? "Move Left".Loc() : "Move Up".Loc(),
                             "mu_" + configuration.Key, MoveFilterUp,
-                            layout == WindowLayout.Tabs ? "Move the filter left." : "Move the filter up."),
-                        new PopupMenu.PopupMenuItemSelectable(layout == WindowLayout.Tabs ? "Move Right" : "Move Down",
+                            layout == WindowLayout.Tabs ? "Move the filter left.".Loc() : "Move the filter up.".Loc()),
+                        new PopupMenu.PopupMenuItemSelectable(layout == WindowLayout.Tabs ? "Move Right".Loc() : "Move Down".Loc(),
                             "md_" + configuration.Key, MoveFilterDown,
-                            layout == WindowLayout.Tabs ? "Move the filter right." : "Move the filter down."),
-                        new PopupMenu.PopupMenuItemSelectableConfirm("Remove", "rf_" + configuration.Key,
-                            "Are you sure you want to remove this filter?", RemoveFilter, "Remove the filter."),
+                            layout == WindowLayout.Tabs ? "Move the filter right.".Loc() : "Move the filter down.".Loc()),
+                        new PopupMenu.PopupMenuItemSelectableConfirm("Remove".Loc(), "rf_" + configuration.Key,
+                            SharedText.ConfirmRemoveFilter.Loc(), RemoveFilter, "Remove the filter.".Loc()),
                     }
                 );
             }
@@ -543,26 +543,26 @@ namespace InventoryTools.Ui
             {
                 if (menuBar)
                 {
-                    using (var menu = ImRaii.Menu("File"))
+                    using (var menu = ImRaii.Menu("File".Loc()))
                     {
                         if (menu)
                         {
-                            if (ImGui.MenuItem("Configuration"))
+                            if (ImGui.MenuItem("Configuration".Loc()))
                             {
                                 this.MediatorService.Publish(new OpenGenericWindowMessage(typeof(ConfigurationWindow)));
                             }
 
-                            if (ImGui.MenuItem("Changelog"))
+                            if (ImGui.MenuItem("Changelog".Loc()))
                             {
                                 this.MediatorService.Publish(new OpenGenericWindowMessage(typeof(ChangelogWindow)));
                             }
 
-                            if (ImGui.MenuItem("Help"))
+                            if (ImGui.MenuItem("Help".Loc()))
                             {
                                 this.MediatorService.Publish(new OpenGenericWindowMessage(typeof(HelpWindow)));
                             }
 
-                            if (ImGui.MenuItem("Enable Verbose Logging", "",
+                            if (ImGui.MenuItem("Enable Verbose Logging".Loc(), "",
                                     this._pluginLog.MinimumLogLevel == LogEventLevel.Verbose))
                             {
                                 if (this._pluginLog.MinimumLogLevel == LogEventLevel.Verbose)
@@ -575,50 +575,50 @@ namespace InventoryTools.Ui
                                 }
                             }
 
-                            if (ImGui.MenuItem("Report a Issue"))
+                            if (ImGui.MenuItem("Report a Issue".Loc()))
                             {
                                 "https://github.com/Critical-Impact/InventoryTools".OpenBrowser();
                             }
 
-                            if (ImGui.MenuItem("Ko-Fi"))
+                            if (ImGui.MenuItem("Ko-Fi".Loc()))
                             {
                                 "https://ko-fi.com/critical_impact".OpenBrowser();
                             }
 
-                            if (ImGui.MenuItem("Close"))
+                            if (ImGui.MenuItem("Close".Loc()))
                             {
                                 this.IsOpen = false;
                             }
                         }
                     }
 
-                    using (var menu = ImRaii.Menu("Edit"))
+                    using (var menu = ImRaii.Menu("Edit".Loc()))
                     {
                         if (menu)
                         {
                             if (this.SelectedConfiguration != null)
                             {
-                                if (ImGui.MenuItem("Clear Search"))
+                                if (ImGui.MenuItem("Clear Search".Loc()))
                                 {
                                     _tableService.GetListTable(SelectedConfiguration).ClearFilters();
                                 }
 
                                 ImGui.Separator();
 
-                                using (var copyListContentsMenu = ImRaii.Menu("Copy List Contents"))
+                                using (var copyListContentsMenu = ImRaii.Menu("Copy List Contents".Loc()))
                                 {
                                     if (copyListContentsMenu)
                                     {
-                                        if (ImGui.MenuItem("Teamcraft Format"))
+                                        if (ImGui.MenuItem("Teamcraft Format".Loc()))
                                         {
                                             var searchResults = _tableService.GetListTable(SelectedConfiguration)
                                                 .SearchResults;
                                             var tcString = _importExportService.ToTCString(searchResults);
                                             _clipboardService.CopyToClipboard(tcString);
-                                            _chatUtilities.Print("The list's contents were copied to your clipboard.");
+                                            _chatUtilities.Print("The list's contents were copied to your clipboard.".Loc());
                                         }
 
-                                        if (ImGui.MenuItem("JSON Format"))
+                                        if (ImGui.MenuItem("JSON Format".Loc()))
                                         {
                                             var itemTable = _tableService.GetListTable(SelectedConfiguration);
                                             _clipboardService.CopyToClipboard(itemTable.ExportToJson());
@@ -627,7 +627,7 @@ namespace InventoryTools.Ui
                                 }
 
                                 if (SelectedConfiguration.FilterType == FilterType.CuratedList &&
-                                    ImGui.MenuItem("Paste List Contents"))
+                                    ImGui.MenuItem("Paste List Contents".Loc()))
                                 {
                                     var importedList =
                                         _importExportService.FromTCString(_clipboardService.PasteFromClipboard(),
@@ -635,20 +635,20 @@ namespace InventoryTools.Ui
                                     if (importedList == null)
                                     {
                                         _chatUtilities.PrintError(
-                                            "The contents of your clipboard could not be parsed.");
+                                            SharedText.ClipboardCouldNotBeParsed.Loc());
                                     }
                                     else
                                     {
-                                        _chatUtilities.Print("The contents of your clipboard were imported.");
+                                        _chatUtilities.Print(SharedText.ClipboardImported.Loc());
                                         SelectedConfiguration.AddItemsToList(importedList);
                                     }
                                 }
 
                                 if (SelectedConfiguration.FilterType == FilterType.CuratedList &&
-                                    ImGui.MenuItem("Clear List"))
+                                    ImGui.MenuItem("Clear List".Loc()))
                                 {
                                     _popupService.AddPopup(new ConfirmPopup(GetType(), "craftListDelete",
-                                        "Are you sure you want to clear this curated list?",
+                                        "Are you sure you want to clear this curated list?".Loc(),
                                         result =>
                                         {
                                             if (result)
@@ -659,7 +659,7 @@ namespace InventoryTools.Ui
                                 }
 
                                 ImGui.Separator();
-                                using (var addCraftListMenu = ImRaii.Menu("Add to Craft List"))
+                                using (var addCraftListMenu = ImRaii.Menu("Add to Craft List".Loc()))
                                 {
                                     if (addCraftListMenu)
                                     {
@@ -693,10 +693,10 @@ namespace InventoryTools.Ui
                                             ImGui.Separator();
                                         }
 
-                                        if (ImGui.MenuItem("New Craft List"))
+                                        if (ImGui.MenuItem("New Craft List".Loc()))
                                         {
                                             _popupService.AddPopup(new NamePopup(typeof(FiltersWindow), "newCraftList",
-                                                "New Craft List",
+                                                "New Craft List".Loc(),
                                                 result =>
                                                 {
                                                     if (result.Item1)
@@ -721,10 +721,10 @@ namespace InventoryTools.Ui
                                                 }));
                                         }
 
-                                        if (ImGui.MenuItem("New Craft List (Ephemeral)"))
+                                        if (ImGui.MenuItem("New Craft List (Ephemeral)".Loc()))
                                         {
                                             _popupService.AddPopup(new NamePopup(typeof(FiltersWindow), "newCraftList",
-                                                "New Craft List",
+                                                "New Craft List".Loc(),
                                                 result =>
                                                 {
                                                     if (result.Item1)
@@ -752,7 +752,7 @@ namespace InventoryTools.Ui
                                     }
                                 }
 
-                                using (var curatedListMenu = ImRaii.Menu("Add to Curated List"))
+                                using (var curatedListMenu = ImRaii.Menu("Add to Curated List".Loc()))
                                 {
                                     if (curatedListMenu)
                                     {
@@ -780,11 +780,11 @@ namespace InventoryTools.Ui
                                             ImGui.Separator();
                                         }
 
-                                        if (ImGui.MenuItem("New Curated List"))
+                                        if (ImGui.MenuItem("New Curated List".Loc()))
                                         {
                                             _popupService.AddPopup(new NamePopup(typeof(FiltersWindow),
                                                 "newCuratedList",
-                                                "New Curated List",
+                                                "New Curated List".Loc(),
                                                 result =>
                                                 {
                                                     if (result.Item1)
@@ -815,23 +815,23 @@ namespace InventoryTools.Ui
                     }
 
 
-                    using (var menu = ImRaii.Menu("View"))
+                    using (var menu = ImRaii.Menu("View".Loc()))
                     {
                         if (menu)
                         {
-                            if (ImGui.MenuItem("Tabs", "",
+                            if (ImGui.MenuItem("Tabs".Loc(), "",
                                     _layoutSetting.CurrentValue(_configuration) == WindowLayout.Tabs))
                             {
                                 _layoutSetting.UpdateFilterConfiguration(_configuration, WindowLayout.Tabs);
                             }
 
-                            if (ImGui.MenuItem("Sidebar", "",
+                            if (ImGui.MenuItem("Sidebar".Loc(), "",
                                     _layoutSetting.CurrentValue(_configuration) == WindowLayout.Sidebar))
                             {
                                 _layoutSetting.UpdateFilterConfiguration(_configuration, WindowLayout.Sidebar);
                             }
 
-                            if (ImGui.MenuItem("Single", "",
+                            if (ImGui.MenuItem("Single".Loc(), "",
                                     _layoutSetting.CurrentValue(_configuration) == WindowLayout.Single))
                             {
                                 _layoutSetting.UpdateFilterConfiguration(_configuration, WindowLayout.Single);
@@ -839,21 +839,21 @@ namespace InventoryTools.Ui
                         }
                     }
 
-                    if (ImGui.MenuItem("Export"))
+                    if (ImGui.MenuItem("Export".Loc()))
                     {
                         if (SelectedConfiguration != null)
                         {
                             var itemTable = _tableService.GetListTable(SelectedConfiguration);
-                            _fileDialogManager.SaveFileDialog("Save to csv", "*.csv", "export.csv", ".csv",
+                            _fileDialogManager.SaveFileDialog("Save to csv".Loc(), "*.csv", "export.csv", ".csv",
                                 (b, s) => { SaveCallback(itemTable, b, s); }, null, true);
                         }
                     }
 
-                    using (var menu = ImRaii.Menu("Market"))
+                    using (var menu = ImRaii.Menu("Market".Loc()))
                     {
                         if (menu)
                         {
-                            if (ImGui.MenuItem("Refresh All Prices"))
+                            if (ImGui.MenuItem("Refresh All Prices".Loc()))
                             {
                                 var activeCharacter = _characterMonitor.ActiveCharacter;
                                 if (activeCharacter != null && SelectedConfiguration != null)
@@ -868,15 +868,15 @@ namespace InventoryTools.Ui
                         }
                     }
 
-                    using (var menu = ImRaii.Menu("Lists"))
+                    using (var menu = ImRaii.Menu("Lists".Loc()))
                     {
                         if (menu)
                         {
-                            using (var addMenu = ImRaii.Menu("Add"))
+                            using (var addMenu = ImRaii.Menu("Add".Loc()))
                             {
                                 if (addMenu)
                                 {
-                                    if (ImGui.MenuItem("Search List"))
+                                    if (ImGui.MenuItem("Search List".Loc()))
                                     {
                                         _popupService.AddPopup(new NamePopup(GetType(), "addSearchList", "", result =>
                                         {
@@ -887,7 +887,7 @@ namespace InventoryTools.Ui
                                         }));
                                     }
 
-                                    if (ImGui.MenuItem("Sort List"))
+                                    if (ImGui.MenuItem("Sort List".Loc()))
                                     {
                                         _popupService.AddPopup(new NamePopup(GetType(), "addSortList", "", result =>
                                         {
@@ -898,7 +898,7 @@ namespace InventoryTools.Ui
                                         }));
                                     }
 
-                                    if (ImGui.MenuItem("Game Item List"))
+                                    if (ImGui.MenuItem("Game Item List".Loc()))
                                     {
                                         _popupService.AddPopup(new NamePopup(GetType(), "addGameItemList", "", result =>
                                         {
@@ -909,7 +909,7 @@ namespace InventoryTools.Ui
                                         }));
                                     }
 
-                                    if (ImGui.MenuItem("Curated List"))
+                                    if (ImGui.MenuItem("Curated List".Loc()))
                                     {
                                         _popupService.AddPopup(new NamePopup(GetType(), "addCuratedList", "", result =>
                                         {
@@ -920,7 +920,7 @@ namespace InventoryTools.Ui
                                         }));
                                     }
 
-                                    if (ImGui.MenuItem("History List"))
+                                    if (ImGui.MenuItem("History List".Loc()))
                                     {
                                         _popupService.AddPopup(new NamePopup(GetType(), "addHistoryList", "", result =>
                                         {
@@ -933,7 +933,7 @@ namespace InventoryTools.Ui
                                 }
                             }
 
-                            using (var addMenu = ImRaii.Menu("Add (Preconfigured)"))
+                            using (var addMenu = ImRaii.Menu("Add (Preconfigured)".Loc()))
                             {
                                 if (addMenu)
                                 {
@@ -941,7 +941,7 @@ namespace InventoryTools.Ui
                                     {
                                         if (defaultFilter.SampleFilterType == SampleFilterType.Default)
                                         {
-                                            if (ImGui.MenuItem(defaultFilter.Name))
+                                            if (ImGui.MenuItem(defaultFilter.Name.Loc()))
                                             {
                                                 _popupService.AddPopup(new NamePopup(GetType(), "addDefault" + defaultFilter.Name, defaultFilter.SampleDefaultName, result =>
                                                 {
@@ -957,29 +957,29 @@ namespace InventoryTools.Ui
                                                 }));
                                             }
 
-                                            ImGuiUtil.HoverTooltip(defaultFilter.SampleDescription);
+                                            ImGuiUtil.HoverTooltip(defaultFilter.SampleDescription.Loc());
                                         }
                                     }
                                 }
                             }
 
-                            using (var addMenu = ImRaii.Menu("Import/Export"))
+                            using (var addMenu = ImRaii.Menu("Import/Export".Loc()))
                             {
                                 if (addMenu)
                                 {
-                                    if (ImGui.MenuItem("Export Current List (Share Code)"))
+                                    if (ImGui.MenuItem("Export Current List (Share Code)".Loc()))
                                     {
                                         if (SelectedConfiguration != null)
                                         {
                                             var base64 = _importExportService.ToBase64(SelectedConfiguration);
                                             _clipboardService.CopyToClipboard(base64);
-                                            _chatUtilities.PrintClipboardMessage("[Export] ", "Filter Configuration");
+                                            _chatUtilities.PrintClipboardMessage("[Export] ", "Filter Configuration".Loc());
                                         }
                                     }
 
-                                    if (ImGui.MenuItem("Import List (Share Code)"))
+                                    if (ImGui.MenuItem("Import List (Share Code)".Loc()))
                                     {
-                                        _popupService.AddPopup(new MultiLineTextPopup(GetType(), "addSearchList", "Please enter a valid share code for a list below and then hit ok to import it.", result =>
+                                        _popupService.AddPopup(new MultiLineTextPopup(GetType(), "addSearchList", "Please enter a valid share code for a list below and then hit ok to import it.".Loc(), result =>
                                         {
                                             if (result.Item1)
                                             {
@@ -1059,7 +1059,7 @@ namespace InventoryTools.Ui
                                         }
                                     }
 
-                                    ImGuiUtil.HoverTooltip("[CTRL] to open in a new window.");
+                                    ImGuiUtil.HoverTooltip("[CTRL] to open in a new window.".Loc());
                                 }
 
                                 if (index != windowGroups.Count - 1)
@@ -1070,7 +1070,7 @@ namespace InventoryTools.Ui
                         }
                     }
 
-                    using (var menu = ImRaii.Menu("Windows"))
+                    using (var menu = ImRaii.Menu("Windows".Loc()))
                     {
                         if (menu)
                         {
@@ -1107,7 +1107,7 @@ namespace InventoryTools.Ui
                             if (contentChild.Success)
                             {
                                 ImGui.TextUnformatted(
-                                    "Get started by adding a craft list by hitting the + button on the bottom left.");
+                                    SharedText.GetStartedAddCraftList.Loc());
                             }
                         }
                     }
@@ -1170,7 +1170,7 @@ namespace InventoryTools.Ui
                         var filterConfiguration = SelectedConfiguration;
                         if (filterConfiguration is { FilterType: FilterType.CuratedList })
                         {
-                            ImGui.TextUnformatted("Add new Item");
+                            ImGui.TextUnformatted("Add new Item".Loc());
                             var searchString = SearchString;
                             ImGui.InputText("##ItemSearch", ref searchString, 50);
                             if (_searchString != searchString)
@@ -1184,19 +1184,19 @@ namespace InventoryTools.Ui
                                 SearchString = "";
                             }
 
-                            ImGuiUtil.HoverTooltip("Clear the current search.");
+                            ImGuiUtil.HoverTooltip("Clear the current search.".Loc());
 
                             ImGui.Separator();
                             if (_searchString == "")
                             {
-                                ImGui.TextUnformatted("Start typing to search...");
+                                ImGui.TextUnformatted("Start typing to search...".Loc());
                             }
 
                             using var table = ImRaii.Table("", 2, ImGuiTableFlags.None);
                             if (!table || !table.Success)
                                 return;
 
-                            ImGui.TableSetupColumn("Name", ImGuiTableColumnFlags.None, 200);
+                            ImGui.TableSetupColumn("Name".Loc(), ImGuiTableColumnFlags.None, 200);
                             ImGui.TableSetupColumn("", ImGuiTableColumnFlags.None, 16);
 
                             foreach (var datum in SearchItems)
@@ -1256,7 +1256,7 @@ namespace InventoryTools.Ui
 
                             _addFilterMenu.Draw();
 
-                            ImGuiUtil.HoverTooltip("Add a new list.");
+                            ImGuiUtil.HoverTooltip("Add a new list.".Loc());
                         }
                     }
                 }
@@ -1319,7 +1319,7 @@ namespace InventoryTools.Ui
 
                 if (_configuration.ShowFilterTab)
                 {
-                    using (var tabItem = ImRaii.TabItem("All Lists"))
+                    using (var tabItem = ImRaii.TabItem("All Lists".Loc()))
                     {
                         if (tabItem)
                         {
@@ -1389,7 +1389,7 @@ namespace InventoryTools.Ui
                 {
                 }
 
-                ImGuiUtil.HoverTooltip("Add a new list");
+                ImGuiUtil.HoverTooltip("Add a new list".Loc());
 
                 _addFilterMenu.Draw();
             }
@@ -1404,11 +1404,11 @@ namespace InventoryTools.Ui
                 {
                     var filterName = _newName ?? filterConfiguration.Name;
                     var labelName = "##" + filterConfiguration.Key;
-                    if (ImGui.CollapsingHeader("General",
+                    if (ImGui.CollapsingHeader("General".Loc(),
                             ImGuiTreeNodeFlags.DefaultOpen | ImGuiTreeNodeFlags.CollapsingHeader))
                     {
                         ImGui.SetNextItemWidth(100);
-                        ImGui.LabelText(labelName + "FilterNameLabel", "Name: ");
+                        ImGui.LabelText(labelName + "FilterNameLabel", "Name: ".Loc());
                         ImGui.SameLine();
                         ImGui.InputText(labelName + "FilterName", ref filterName, 100);
                         if (filterName != _newName && filterName != filterConfiguration.Name)
@@ -1419,7 +1419,7 @@ namespace InventoryTools.Ui
                         if (_newName != null)
                         {
                             ImGui.SameLine();
-                            if (ImGui.Button("Save"))
+                            if (ImGui.Button("Save".Loc()))
                             {
                                 filterConfiguration.Name = _newName;
                                 Invalidate();
@@ -1428,16 +1428,16 @@ namespace InventoryTools.Ui
                         }
 
                         ImGui.NewLine();
-                        if (ImGui.Button("Export Configuration to Clipboard"))
+                        if (ImGui.Button("Export Configuration to Clipboard".Loc()))
                         {
                             var base64 = _importExportService.ToBase64(filterConfiguration);
                             _clipboardService.CopyToClipboard(base64);
-                            _chatUtilities.PrintClipboardMessage("[Export] ", "Filter Configuration");
+                            _chatUtilities.PrintClipboardMessage("[Export] ".Loc(), "Filter Configuration".Loc());
                         }
 
                         var filterType = filterConfiguration.FormattedFilterType;
                         ImGui.SetNextItemWidth(100);
-                        ImGui.LabelText(labelName + "FilterTypeLabel", "Filter Type: ");
+                        ImGui.LabelText(labelName + "FilterTypeLabel", "Filter Type: ".Loc());
                         ImGui.SameLine();
                         ImGui.TextDisabled(filterType);
 
@@ -1445,7 +1445,7 @@ namespace InventoryTools.Ui
 
                     var filterSearch = _filterSearch;
                     ImGui.SetCursorPosY(ImGui.GetCursorPosY() + 5);
-                    if (ImGui.InputTextWithHint("##SearchFilter", "Search...", ref filterSearch, 100))
+                    if (ImGui.InputTextWithHint("##SearchFilter", "Search...".Loc(), ref filterSearch, 100))
                     {
                         _filterSearch = filterSearch;
                     }
@@ -1581,7 +1581,7 @@ namespace InventoryTools.Ui
 
                             if (!hasResults)
                             {
-                                using (var tabItem = ImRaii.TabItem("No results found"))
+                                using (var tabItem = ImRaii.TabItem("No results found".Loc()))
                                 {
                                     if (tabItem.Success)
                                     {
@@ -1599,7 +1599,7 @@ namespace InventoryTools.Ui
                 if (bottomBarChild.Success)
                 {
                     ImGuiService.VerticalCenter(
-                        "You are currently editing the list's configuration. Press the tick on the right hand side to save configuration.");
+                        "You are currently editing the list's configuration. Press the tick on the right hand side to save configuration.".Loc());
 
                     ImGui.SameLine();
                     float width = ImGui.GetWindowSize().X;
@@ -1610,7 +1610,7 @@ namespace InventoryTools.Ui
                         _settingsActive = false;
                     }
 
-                    ImGuiUtil.HoverTooltip("Return to the filter.");
+                    ImGuiUtil.HoverTooltip("Return to the filter.".Loc());
                 }
             }
         }
@@ -1628,7 +1628,7 @@ namespace InventoryTools.Ui
                 {
                     var highlightItems = itemTable.HighlightItems;
                     ImGuiService.CenterElement(20 * ImGui.GetIO().FontGlobalScale);
-                    ImGui.Checkbox("Highlight?" + "###" + itemTable.Key + "VisibilityCheckbox",
+                    ImGui.Checkbox("Highlight?".Loc() + "###" + itemTable.Key + "VisibilityCheckbox",
                         ref highlightItems);
                     if (highlightItems != itemTable.HighlightItems)
                     {
@@ -1645,12 +1645,12 @@ namespace InventoryTools.Ui
                     if (highlightMode == HighlightWhen.WhenSearching)
                     {
                         ImGuiUtil.HoverTooltip(
-                            "When checked, any items matching the filter will be highlighted once you search in any of the columns.");
+                            "When checked, any items matching the filter will be highlighted once you search in any of the columns.".Loc());
                     }
                     else
                     {
                         ImGuiUtil.HoverTooltip(
-                            "When checked, any items matching the filter will be highlighted.");
+                            "When checked, any items matching the filter will be highlighted.".Loc());
                     }
 
 
@@ -1661,7 +1661,7 @@ namespace InventoryTools.Ui
                         itemTable.ClearFilters();
                     }
 
-                    ImGuiUtil.HoverTooltip("Clear the current search.");
+                    ImGuiUtil.HoverTooltip("Clear the current search.".Loc());
 
                     ImGui.SameLine();
                     float width = ImGui.GetWindowSize().X;
@@ -1677,7 +1677,7 @@ namespace InventoryTools.Ui
                             _addItemBarOpen = !_addItemBarOpen;
                         }
 
-                        ImGuiUtil.HoverTooltip("Toggles the add item side bar.");
+                        ImGuiUtil.HoverTooltip("Toggles the add item side bar.".Loc());
                     }
 
                     ImGui.SameLine();
@@ -1688,7 +1688,7 @@ namespace InventoryTools.Ui
                         _settingsActive = !_settingsActive;
                     }
 
-                    ImGuiUtil.HoverTooltip("Edit the list's configuration.");
+                    ImGuiUtil.HoverTooltip("Edit the list's configuration.".Loc());
                 }
             }
             using (var contentChild = ImRaii.Child("Content", new Vector2(0, -40) * ImGui.GetIO().FontGlobalScale, true,
@@ -1729,7 +1729,7 @@ namespace InventoryTools.Ui
                         }
                     }
 
-                    ImGuiUtil.HoverTooltip("Refresh Market Prices");
+                    ImGuiUtil.HoverTooltip("Refresh Market Prices".Loc());
                     ImGui.SameLine();
 
                     if (filterConfiguration.FilterType == FilterType.CraftFilter &&
@@ -1740,7 +1740,7 @@ namespace InventoryTools.Ui
                         if (subMarinePartsMenu != null)
                         {
                             ImGui.SameLine();
-                            if (ImGui.Button("Add Company Craft to List"))
+                            if (ImGui.Button("Add Company Craft to List".Loc()))
                             {
                                 var subAddon = (SubmarinePartsMenuAddon*)subMarinePartsMenu;
                                 for (byte i = 0; i < 6; i++)
@@ -1764,13 +1764,13 @@ namespace InventoryTools.Ui
                     }
 
                     ImGui.SameLine();
-                    ImGuiService.VerticalCenter("Pending Market Requests: " + _universalis.QueuedCount);
+                    ImGuiService.VerticalCenter("Pending Market Requests: ".Loc() + _universalis.QueuedCount);
                     if (filterConfiguration.FilterType == FilterType.CraftFilter)
                     {
                         ImGui.SameLine();
-                        ImGui.TextUnformatted("Total Cost NQ: " + filterConfiguration.CraftList.MinimumNQCost);
+                        ImGui.TextUnformatted("Total Cost NQ: ".Loc() + filterConfiguration.CraftList.MinimumNQCost);
                         ImGui.SameLine();
-                        ImGui.TextUnformatted("Total Cost HQ: " + filterConfiguration.CraftList.MinimumHQCost);
+                        ImGui.TextUnformatted("Total Cost HQ: ".Loc() + filterConfiguration.CraftList.MinimumHQCost);
                     }
 
                     if (filterConfiguration.FilterType == FilterType.CraftFilter)
@@ -1801,7 +1801,7 @@ namespace InventoryTools.Ui
                         MediatorService.Publish(new ToggleGenericWindowMessage(typeof(ConfigurationWindow)));
                     }
 
-                    ImGuiUtil.HoverTooltip("Open the configuration window.");
+                    ImGuiUtil.HoverTooltip("Open the configuration window.".Loc());
 
                     ImGui.SetCursorPosY(0);
                     width -= 30 * ImGui.GetIO().FontGlobalScale;
@@ -1812,7 +1812,7 @@ namespace InventoryTools.Ui
                         MediatorService.Publish(new ToggleGenericWindowMessage(typeof(CraftsWindow)));
                     }
 
-                    ImGuiUtil.HoverTooltip("Open the craft window.");
+                    ImGuiUtil.HoverTooltip("Open the craft window.".Loc());
 
                     if (SelectedConfiguration != null && SelectedConfiguration.FilterType == FilterType.HistoryFilter)
                     {
@@ -1828,38 +1828,38 @@ namespace InventoryTools.Ui
                         var result = InventoryTools.Ui.Widgets.ImGuiUtil.ConfirmPopup("confirmHistoryDelete", new Vector2(300, 100),
                             () =>
                             {
-                                ImGui.TextWrapped("Are you sure you want to clear all your stored history?");
+                                ImGui.TextWrapped("Are you sure you want to clear all your stored history?".Loc());
                             });
                         if (result == true)
                         {
                             _inventoryHistory.ClearHistory();
                         }
 
-                        ImGuiUtil.HoverTooltip("Clear your history.");
+                        ImGuiUtil.HoverTooltip("Clear your history.".Loc());
                     }
 
-                    var totalItems =  itemTable.RenderSearchResults.Count + " items";
+                    var totalItems =  itemTable.RenderSearchResults.Count + " items".Loc();
 
                     if (SelectedConfiguration != null && SelectedConfiguration.FilterType == FilterType.GameItemFilter)
                     {
-                        totalItems =  itemTable.RenderSearchResults.Count + " items";
+                        totalItems =  itemTable.RenderSearchResults.Count + " items".Loc();
                     }
 
                     if (SelectedConfiguration != null && SelectedConfiguration.FilterType == FilterType.HistoryFilter)
                     {
                         if (_configuration.HistoryEnabled)
                         {
-                            totalItems = itemTable.RenderSearchResults.Count + " historical records";
+                            totalItems = itemTable.RenderSearchResults.Count + " historical records".Loc();
                         }
                         else
                         {
-                            totalItems = "History tracking is currently disabled";
+                            totalItems = "History tracking is currently disabled".Loc();
                         }
                     }
 
                     if (this.Configuration.FiltersLayout == WindowLayout.Single)
                     {
-                        var currentList = this.SelectedConfiguration?.Name ?? "No List";
+                        var currentList = this.SelectedConfiguration?.Name ?? "No List".Loc();
                         currentList += " | ";
                         totalItems = currentList + totalItems;
                     }

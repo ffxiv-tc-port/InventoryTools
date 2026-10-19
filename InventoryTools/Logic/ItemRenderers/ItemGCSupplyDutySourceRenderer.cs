@@ -18,8 +18,8 @@ public class ItemGcSupplyDutySourceRenderer : ItemInfoRenderer<ItemGCSupplyDutyS
 
     public override RendererType RendererType => RendererType.Use;
     public override ItemInfoType Type => ItemInfoType.GCDailySupply;
-    public override string SingularName => "Grand Company Supply & Provisioning";
-    public override string HelpText => "Can the item be handed in for 'Supply & Provisioning' at your grand company?";
+    public override string SingularName => "Grand Company Supply & Provisioning".Loc();
+    public override string HelpText => "Can the item be handed in for 'Supply & Provisioning' at your grand company?".Loc();
     public override bool ShouldGroup => true;
 
     public override Action<ItemSource> DrawTooltip => source =>
@@ -30,13 +30,13 @@ public class ItemGcSupplyDutySourceRenderer : ItemInfoRenderer<ItemGCSupplyDutyS
         {
             var baseReward = rewardRow.Base.ExperienceSupply;
             var sealsSupply = rewardRow.Base.SealsSupply;
-            ImGui.Text("Level: " + asSource.GCSupplyDutyRow.RowId);
-            ImGui.Text("Exp: " + baseReward);
-            ImGui.Text("Seals: " + sealsSupply);
+            ImGui.Text("Level: ".Loc() + asSource.GCSupplyDutyRow.RowId);
+            ImGui.Text("Exp: ".Loc() + baseReward);
+            ImGui.Text("Seals: ".Loc() + sealsSupply);
         }
         else
         {
-            ImGui.Text("Unknown rewards");
+            ImGui.Text("Unknown rewards".Loc());
         }
     };
 
@@ -56,11 +56,11 @@ public class ItemGcSupplyDutySourceRenderer : ItemInfoRenderer<ItemGCSupplyDutyS
         {
             var baseReward = rewardRow.Base.ExperienceSupply;
             var sealsSupply = rewardRow.Base.SealsSupply;
-            return $"Level {asSource.GCSupplyDutyRow.RowId} ({baseReward} xp, {sealsSupply} seals)";
+            return "Level ?? (?? xp, ?? seals)".Loc(asSource.GCSupplyDutyRow.RowId, baseReward, sealsSupply);
         }
         else
         {
-            return "Unknown rewards";
+            return "Unknown rewards".Loc();
         }
     };
 }

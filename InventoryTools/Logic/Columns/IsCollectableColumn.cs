@@ -14,9 +14,9 @@ namespace InventoryTools.Logic.Columns
         {
             return searchResult.Item.IsCollectable;
         }
-        public override string Name { get; set; } = "Is Collectable?";
+        public override string Name { get; set; } = "Is Collectable?".Loc();
         public override float Width { get; set; } = 90.0f;
-        public override string HelpText { get; set; } = "Is the item collectable?";
+        public override string HelpText { get; set; } = "Is the item collectable?".Loc();
         public override bool HasFilter { get; set; } = true;
         public override ColumnFilterType FilterType { get; set; } = ColumnFilterType.Boolean;
     }

@@ -95,14 +95,15 @@ namespace InventoryTools.Logic.Columns
                 }
             }
 
-            return Loading;
+            // 試過的世界全部查不到 universalis 資料時:畫成 EmptyText(N/A),不要永遠停在 loading...
+            return _marketCache.MarketDataAvailable ? Loading : null;
         }
 
-        public override string Name { get; set; } = "Market Board Average Price HQ";
-        public override string RenderName => "MB Avg. Price HQ";
+        public override string Name { get; set; } = "Market Board Average Price HQ".Loc();
+        public override string RenderName => "MB Avg. Price HQ".Loc();
         public override float Width { get; set; } = 250.0f;
         public override string HelpText { get; set; } =
-            "Shows the average price of the HQ form of the item. If no world is selected, your home world is used. This data is sourced from universalis.";
+            "Shows the average price of the HQ form of the item. If no world is selected, your home world is used. 此資料來自 universalis 的社群上傳，涵蓋台服 8 個世界；沒有人上傳過的道具會顯示為無資料。";
         public override bool HasFilter { get; set; } = true;
         public override ColumnFilterType FilterType { get; set; } = ColumnFilterType.Text;
     }

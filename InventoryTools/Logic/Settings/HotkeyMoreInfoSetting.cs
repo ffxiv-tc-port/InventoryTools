@@ -21,7 +21,7 @@ namespace InventoryTools.Logic.Settings
         }
 
         public override string Key { get; set; } = "MoreInformationHotKey";
-        public override string Name { get; set; } = "More Information Hotkey";
+        public override string Name { get; set; } = "More Information Hotkey".Loc();
 
         public override string HelpText { get; set; } =
             "The hotkey to open the more information window for an item when hovering it.";

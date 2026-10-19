@@ -31,11 +31,11 @@ public class DefaultFilterAllGameItems : ISampleFilter
         return allItemsFilter;
     }
 
-    public string Name => "Full Item Catalog";
+    public string Name => "Full Item Catalog".Loc();
     public string SampleDefaultName => "Full Item Catalog";
 
     public string SampleDescription =>
-        "This will add a list that will be preconfigured to show all of the game's items.";
+        "This will add a list that will be preconfigured to show all of the game's items.".Loc();
 
     public SampleFilterType SampleFilterType => SampleFilterType.Default;
 }

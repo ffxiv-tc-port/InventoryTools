@@ -47,7 +47,7 @@ public class SampleFilterDuplicateItems : BooleanSetting, ISampleFilter
     public override string HelpText { get; set; } = "Finds any items where there are 2 seperate stacks in retainers & characters and attempts to sort them into a single stack. This is great for making sure your retainers are as compacted as possible.";
     public string SampleDefaultName => "Duplicated items";
     public string SampleDescription =>
-        "This will add a list that will provide a list of all the distinct stacks that appear in 2 sets of inventories. You can use this to make sure only one retainer has a specific type of item.";
+        "This will add a list that will provide a list of all the distinct stacks that appear in 2 sets of inventories. You can use this to make sure only one retainer has a specific type of item.".Loc();
     public SampleFilterType SampleFilterType => SampleFilterType.Sample;
     public override SettingCategory SettingCategory { get; set; } = SettingCategory.None;
     public override SettingSubCategory SettingSubCategory { get; } = SettingSubCategory.None;

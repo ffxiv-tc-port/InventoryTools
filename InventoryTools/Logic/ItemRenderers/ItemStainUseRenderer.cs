@@ -19,15 +19,15 @@ public class ItemStainUseRenderer : ItemInfoRenderer<ItemStainSource>
 
     public override RendererType RendererType => RendererType.Use;
     public override ItemInfoType Type => ItemInfoType.Stain;
-    public override string SingularName => "Dye";
-    public override string PluralName => "Dyeing";
-    public override string HelpText => "Can the item be used to dye an item?";
+    public override string SingularName => "Dye".Loc();
+    public override string PluralName => "Dyeing".Loc();
+    public override string HelpText => "Can the item be used to dye an item?".Loc();
     public override bool ShouldGroup => true;
 
     public override Action<ItemSource> DrawTooltip => source =>
     {
         var stainSource = AsSource(source);
-        ImGui.Text("Colour: " + stainSource.Stain.Value.Name.ExtractText());
+        ImGui.Text("Colour: ".Loc() + stainSource.Stain.Value.Name.ExtractText());
         var color = Utils.Convert3ChannelUintToColorVector4(stainSource.Stain.Value.Color);
         if (ImGui.ColorButton("ColorPreview", color, ImGuiColorEditFlags.None, new (64,64)))
         {

@@ -20,8 +20,8 @@ public class GatheredByFilter : UintMultipleChoiceFilter
     }
 
     public override string Key { get; set; } = "GatheredByFilter";
-    public override string Name { get; set; } = "Gathered By?";
-    public override string HelpText { get; set; } = "How is this item gathered?";
+    public override string Name { get; set; } = "Gathered By?".Loc();
+    public override string HelpText { get; set; } = "How is this item gathered?".Loc();
     public override FilterCategory FilterCategory { get; set; } = FilterCategory.Gathering;
 
     public override List<uint> DefaultValue { get; set; } = new();

@@ -36,21 +36,23 @@ namespace InventoryTools.Logic.Columns
                 ImGui.TableNextColumn();
                 return null;
             }
-            if(searchResult.CraftItem.QuantityReady >= searchResult.CraftItem.QuantityNeeded)
+            // 背景重新整理可能在推與彈之間改掉數量；PopStyleColor 必須照推入當下的判定。
+            var highlight = searchResult.CraftItem.QuantityReady >= searchResult.CraftItem.QuantityNeeded;
+            if (highlight)
             {
                 ImGui.PushStyleColor(ImGuiCol.Text, ImGuiColors.HealerGreen);
             }
 
             base.Draw(configuration, columnConfiguration, searchResult, rowIndex, columnIndex);
-            if(searchResult.CraftItem.QuantityReady >= searchResult.CraftItem.QuantityNeeded)
+            if (highlight)
             {
                 ImGui.PopStyleColor();
             }
             return null;
         }
 
-        public override string Name { get; set; } = "Amount in Character Inventory";
-        public override string RenderName => "Inventory";
+        public override string Name { get; set; } = "Amount in Character Inventory".Loc();
+        public override string RenderName => "Inventory".Loc();
         public override float Width { get; set; } = 60;
         public override bool? CraftOnly => true;
         public override FilterType AvailableIn { get; } = Logic.FilterType.CraftFilter;

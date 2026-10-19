@@ -12,6 +12,7 @@ using CriticalCommonLib.Models;
 using Dalamud.Bindings.ImGui;
 using InventoryTools.Attributes;
 using InventoryTools.Converters;
+using InventoryTools.Lists;
 using InventoryTools.Logic.Editors;
 using InventoryTools.Logic.Filters;
 using Newtonsoft.Json;
@@ -1561,8 +1562,8 @@ namespace InventoryTools.Logic
             {
                 foreach (var item in items)
                 {
-                    bool isHq = item.Item1 > 1000000;
-                    var itemId = item.Item1 % 500000;
+                    bool isHq = item.Item1 >= ListImportExportService.HqItemIdOffset;
+                    var itemId = item.Item1 % ListImportExportService.HqItemIdOffset;
                     CraftList.AddCraftItem(itemId, item.Item2, isHq ? FFXIVClientStructs.FFXIV.Client.Game.InventoryItem.ItemFlags.HighQuality : FFXIVClientStructs.FFXIV.Client.Game.InventoryItem.ItemFlags.None);
                 }
                 NeedsRefresh = true;
@@ -1571,8 +1572,8 @@ namespace InventoryTools.Logic
             {
                 foreach (var item in items)
                 {
-                    bool isHq = item.Item1 > 1000000;
-                    var itemId = item.Item1 % 500000;
+                    bool isHq = item.Item1 >= ListImportExportService.HqItemIdOffset;
+                    var itemId = item.Item1 % ListImportExportService.HqItemIdOffset;
                     AddCuratedItem(new CuratedItem(itemId, item.Item2,
                         isHq ? FFXIVClientStructs.FFXIV.Client.Game.InventoryItem.ItemFlags.HighQuality : FFXIVClientStructs.FFXIV.Client.Game.InventoryItem.ItemFlags.None));
                 }

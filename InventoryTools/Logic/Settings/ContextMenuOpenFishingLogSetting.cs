@@ -22,9 +22,9 @@ public class ContextMenuOpenFishingLogSetting : BooleanSetting
     }
 
     public override string Key { get; set; } = "OpenFishingLogContextMenu";
-    public override string Name { get; set; } = "Context Menu - Open Fishing Log";
+    public override string Name { get; set; } = "Context Menu - Open Fishing Log".Loc();
 
-    public override string WizardName { get; } = "Open Fishing Log";
+    public override string WizardName { get; } = "Open Fishing Log".Loc();
 
     public override string HelpText { get; set; } =
         "Add a context menu item to open the fishing log for any item that can be fished?";

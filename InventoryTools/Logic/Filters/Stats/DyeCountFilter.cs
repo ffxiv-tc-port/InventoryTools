@@ -15,8 +15,8 @@ public class DyeCountFilter : StringFilter
     }
 
     public override string Key { get; set; } = "DyeCount";
-    public override string Name { get; set; } = "Dye Count";
-    public override string HelpText { get; set; } = "How many dyes does this item have or can it support?";
+    public override string Name { get; set; } = "Dye Count".Loc();
+    public override string HelpText { get; set; } = "How many dyes does this item have or can it support?".Loc();
     public override FilterCategory FilterCategory { get; set; } = FilterCategory.Stats;
     public override FilterType AvailableIn { get; set; }  = FilterType.SearchFilter | FilterType.SortingFilter | FilterType.GameItemFilter | FilterType.HistoryFilter;
     public override bool? FilterItem(FilterConfiguration configuration, InventoryItem item)

@@ -25,7 +25,7 @@ namespace InventoryTools.Logic.Columns
             return null;
         }
 
-        public override string Name { get; set; } = "Shortcuts";
+        public override string Name { get; set; } = "Shortcuts".Loc();
         public override float Width { get; set; } = 32.0f;
 
         public override string HelpText { get; set; } =

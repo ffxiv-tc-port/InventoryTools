@@ -58,7 +58,9 @@ public class IPCService : IHostedService
     private IListService _listService;
     private IInventoryMonitor _inventoryMonitor;
     private ListFilterService _listFilterService;
-    private bool _disposed;
+    private ItemCountIndex? _countIndex;
+    private readonly object _countIndexBuildLock = new();
+    private readonly ItemCountIndex.Builder _countIndexBuilder = new();
 
     public IPCService(IDalamudPluginInterface pluginInterface, ILogger<IPCService> logger, ICharacterMonitor characterMonitor, IListService listService, IInventoryMonitor inventoryMonitor, ListFilterService listFilterService)
     {
@@ -94,24 +96,58 @@ public class IPCService : IHostedService
         }
     }
 
+    // IPC 跑在呼叫端的執行緒（框架或執行緒池）。每次讀一次 AllItems，拿那份清單的索引：
+    // 與「對那份清單逐件掃」結果相同；清單換新後第一次查詢才重建，讀端不加鎖。
+    private ItemCountIndex CurrentCountIndex()
+    {
+        var items = _inventoryMonitor.AllItems;
+        var index = Volatile.Read(ref _countIndex);
+        if (index != null && ReferenceEquals(index.Source, items)) return index;
+        lock (_countIndexBuildLock)
+        {
+            index = Volatile.Read(ref _countIndex);
+            if (index == null || !ReferenceEquals(index.Source, items))
+            {
+                index = _countIndexBuilder.Build(items);
+                Volatile.Write(ref _countIndex, index);
+            }
+            return index;
+        }
+    }
+
     private uint ItemCount(uint itemId, ulong characterId, int inventoryType)
     {
-        return (uint)_inventoryMonitor.AllItems.Where(c => c.ItemId == itemId && (inventoryType == -1 || (uint)c.SortedContainer == inventoryType) && (c.RetainerId == characterId)).Sum(c => c.Quantity);
+        long total = 0;
+        foreach (ref readonly var g in CurrentCountIndex().ForItem(itemId))
+        {
+            if ((inventoryType == -1 || (uint)g.Container == inventoryType) && (g.RetainerId == characterId)) total += g.Quantity;
+        }
+        return (uint)total;
     }
 
     private uint ItemCountHQ(uint itemId, ulong characterId, int inventoryType)
     {
-        return (uint)_inventoryMonitor.AllItems.Where(c => c.ItemId == itemId && c.Flags == InventoryItem.ItemFlags.HighQuality && (inventoryType == -1 || (uint)c.SortedContainer == inventoryType) && (c.RetainerId == characterId)).Sum(c => c.Quantity);
+        long total = 0;
+        foreach (ref readonly var g in CurrentCountIndex().ForItem(itemId))
+        {
+            if (g.Flags == InventoryItem.ItemFlags.HighQuality && (inventoryType == -1 || (uint)g.Container == inventoryType) && (g.RetainerId == characterId)) total += g.Quantity;
+        }
+        return (uint)total;
     }
 
     private uint ItemCountOwned(uint itemId, bool currentCharacterOnly, uint[] inventoryTypes)
     {
-        return (uint)_inventoryMonitor.AllItems.Where(item =>
-                item.ItemId == itemId
-                && inventoryTypes.Contains((uint)item.SortedContainer)
-                && _characterMonitor.Characters.ContainsKey(item.RetainerId)
-                && (!currentCharacterOnly || _characterMonitor.BelongsToActiveCharacter(item.RetainerId)))
-            .Sum(c => c.Quantity);
+        long total = 0;
+        foreach (ref readonly var g in CurrentCountIndex().ForItem(itemId))
+        {
+            if (inventoryTypes.Contains((uint)g.Container)
+                && _characterMonitor.Characters.ContainsKey(g.RetainerId)
+                && (!currentCharacterOnly || _characterMonitor.BelongsToActiveCharacter(g.RetainerId)))
+            {
+                total += g.Quantity;
+            }
+        }
+        return (uint)total;
     }
 
     private bool IsInitialized()
@@ -437,13 +473,27 @@ public class IPCService : IHostedService
 
     private uint InventoryCountByTypes(uint[] inventoryTypes, ulong? characterId)
     {
-        return (uint)_inventoryMonitor.AllItems.Where(c => inventoryTypes.Contains((uint)c.SortedContainer) && (characterId == null || c.RetainerId == characterId))
-            .Sum(c => c.Quantity);
+        var index = CurrentCountIndex();
+        long total = 0;
+        foreach (var container in index.Containers)
+        {
+            if (!inventoryTypes.Contains(container)) continue;
+            foreach (ref readonly var g in index.ForContainer(container))
+            {
+                if (characterId == null || g.RetainerId == characterId) total += g.Quantity;
+            }
+        }
+        return (uint)total;
     }
 
     private uint InventoryCountByType(uint inventoryType, ulong? characterId)
     {
-        return (uint)_inventoryMonitor.AllItems.Where(c => (uint)c.SortedContainer == inventoryType && (characterId == null || c.RetainerId == characterId)).Sum(c => c.Quantity);
+        long total = 0;
+        foreach (ref readonly var g in CurrentCountIndex().ForContainer(inventoryType))
+        {
+            if (characterId == null || g.RetainerId == characterId) total += g.Quantity;
+        }
+        return (uint)total;
     }            
     
     public Task StartAsync(CancellationToken cancellationToken)
@@ -511,7 +561,6 @@ public class IPCService : IHostedService
 
         _getCharactersOwnedByActive = _pluginInterface.GetIpcProvider<bool, HashSet<ulong>>("AllaganTools.GetCharactersOwnedByActive");
         _getCharactersOwnedByActive.RegisterFunc(GetCharactersOwnedByActive);
-        _getCraftItems.RegisterFunc(GetCraftItems);
 
         _getCharacterItemsByType = _pluginInterface.GetIpcProvider<ulong,uint, HashSet<ulong[]>>("AllaganTools.GetCharacterItemsByType");
         _getCharacterItemsByType.RegisterFunc(GetCharacterItemsByType);
@@ -572,12 +621,10 @@ public class IPCService : IHostedService
         _getFilterItems?.UnregisterFunc();
         _getCraftItems?.UnregisterFunc();
         _getRetrievalItems?.UnregisterFunc();
-        _itemAdded?.UnregisterFunc();
         _getCraftLists?.UnregisterFunc();
         _getSearchFilters?.UnregisterFunc();
         _addNewCraftList?.UnregisterFunc();
         _currentCharacter?.UnregisterFunc();
-        _retainerChanged?.UnregisterFunc();
         _getCharacterItems?.UnregisterFunc();
         _getCharacterItemsByType?.UnregisterFunc();
         _getCharactersOwnedByActive?.UnregisterFunc();

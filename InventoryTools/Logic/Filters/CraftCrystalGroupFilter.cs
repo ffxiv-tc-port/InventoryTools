@@ -40,7 +40,7 @@ public class CraftCrystalGroupFilter : ChoiceFilter<CrystalGroupSetting>
     }
 
     public override string Key { get; set; } = "CraftCrystalGroupFilter";
-    public override string Name { get; set; } = "Group Crystals By";
+    public override string Name { get; set; } = "Group Crystals By".Loc();
 
     public override string HelpText { get; set; } =
         "Should the crystals be grouped together or show up in the Gather/Buy list?";

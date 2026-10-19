@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
@@ -59,6 +59,7 @@ namespace InventoryTools
         private readonly UseOldCraftTrackerSetting _useOldCraftTrackerSetting;
         private readonly IMarketCache _marketCache;
         private readonly IEnumerable<ISampleFilter> _sampleFilters;
+        private readonly BagSpacePraiseService _bagSpacePraiseService;
         private Dictionary<uint, InventoryMonitor.ItemChangesItem> _recentlyAddedSeen = new();
 
         public bool WasRecentlySeen(uint itemId)
@@ -93,7 +94,8 @@ namespace InventoryTools
             CraftTrackerTrackCraftsFilter trackCraftsFilter, CraftTrackerTrackGatheringFilter trackGatheringFilter,
             CraftTrackerTrackShoppingFilter trackShoppingFilter, CraftTrackerTrackCombatDropFilter trackCombatDropFilter,
             CraftTrackerTrackOtherFilter trackOtherFilter, UseOldCraftTrackerSetting useOldCraftTrackerSetting,
-            CraftTrackerTrackMarketBoardFilter trackMarketBoardFilter) : base(logger, mediatorService)
+            CraftTrackerTrackMarketBoardFilter trackMarketBoardFilter,
+            BagSpacePraiseService bagSpacePraiseService) : base(logger, mediatorService)
         {
             _configurationManagerService = configurationManagerService;
             _chatUtilities = chatUtilities;
@@ -121,6 +123,8 @@ namespace InventoryTools
             _trackMarketBoardFilter = trackMarketBoardFilter;
             _marketCache = marketCache;
             _sampleFilters = sampleFilters;
+            _bagSpacePraiseService = bagSpacePraiseService;
+            _inventorySaver = CreateInventorySaver();
             MediatorService.Subscribe<PluginLoadedMessage>(this, PluginLoaded);
         }
 
@@ -146,7 +150,7 @@ namespace InventoryTools
                 activeCraftList.CraftList.MarkCrafted(itemid, flags, quantity);
                 if (activeCraftList is { IsEphemeralCraftList: true, CraftList.IsCompleted: true })
                 {
-                    _chatUtilities.Print("Ephemeral craft list '" + activeCraftList.Name + "' completed. List has been removed.");
+                    _chatUtilities.Print(SharedText.EphemeralCraftListCompleted.Loc(activeCraftList.Name));
                     _listService.RemoveList(activeCraftList);
                 }
                 else
@@ -210,6 +214,8 @@ namespace InventoryTools
                     }
                 }
             }
+
+            TickInventorySave();
         }
 
         private void ConfigOnConfigurationChanged()
@@ -251,6 +257,11 @@ namespace InventoryTools
                     _hostedInventoryHistory.SetChangeReasonsToLog(
                         _configuration.HistoryTrackReasons.Distinct().ToHashSet());
                 }
+            }
+
+            if (_hostedInventoryHistory.MaxEntries != _configuration.HistoryMaxEntries)
+            {
+                _hostedInventoryHistory.MaxEntries = _configuration.HistoryMaxEntries;
             }
         }
 
@@ -294,8 +305,9 @@ namespace InventoryTools
         private void InventoryMonitorOnOnInventoryChanged(List<InventoryChange> inventoryChanges, InventoryMonitor.ItemChanges? itemChanges)
         {
             _logger.LogTrace("PluginLogic: Inventory changed, saving to config.");
-            var allItems = _inventoryMonitor.AllItems.ToList();
-            _configurationManagerService.SaveInventoriesAsync(allItems);
+            // AllItems 交出去後不再被改（每次重算都換新清單），只在要用時直接走訪、不另抄一份。
+            var allItems = _inventoryMonitor.AllItems;
+            _inventorySaver.MarkDirty();
             if (_configuration.AutomaticallyDownloadMarketPrices)
             {
                 var activeCharacter = _characterMonitor.ActiveCharacter;
@@ -320,6 +332,11 @@ namespace InventoryTools
                     _recentlyAddedSeen.Add(item.ItemId, item);
                 }
             }
+
+            // 背包空間提醒:門檻判斷與去重全部在服務裡(見 BagSpacePraiseService),這裡只負責通知它
+            // 「背包剛剛動過」。這個事件是 InventoryMonitor 用 RunOnFrameworkThread 送出來的,
+            // 所以這裡確定在主執行緒上 —— IPC 的實作是跑在呼叫端的執行緒上的,這一點不能破。
+            _bagSpacePraiseService.Evaluate();
         }
 
 
@@ -328,6 +345,8 @@ namespace InventoryTools
             Logger.LogTrace("Starting service {type} ({this})", GetType().Name, this);
             _inventoryMonitor.OnInventoryChanged += InventoryMonitorOnOnInventoryChanged;
             _framework.Update += FrameworkOnUpdate;
+            _characterMonitor.OnCharacterLoggedIn += CharacterMonitorOnCharacterSwitched;
+            _characterMonitor.OnCharacterLoggedOut += CharacterMonitorOnCharacterSwitched;
             _configurationManagerService.ConfigurationChanged += ConfigOnConfigurationChanged;
 
             _acquisitionMonitorService.ItemAcquired += AcquisitionMonitorServiceOnItemAcquired;
@@ -379,7 +398,7 @@ namespace InventoryTools
                 activeCraftList.CraftList.MarkCrafted(itemId, itemFlags, (uint)qtyIncrease);
                 if (activeCraftList is { IsEphemeralCraftList: true, CraftList.IsCompleted: true })
                 {
-                    _chatUtilities.Print("Ephemeral craft list '" + activeCraftList.Name + "' completed. List has been removed.");
+                    _chatUtilities.Print(SharedText.EphemeralCraftListCompleted.Loc(activeCraftList.Name));
                     _listService.RemoveList(activeCraftList);
                 }
                 else
@@ -399,6 +418,8 @@ namespace InventoryTools
             _unlockTrackerService.ItemUnlockStatusChanged -= UnlockTrackerServiceOnAcquiredItemsUpdated;
             _configuration.SavedCharacters = _characterMonitor.Characters;
             _framework.Update -= FrameworkOnUpdate;
+            _characterMonitor.OnCharacterLoggedIn -= CharacterMonitorOnCharacterSwitched;
+            _characterMonitor.OnCharacterLoggedOut -= CharacterMonitorOnCharacterSwitched;
             _inventoryMonitor.OnInventoryChanged -= InventoryMonitorOnOnInventoryChanged;
             _acquisitionMonitorService.ItemAcquired -= AcquisitionMonitorServiceOnItemAcquired;
             _craftMonitor.CraftStarted -= CraftMonitorOnCraftStarted;
@@ -406,7 +427,7 @@ namespace InventoryTools
             _craftMonitor.CraftCompleted -= CraftMonitorOnCraftCompleted ;
             _configurationManagerService.ConfigurationChanged -= ConfigOnConfigurationChanged;
             _configurationManagerService.Save();
-            _configurationManagerService.SaveInventoriesAsync(_inventoryMonitor.AllItems.ToList()).Wait(TimeSpan.FromSeconds(2));
+            FlushInventoriesOnStop();
             _configurationManagerService.SaveHistory(_hostedInventoryHistory.GetHistory());
             if (_configuration.TrackMobSpawns)
             {

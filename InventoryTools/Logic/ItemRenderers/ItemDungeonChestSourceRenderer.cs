@@ -26,20 +26,20 @@ public class ItemDungeonChestSourceRenderer : ItemInfoRenderer<ItemDungeonChestS
 
     public override RendererType RendererType => RendererType.Source;
     public override ItemInfoType Type => ItemInfoType.DungeonChest;
-    public override string SingularName => "Dungeon Chest";
-    public override string PluralName => "Dungeon Chests";
-    public override string HelpText => "Can the item appear in a dungeon chest?";
+    public override string SingularName => "Dungeon Chest".Loc();
+    public override string PluralName => "Dungeon Chests".Loc();
+    public override string HelpText => "Can the item appear in a dungeon chest?".Loc();
     public override bool ShouldGroup => true;
     public override IReadOnlyList<ItemInfoRenderCategory> Categories => [ItemInfoRenderCategory.Duty];
 
     public override Action<ItemSource> DrawTooltip => source =>
     {
         var asSource = AsSource(source);
-        ImGui.Text("Dungeon: " + asSource.ContentFinderCondition.FormattedName);
+        ImGui.Text("Dungeon: ".Loc() + asSource.ContentFinderCondition.FormattedName);
         using (ImRaii.PushIndent())
         {
             ImGui.Text(
-                $"Chest {asSource.DungeonChest.ChestNo + 1} ({asSource.DungeonChest.Position.X} / {asSource.DungeonChest.Position.Y})");
+                "Chest ?? (?? / ??)".Loc(asSource.DungeonChest.ChestNo + 1, asSource.DungeonChest.Position.X, asSource.DungeonChest.Position.Y));
         }
     };
 
@@ -56,13 +56,13 @@ public class ItemDungeonChestSourceRenderer : ItemInfoRenderer<ItemDungeonChestS
         var groupedByDungeon = asSources.GroupBy(c => c.DungeonChest.ContentFinderCondition.RowId);
         foreach (var dungeon in groupedByDungeon)
         {
-            ImGui.Text("Dungeon: " + dungeon.First().ContentFinderCondition.Base.Name.ExtractText());
+            ImGui.Text("Dungeon: ".Loc() + dungeon.First().ContentFinderCondition.Base.Name.ExtractText());
             using (ImRaii.PushIndent())
             {
                 foreach (var chest in dungeon.OrderBy(c => c.DungeonChest.ChestNo))
                 {
                     ImGui.Text(
-                        $"Chest {chest.DungeonChest.ChestNo + 1} ({chest.DungeonChest.Position.X} / {chest.DungeonChest.Position.Y})");
+                        "Chest ?? (?? / ??)".Loc(chest.DungeonChest.ChestNo + 1, chest.DungeonChest.Position.X, chest.DungeonChest.Position.Y));
                 }
             }
         }

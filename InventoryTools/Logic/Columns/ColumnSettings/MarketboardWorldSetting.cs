@@ -1,8 +1,10 @@
 using System.Collections.Generic;
 using System.Linq;
+using CriticalCommonLib.MarketBoard;
 using CriticalCommonLib.Models;
 using Dalamud.Plugin.Services;
 using InventoryTools.Logic.Columns.Abstract.ColumnSettings;
+using InventoryTools.Misc;
 using InventoryTools.Services;
 using Lumina.Excel;
 using Lumina.Excel.Sheets;
@@ -13,11 +15,13 @@ namespace InventoryTools.Logic.Columns.ColumnSettings;
 public class MarketboardWorldSetting : ChoiceColumnSetting<(uint,string)?>
 {
     private readonly ExcelSheet<World> _worldSheet;
+    private readonly UniversalisAvailability _universalisAvailability;
     public override string EmptyText => "Home World";
 
-    public MarketboardWorldSetting(ILogger<MarketboardWorldSetting> logger, ImGuiService imGuiService, ExcelSheet<World> worldSheet) : base(logger, imGuiService)
+    public MarketboardWorldSetting(ILogger<MarketboardWorldSetting> logger, ImGuiService imGuiService, ExcelSheet<World> worldSheet, UniversalisAvailability universalisAvailability) : base(logger, imGuiService)
     {
         _worldSheet = worldSheet;
+        _universalisAvailability = universalisAvailability;
     }
     public override (uint,string)? CurrentValue(ColumnConfiguration configuration)
     {
@@ -70,12 +74,30 @@ public class MarketboardWorldSetting : ChoiceColumnSetting<(uint,string)?>
     }
 
     public override string Key { get; set; } = "MBWorld";
-    public override string Name { get; set; } = "World";
-    public override string HelpText { get; set; } = "The world for this column to display?";
+    public override string Name { get; set; } = "World".Loc();
+    public override string HelpText { get; set; } = "The world for this column to display?".Loc();
     public override (uint,string)? DefaultValue { get; set; } = null;
+    private List<(uint,string)?>? _choices;
+    private int _choicesRevision = -1;
+
+    // 回傳共用清單,呼叫端只讀;排除清單改版次才重建。
     public override List<(uint,string)?> GetChoices(ColumnConfiguration configuration)
     {
-        List<(uint RowId, string FormattedName)?> worlds = _worldSheet.Where(c => c.IsPublic).Select(c =>((uint, string)?)(c.RowId, c.Name.ExtractText())).ToList();
+        var exclusionRevision = _universalisAvailability.ExclusionRevision;
+        if (_choices == null || _choicesRevision != exclusionRevision)
+        {
+            _choices = BuildChoices();
+            _choicesRevision = exclusionRevision;
+        }
+
+        return _choices;
+    }
+
+    private List<(uint,string)?> BuildChoices()
+    {
+        // 被排除的伺服器不當查價目標,所以不出現在這個欄位的選單裡。已經設好的舊值
+        // 照樣顯示(CurrentValue 直接查表,不經過這份清單)。
+        List<(uint RowId, string FormattedName)?> worlds = _worldSheet.Where(c => c.IsPriceableWorld(_universalisAvailability)).Select(c =>((uint, string)?)(c.RowId, c.Name.ExtractText())).ToList();
         worlds.Insert(0,(0,"Active World"));
         return worlds;
     }

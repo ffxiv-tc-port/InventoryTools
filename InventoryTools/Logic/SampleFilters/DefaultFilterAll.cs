@@ -39,11 +39,11 @@ public class DefaultFilterAll : ISampleFilter
         return allItemsFilter;
     }
 
-    public string Name => "All";
+    public string Name => "All".Loc();
     public string SampleDefaultName => "All";
 
     public string SampleDescription =>
-        "This will add a list that will be preconfigured to show all the items in bags related to your character. This includes owned retainers, free company, saddle bags, etc";
+        "This will add a list that will be preconfigured to show all the items in bags related to your character. This includes owned retainers, free company, saddle bags, etc".Loc();
 
     public SampleFilterType SampleFilterType => SampleFilterType.Default;
 }

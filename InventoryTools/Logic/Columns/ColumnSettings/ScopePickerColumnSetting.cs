@@ -58,8 +58,8 @@ public class ScopePickerColumnSetting : ColumnSetting<List<InventorySearchScope>
     }
 
     public override string Key { get; set; } = "ScopePicker";
-    public override string Name { get; set; } = "Inventory Search Scope";
-    public override string HelpText { get; set; } = "Select the inventories you want to search inside.";
+    public override string Name { get; set; } = "Inventory Search Scope".Loc();
+    public override string HelpText { get; set; } = "Select the inventories you want to search inside.".Loc();
     public override List<InventorySearchScope>? DefaultValue { get; set; } = null;
 
     public override bool DrawFilter(ColumnConfiguration configuration, string? helpText)
@@ -84,12 +84,12 @@ public class ScopePickerColumnSetting : ColumnSetting<List<InventorySearchScope>
             {
                 ImGui.Text("?");
             }
-            ImGuiUtil.HoverTooltip("Please make sure you include at least one inventory that contains crystals otherwise the craft calculator will not work.");
+            ImGuiUtil.HoverTooltip("Please make sure you include at least one inventory that contains crystals otherwise the craft calculator will not work.".Loc());
         }
 
         var currentValue = CurrentValue(configuration);
         using var disabled = ImRaii.Disabled(currentValue == null);
-        if (ImGui.Button("Test Scopes"))
+        if (ImGui.Button("Test Scopes".Loc()))
         {
             if (currentValue != null)
             {
@@ -101,7 +101,7 @@ public class ScopePickerColumnSetting : ColumnSetting<List<InventorySearchScope>
         if (_categories is not null)
         {
             ImGui.Separator();
-            ImGui.Text("The following inventories will be searched in: ");
+            ImGui.Text("The following inventories will be searched in: ".Loc());
             foreach (var s in _categories)
             {
                 ImGui.TextUnformatted((s.Character?.Name ?? "Unknown Character") + " - " + (string.Join(", ", s.Category.Select(c => c.FormattedDetailedName()).ToList())));

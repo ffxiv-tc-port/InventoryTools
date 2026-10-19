@@ -86,10 +86,10 @@ namespace InventoryTools.Logic.Columns
         }
 
 
-        public override string Name { get; set; } = "Icon";
+        public override string Name { get; set; } = "Icon".Loc();
         public override string RenderName => "";
         public override float Width { get; set; } = 60.0f;
-        public override string HelpText { get; set; } = "Shows the icon of the item, pressing it will open the more information window for the item.";
+        public override string HelpText { get; set; } = "Shows the icon of the item, pressing it will open the more information window for the item.".Loc();
         public override bool HasFilter { get; set; } = false;
         public override ColumnFilterType FilterType { get; set; } = ColumnFilterType.Text;
 

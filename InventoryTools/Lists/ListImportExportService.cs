@@ -118,6 +118,18 @@ public class ListImportExportService
     }
 
     /// <summary>
+    /// Added to an item id to mark it high quality in the (itemId, quantity) tuples produced
+    /// by <see cref="FromTCString"/> and consumed by the list-import call sites.
+    /// </summary>
+    /// <remarks>
+    /// A named constant because the consumers used to test `> 1000000` against this +500000
+    /// encoding. No real item id gets anywhere near either number (the TC Item sheet ends at
+    /// 49200), so the test was simply never true and every imported HQ item arrived as NQ,
+    /// silently. Recovering the base id is `id % HqItemIdOffset`, which works because ids are
+    /// smaller than the offset.
+    /// </remarks>
+    public const uint HqItemIdOffset = 500000;
+    /// <summary>
     /// Parses a teamcraft/AT list of items and returns the item ID and quantity of the item as a list of tuples. HQ items have 500000 added to them.
     /// </summary>
     /// <param name="teamCraftList"></param>
@@ -159,7 +171,7 @@ public class ListImportExportService
 
                     if (itemRow != null && (!onlyCraftables || itemRow.CanBeCrafted))
                     {
-                        output.Add(((uint)(itemRow.RowId + (isHq ? 500000 : 0)), (uint)numberOfItem));
+                        output.Add(((uint)(itemRow.RowId + (isHq ? HqItemIdOffset : 0)), (uint)numberOfItem));
                     }
                 }
 

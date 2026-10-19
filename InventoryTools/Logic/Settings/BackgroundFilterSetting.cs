@@ -34,7 +34,7 @@ namespace InventoryTools.Logic.Settings
         }
 
         public override string Key { get; set; } = "BackgroundFilter";
-        public override string Name { get; set; } = "Background List Highlighting";
+        public override string Name { get; set; } = "Background List Highlighting".Loc();
 
         public override string HelpText { get; set; } =
             "This is the list that is currently being highlighted when the allagan tools window is not visible. This list can be toggled with the associated slash commands.";
@@ -46,7 +46,7 @@ namespace InventoryTools.Logic.Settings
         {
             get
             {
-                var filterItems = new Dictionary<string, string> {{"", "None"}};
+                var filterItems = new Dictionary<string, string> {{"", "None".Loc()}};
                 foreach (var config in _listService.Lists.Where(c => !c.CraftListDefault))
                 {
                     filterItems.Add(config.Key, config.Name);

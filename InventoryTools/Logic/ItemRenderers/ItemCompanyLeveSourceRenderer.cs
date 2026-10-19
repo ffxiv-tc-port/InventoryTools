@@ -19,20 +19,20 @@ public class ItemCompanyLeveSourceRenderer : ItemInfoRenderer<ItemCompanyLeveSou
 
     public override RendererType RendererType => RendererType.Source;
     public override ItemInfoType Type => ItemInfoType.CompanyLeve;
-    public override string SingularName => "Company Leve";
-    public override string PluralName => "Company Leves";
-    public override string HelpText => "Is this item obtained from a company leve?";
+    public override string SingularName => "Company Leve".Loc();
+    public override string PluralName => "Company Leves".Loc();
+    public override string HelpText => "Is this item obtained from a company leve?".Loc();
     public override bool ShouldGroup => true;
     public override IReadOnlyList<ItemInfoRenderCategory> Categories => [ItemInfoRenderCategory.Leve];
     public override Action<ItemSource> DrawTooltip => source =>
     {
         var asSource = AsSource(source);
         var leveRow = asSource.Leve.Value;
-        ImGui.TextUnformatted("Leve: " + leveRow.Name.ExtractText());
-        ImGui.TextUnformatted("Class: " + leveRow.ClassJobCategory.Value.Name.ExtractText());
-        ImGui.TextUnformatted("EXP Reward: " + asSource.ExpReward);
-        ImGui.TextUnformatted("Seals Rewarded: " + asSource.SealsRewarded);
-        ImGui.TextUnformatted("Allowance Cost: " + leveRow.AllowanceCost);
+        ImGui.TextUnformatted("Leve: ".Loc() + leveRow.Name.ExtractText());
+        ImGui.TextUnformatted("Class: ".Loc() + leveRow.ClassJobCategory.Value.Name.ExtractText());
+        ImGui.TextUnformatted("EXP Reward: ".Loc() + asSource.ExpReward);
+        ImGui.TextUnformatted("Seals Rewarded: ".Loc() + asSource.SealsRewarded);
+        ImGui.TextUnformatted("Allowance Cost: ".Loc() + leveRow.AllowanceCost);
     };
 
     public override Func<ItemSource, string> GetName => source =>
@@ -49,6 +49,6 @@ public class ItemCompanyLeveSourceRenderer : ItemInfoRenderer<ItemCompanyLeveSou
         var asSource = AsSource(source);
         var leveRow = asSource.Leve.Value;
         return
-            $"{leveRow.Name.ExtractText()} ({leveRow.ClassJobCategory.Value.Name.ExtractText()}) ({leveRow.ExpReward} xp) ({leveRow.AllowanceCost} allowances)";
+            "?? (??) (?? xp) (?? allowances)".Loc(leveRow.Name.ExtractText(), leveRow.ClassJobCategory.Value.Name.ExtractText(), leveRow.ExpReward, leveRow.AllowanceCost);
     };
 }

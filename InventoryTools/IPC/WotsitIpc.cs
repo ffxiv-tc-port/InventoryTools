@@ -189,11 +189,13 @@ namespace InventoryTools.IPC
         public Task StopAsync(CancellationToken cancellationToken)
         {
             Logger.LogTrace("Stopping service {Type} ({This})", GetType().Name, this);
+            // 先退訂再呼叫 UnregisterAll：沒裝 Wotsit 時後者擲 IpcNotReadyError，
+            // 退訂若排在它後面就會被跳過，FA.Invoke 的訂閱留在 CallGate 上釘住整個舊版本。
+            _wotsitAvailable?.Unsubscribe(FaAvailable);
+            _callGateSubscriber?.Unsubscribe(WotsitInvoke);
             try
             {
-                _wotsitAvailable.Unsubscribe(FaAvailable);
                 _wotsitUnregister?.InvokeFunc(IpcDisplayName);
-                _callGateSubscriber?.Unsubscribe(WotsitInvoke);
             }
             catch (Exception)
             {

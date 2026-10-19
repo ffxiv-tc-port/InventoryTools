@@ -18,7 +18,7 @@ namespace InventoryTools.Logic.Settings
         }
 
         public override string Key { get; set; } = "ShowTooltips";
-        public override string Name { get; set; } = "Enable Tooltip Tweaks?";
+        public override string Name { get; set; } = "Enable Tooltip Tweaks?".Loc();
 
         public override string HelpText { get; set; } =
             "Disable/enable the entire tooltip modification system for the plugin. If this is off, no changes will be made to your item's tooltips.";

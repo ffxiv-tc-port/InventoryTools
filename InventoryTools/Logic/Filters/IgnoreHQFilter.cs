@@ -10,7 +10,7 @@ namespace InventoryTools.Logic.Filters;
 public class IgnoreHQFilter : BooleanFilter
 {
     public override string Key { get; set; } = "IgnoreHQFilter";
-    public override string Name { get; set; } = "Ignore HQ Filter?";
+    public override string Name { get; set; } = "Ignore HQ Filter?".Loc();
 
     public override string HelpText { get; set; } =
         "When sorting should the filter consider HQ and NQ items to be the same when attempting to stack them? This primary use for this filter is to find items that can have their quality lowered.";

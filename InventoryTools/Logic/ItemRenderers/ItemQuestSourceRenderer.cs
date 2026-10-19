@@ -24,7 +24,7 @@ public class ItemQuestUseRenderer : ItemQuestSourceRenderer
     {
     }
 
-    public override string HelpText { get; } = "Is this item required for a quest?";
+    public override string HelpText { get; } = "Is this item required for a quest?".Loc();
 
     public override RendererType RendererType { get; } = RendererType.Use;
 }
@@ -36,8 +36,8 @@ public class ItemQuestSourceRenderer : ItemInfoRenderer<ItemQuestSource>
     private readonly Dictionary<uint,string> _festivalNames;
     public override RendererType RendererType { get; } = RendererType.Source;
     public override ItemInfoType Type { get; } = ItemInfoType.Quest;
-    public override string SingularName { get; } = "Quest";
-    public override string HelpText { get; } = "Does this item come from a quest?";
+    public override string SingularName { get; } = "Quest".Loc();
+    public override string HelpText { get; } = "Does this item come from a quest?".Loc();
     public override bool ShouldGroup { get; } = true;
 
     public ItemQuestSourceRenderer(ITextureProvider textureProvider, ItemSheet itemSheet, MapSheet mapSheet,
@@ -54,21 +54,21 @@ public class ItemQuestSourceRenderer : ItemInfoRenderer<ItemQuestSource>
         var quest = asSource.Quest.Value;
 
         var questName = quest.Name.ToImGuiString();
-        ImGui.Text("Name: " + questName);
-        ImGui.Text("Expansion: " + quest.Expansion.Value.Name.ToImGuiString());
+        ImGui.Text("Name: ".Loc() + questName);
+        ImGui.Text("Expansion: ".Loc() + quest.Expansion.Value.Name.ToImGuiString());
         if (quest.BeastTribe.RowId != 0)
         {
-            ImGui.Text("Allied Society: " + quest.BeastTribe.Value.Name.ToImGuiString());
+            ImGui.Text("Allied Society: ".Loc() + quest.BeastTribe.Value.Name.ToImGuiString());
         }
         if (quest.Festival.RowId != 0 && _festivalNames.ContainsKey(quest.Festival.RowId))
         {
             ImGui.PushTextWrapPos();
-            ImGui.Text("Only available from " + _festivalNames[quest.Festival.RowId]);
+            ImGui.Text("Only available from ".Loc() + _festivalNames[quest.Festival.RowId]);
             ImGui.PopTextWrapPos();
         }
 
-        DrawItems("Required Items: ", asSource.CostItems);
-        DrawItems("Rewards: ", asSource.RewardItems);
+        DrawItems("Required Items: ".Loc(), asSource.CostItems);
+        DrawItems("Rewards: ".Loc(), asSource.RewardItems);
     };
 
     public override Func<ItemSource, string> GetName => source =>

@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using CriticalCommonLib.Services.Mediator;
 using DalaMock.Host.Mediator;
 using Dalamud.Interface.Utility.Raii;
@@ -22,7 +22,7 @@ namespace InventoryTools.Logic.Columns
         public override List<MessageBase>? Draw(FilterConfiguration configuration, ColumnConfiguration columnConfiguration, SearchResult searchResult,
             int rowIndex, int columnIndex)
         {
-            if (searchResult.CuratedItem != null && (searchResult.Item.Base.IsCollectable || searchResult.Item.Base.CanBeHq))
+            if (searchResult.CuratedItem != null && (searchResult.Item.IsCollectable || searchResult.Item.Base.CanBeHq))
             {
                 ImGui.TableNextColumn();
                 if (!ImGui.TableGetColumnFlags().HasFlag(ImGuiTableColumnFlags.IsEnabled)) return null;
@@ -64,9 +64,9 @@ namespace InventoryTools.Logic.Columns
 
             return null;
         }
-        public override string Name { get; set; } = "Type";
+        public override string Name { get; set; } = "Type".Loc();
         public override float Width { get; set; } = 80.0f;
-        public override string HelpText { get; set; } = "The type of the item.";
+        public override string HelpText { get; set; } = "The type of the item.".Loc();
         public override bool HasFilter { get; set; } = true;
         public override ColumnFilterType FilterType { get; set; } = ColumnFilterType.Text;
 

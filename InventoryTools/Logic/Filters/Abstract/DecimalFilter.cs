@@ -56,7 +56,7 @@ namespace InventoryTools.Logic.Filters.Abstract
             if (HasValueSet(configuration) && ShowReset)
             {
                 ImGui.SameLine();
-                if (ImGui.Button("Reset##" + Key + "Reset"))
+                if (ImGui.Button("Reset".Loc() + "##" + Key + "Reset"))
                 {
                     ResetFilter(configuration);
                 }

@@ -17,8 +17,8 @@ public class FiltersFeature : Feature
     {
     }
 
-    public override string Name { get; } = "Sample Item Lists";
-    public override string Description { get; } = "Select which sample item lists you'd like to install by default. These are good examples of the types of lists that are possible within Allagan Tools.";
+    public override string Name { get; } = "Sample Item Lists".Loc();
+    public override string Description { get; } = "Select which sample item lists you'd like to install by default. These are good examples of the types of lists that are possible within Allagan Tools.".Loc();
 
     public override void OnFinish()
     {

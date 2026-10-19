@@ -10,18 +10,20 @@ namespace InventoryTools.Logic.Filters
 {
     public class AcquiredFilter : BooleanFilter
     {
-        private readonly IClientState _clientState;
+        // 取 ICharacterMonitor.LocalContentId：它在 CriticalCommonLib 裡是對 IPlayerState.ContentId 的純轉發屬性（同一個值，
+        // 沒有快取），本 repo 其他地方（RetainerListOverlay、CharacterDebuggerPane）也是這樣取值。
+        private readonly ICharacterMonitor _characterMonitor;
         private readonly InventoryToolsConfiguration _configuration;
         private readonly IGameInterface _gameInterface;
 
-        public AcquiredFilter(ILogger<AcquiredFilter> logger, ImGuiService imGuiService, IClientState clientState, InventoryToolsConfiguration configuration) : base(logger, imGuiService)
+        public AcquiredFilter(ILogger<AcquiredFilter> logger, ImGuiService imGuiService, ICharacterMonitor characterMonitor, InventoryToolsConfiguration configuration) : base(logger, imGuiService)
         {
-            _clientState = clientState;
+            _characterMonitor = characterMonitor;
             _configuration = configuration;
         }
         public override string Key { get; set; } = "Acquired";
-        public override string Name { get; set; } = "Is Acquired?";
-        public override string HelpText { get; set; } = "Has this item be acquired by your active character?";
+        public override string Name { get; set; } = "Is Acquired?".Loc();
+        public override string HelpText { get; set; } = "Has this item be acquired by your active character?".Loc();
         public override FilterCategory FilterCategory { get; set; } = FilterCategory.Acquisition;
 
         public override bool? FilterItem(FilterConfiguration configuration,InventoryItem item)
@@ -43,7 +45,7 @@ namespace InventoryTools.Logic.Filters
             }
 
             var isUnlocked = false;
-            if(this._configuration.AcquiredItems.TryGetValue(_clientState.LocalContentId, out var value))
+            if(this._configuration.AcquiredItems.TryGetValue(_characterMonitor.LocalContentId, out var value))
             {
                 if (value.Contains(item.RowId))
                 {

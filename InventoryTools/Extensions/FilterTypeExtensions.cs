@@ -8,13 +8,13 @@ public static class FilterTypeExtensions
     {
         return filterType switch
         {
-            FilterType.None => "None",
-            FilterType.SearchFilter => "Search List",
-            FilterType.SortingFilter => "Sort List",
-            FilterType.GameItemFilter => "Game Item List",
-            FilterType.CraftFilter => "Craft List",
-            FilterType.HistoryFilter => "History List",
-            FilterType.CuratedList => "Curated List",
+            FilterType.None => "None".Loc(),
+            FilterType.SearchFilter => "Search List".Loc(),
+            FilterType.SortingFilter => "Sort List".Loc(),
+            FilterType.GameItemFilter => "Game Item List".Loc(),
+            FilterType.CraftFilter => "Craft List".Loc(),
+            FilterType.HistoryFilter => "History List".Loc(),
+            FilterType.CuratedList => "Curated List".Loc(),
             _ => "Unknown"
         };
     }

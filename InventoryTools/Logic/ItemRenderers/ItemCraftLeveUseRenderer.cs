@@ -32,9 +32,9 @@ public class ItemCraftLeveUseRenderer : ItemInfoRenderer<ItemCraftLeveUse>
 
     public override RendererType RendererType => RendererType.Use;
     public override ItemInfoType Type => ItemInfoType.CraftLeve;
-    public override string SingularName => "Craft Leve";
-    public override string PluralName => "Craft Leves";
-    public override string HelpText => "Is this item required for a craft leve?";
+    public override string SingularName => "Craft Leve".Loc();
+    public override string PluralName => "Craft Leves".Loc();
+    public override string HelpText => "Is this item required for a craft leve?".Loc();
     public override bool ShouldGroup => true;
     public override IReadOnlyList<ItemInfoRenderCategory> Categories => [ItemInfoRenderCategory.Leve];
     public override Action<ItemSource> DrawTooltip => source =>
@@ -42,13 +42,13 @@ public class ItemCraftLeveUseRenderer : ItemInfoRenderer<ItemCraftLeveUse>
         var asSource = AsSource(source);
         var leveRow = asSource.Leve.Value;
 
-        ImGui.TextUnformatted("Leve: " + leveRow.Name.ExtractText());
-        ImGui.TextUnformatted("Class: " + leveRow.ClassJobCategory.Value.Name.ExtractText());
-        ImGui.TextUnformatted("EXP Reward: " + asSource.ExpReward);
-        ImGui.TextUnformatted("Allowance Cost: " + leveRow.AllowanceCost);
+        ImGui.TextUnformatted("Leve: ".Loc() + leveRow.Name.ExtractText());
+        ImGui.TextUnformatted("Class: ".Loc() + leveRow.ClassJobCategory.Value.Name.ExtractText());
+        ImGui.TextUnformatted("EXP Reward: ".Loc() + asSource.ExpReward);
+        ImGui.TextUnformatted("Allowance Cost: ".Loc() + leveRow.AllowanceCost);
         ImGui.Separator();
 
-        ImGui.TextUnformatted("Required Items: ");
+        ImGui.TextUnformatted("Required Items: ".Loc());
         using (ImRaii.PushIndent())
         {
             for (var index = 0; index < asSource.CraftLeve.Value.Item.Count; index++)
@@ -70,7 +70,7 @@ public class ItemCraftLeveUseRenderer : ItemInfoRenderer<ItemCraftLeveUse>
             }
         }
 
-        ImGui.TextUnformatted("Reward Items: ");
+        ImGui.TextUnformatted("Reward Items: ".Loc());
         using (ImRaii.PushIndent())
         {
             for (var itemGroupIndex = 0; itemGroupIndex < asSource.Leve.Value.LeveRewardItem.Value.LeveRewardItemGroup.Count; itemGroupIndex++)
@@ -80,7 +80,7 @@ public class ItemCraftLeveUseRenderer : ItemInfoRenderer<ItemCraftLeveUse>
                 {
                     continue;
                 }
-                ImGui.TextUnformatted("Loot Chance: " + asSource.Leve.Value.LeveRewardItem.Value.ProbabilityPercent[itemGroupIndex] + "%");
+                ImGui.TextUnformatted("Loot Chance: ".Loc() + asSource.Leve.Value.LeveRewardItem.Value.ProbabilityPercent[itemGroupIndex] + "%");
                 for (var index = 0; index < itemGroup.Value.Item.Count; index++)
                 {
                     var itemId = itemGroup.Value.Item[index].RowId;
@@ -125,6 +125,6 @@ public class ItemCraftLeveUseRenderer : ItemInfoRenderer<ItemCraftLeveUse>
         var asSource = AsSource(source);
         var leveRow = asSource.Leve.Value;
         return
-            $"{leveRow.Name.ExtractText()} ({leveRow.ClassJobCategory.Value.Name.ExtractText()}) ({leveRow.ExpReward} xp) ({leveRow.AllowanceCost} allowances)";
+            "?? (??) (?? xp) (?? allowances)".Loc(leveRow.Name.ExtractText(), leveRow.ClassJobCategory.Value.Name.ExtractText(), leveRow.ExpReward, leveRow.AllowanceCost);
     };
 }

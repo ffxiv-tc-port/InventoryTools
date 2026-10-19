@@ -188,7 +188,7 @@ public class MultiLineTextPopup : IPopup
 
         ImGui.Separator();
 
-        if (ImGui.Button("OK", new System.Numerics.Vector2(100, 0)))
+        if (ImGui.Button("OK".Loc(), new System.Numerics.Vector2(100, 0)))
         {
             _callback.Invoke((true, _text));
             Finalized?.Invoke(this);
@@ -197,7 +197,7 @@ public class MultiLineTextPopup : IPopup
 
         ImGui.SameLine();
 
-        if (ImGui.Button("Cancel", new System.Numerics.Vector2(100, 0)))
+        if (ImGui.Button("Cancel".Loc(), new System.Numerics.Vector2(100, 0)))
         {
             _callback.Invoke((false, _text));
             Finalized?.Invoke(this);
@@ -239,14 +239,14 @@ public class ConfirmPopup : IPopup
             _question + "\nThis operation cannot be undone!\n\n");
         ImGui.Separator();
 
-        if (ImGui.Button("OK", new Vector2(120, 0) * ImGui.GetIO().FontGlobalScale))
+        if (ImGui.Button("OK".Loc(), new Vector2(120, 0) * ImGui.GetIO().FontGlobalScale))
         {
             _callback?.Invoke(true);
             ImGui.CloseCurrentPopup();
             Finalized?.Invoke(this);
         }
         ImGui.SameLine();
-        if (ImGui.Button("Cancel", new Vector2(120, 0) * ImGui.GetIO().FontGlobalScale))
+        if (ImGui.Button("Cancel".Loc(), new Vector2(120, 0) * ImGui.GetIO().FontGlobalScale))
         {
             _callback?.Invoke(false);
             ImGui.CloseCurrentPopup();

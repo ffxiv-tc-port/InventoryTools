@@ -16,7 +16,8 @@ public class EquipmentSuggestService
     private readonly Lazy<EquipmentSuggestGrid> _equipmentSuggestGrid;
     private readonly EquipmentSuggestSourceTypeField _typeField;
     private readonly EquipmentSuggestModeSetting _modeSetting;
-    private readonly IClientState _clientState;
+    // LocalPlayer 取自 IObjectTable：IClientState.LocalPlayer 在 API13 已過時，Dalamud 端本來就是對它的純轉發。
+    private readonly IObjectTable _objectTable;
     private readonly EquipmentSuggestClassJobFormField _classJobField;
     private readonly ClassJobSheet _classJobSheet;
     private readonly ClassJobCategorySheet _classJobCategorySheet;
@@ -38,7 +39,7 @@ public class EquipmentSuggestService
 
     public EquipmentSuggestService(EquipmentSuggestLevelFormField levelField, EquipmentSuggestConfig config,
         Lazy<EquipmentSuggestGrid> equipmentSuggestGrid, EquipmentSuggestSourceTypeField typeField,
-        EquipmentSuggestModeSetting modeSetting, IClientState clientState,
+        EquipmentSuggestModeSetting modeSetting, IObjectTable objectTable,
         EquipmentSuggestClassJobFormField classJobField, ClassJobSheet classJobSheet,
         ClassJobCategorySheet classJobCategorySheet, InventoryToolsConfiguration configuration)
     {
@@ -47,7 +48,7 @@ public class EquipmentSuggestService
         _equipmentSuggestGrid = equipmentSuggestGrid;
         _typeField = typeField;
         _modeSetting = modeSetting;
-        _clientState = clientState;
+        _objectTable = objectTable;
         _classJobField = classJobField;
         _classJobSheet = classJobSheet;
         _classJobCategorySheet = classJobCategorySheet;
@@ -56,7 +57,7 @@ public class EquipmentSuggestService
 
     public void UseCurrentClassLevel()
     {
-        var activeCharacter = _clientState.LocalPlayer;
+        var activeCharacter = _objectTable.LocalPlayer;
         if (activeCharacter != null)
         {
             var currentMode = _modeSetting.CurrentValue(_configuration);

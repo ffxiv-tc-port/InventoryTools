@@ -64,14 +64,14 @@ public class CraftMarketPriceColumn : GilColumn
                         ImGui.SameLine();
                         ImGui.Image(ImGuiService.GetIconTexture(Icons.QuestionMarkIcon).Handle, new Vector2(16, 16));
                         ImGuiUtil.HoverTooltip(
-                            "The market price of this item is cheaper than buying it from a vendor and you prefer vendors over the current ingredient preference.");
+                            SharedText.MarketCheaperThanVendor.Loc());
                     }
                 }
             }
         }
         else
         {
-            ImGui.Text("N/A");
+            ImGui.Text("N/A".Loc());
         }
 
         var craftPrices = searchResult.CraftItem.CraftPrices;
@@ -91,18 +91,18 @@ public class CraftMarketPriceColumn : GilColumn
                             var world = _worldSheet.GetRowOrDefault(price.WorldId);
                             if (world != null)
                             {
-                                ImGui.Text(price.Left + " available at " + price.UnitPrice +
+                                ImGui.Text("?? available at ??".Loc(price.Left, price.UnitPrice) +
                                            (price.IsHq ? " (HQ)" : "") + " (" + world.Value.Name.ExtractText() + ")");
                             }
 
                             totalAvailable += price.Left;
                         }
 
-                        ImGui.Text("Available: " + totalAvailable);
+                        ImGui.Text("Available: ".Loc() + totalAvailable);
 
                         if (searchResult.CraftItem.MarketAvailable != searchResult.CraftItem.QuantityNeeded)
                         {
-                            ImGui.Text("Missing: " + (searchResult.CraftItem.QuantityNeeded - searchResult.CraftItem.MarketAvailable));
+                            ImGui.Text("Missing: ".Loc() + (searchResult.CraftItem.QuantityNeeded - searchResult.CraftItem.MarketAvailable));
                         }
                     }
                 }
@@ -112,9 +112,9 @@ public class CraftMarketPriceColumn : GilColumn
         return new List<MessageBase>();
     }
 
-    public override string Name { get; set; } = "Market Pricing";
+    public override string Name { get; set; } = "Market Pricing".Loc();
     public override float Width { get; set; } = 150;
-    public override string HelpText { get; set; } = "The current market pricing for the given item. ";
+    public override string HelpText { get; set; } = "The current market pricing for the given item. ".Loc();
 
     public override FilterType DefaultIn => Logic.FilterType.CraftFilter;
     public override FilterType AvailableIn => Logic.FilterType.CraftFilter;

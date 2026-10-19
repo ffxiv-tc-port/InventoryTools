@@ -12,8 +12,8 @@ namespace InventoryTools.Logic.Filters
     public class NameFilter : StringFilter
     {
         public override string Key { get; set; } = "Name";
-        public override string Name { get; set; } = "Name";
-        public override string HelpText { get; set; } = "Searches by the name of the item.";
+        public override string Name { get; set; } = "Name".Loc();
+        public override string HelpText { get; set; } = "Searches by the name of the item.".Loc();
 
         public override FilterCategory FilterCategory { get; set; } = FilterCategory.Basic;
 

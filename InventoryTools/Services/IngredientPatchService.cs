@@ -3,6 +3,7 @@ using System.Linq;
 using AllaganLib.GameSheets.Caches;
 using AllaganLib.GameSheets.Sheets;
 using AllaganLib.GameSheets.Sheets.Rows;
+using InventoryTools.Extensions;
 
 namespace InventoryTools.Services;
 
@@ -15,38 +16,60 @@ public class IngredientPatchService(ItemSheet itemSheet)
     private Dictionary<uint, decimal> CalculateHighestPatch()
     {
         Dictionary<uint, decimal> ingredientPatches = new();
+        Dictionary<uint, decimal?> highestBelow = new();
         foreach (var item in itemSheet)
         {
-            if (!item.HasUsesByType(ItemInfoType.CraftRecipe))
+            if (!item.HasAnyUseOfType(ItemInfoType.CraftRecipe))
             {
                 continue;
             }
 
-            AddToIngredientList(ingredientPatches, item, null);
+            var highest = HighestPatchBelow(highestBelow, item);
+            if (highest != null)
+            {
+                ingredientPatches[item.RowId] = highest.Value;
+            }
         }
         return ingredientPatches;
     }
-    private void AddToIngredientList(Dictionary<uint, decimal> patchDictionary, ItemRow baseItem, ItemRow? itemRow)
+
+    /// <summary>
+    /// Highest patch among everything crafted from <paramref name="item"/>, all the way down; null when nothing is.
+    /// Memoised per item: many materials share the same sub-trees, which a fresh walk per starting item revisited
+    /// once per path. Ties keep the first value met in recipe order, so the decimal's scale matches a full walk.
+    /// </summary>
+    private static decimal? HighestPatchBelow(Dictionary<uint, decimal?> highestBelow, ItemRow item)
     {
-        var actualItem = itemRow ?? baseItem;
-        if (!actualItem.HasUsesByType(ItemInfoType.CraftRecipe, ItemInfoType.FreeCompanyCraftRecipe))
+        if (highestBelow.TryGetValue(item.RowId, out var cached))
         {
-            return;
+            return cached;
         }
 
-        foreach (var requirement in actualItem.RecipesAsRequirement.Select(c => c.ItemResult))
+        decimal? highest = null;
+        if (item.HasAnyUseOfType(ItemInfoType.CraftRecipe, ItemInfoType.FreeCompanyCraftRecipe))
         {
-            if (requirement == null)
+            foreach (var recipe in item.RecipesAsRequirement)
             {
-                continue;
-            }
+                var result = recipe.ItemResult;
+                if (result == null)
+                {
+                    continue;
+                }
 
-            if (!patchDictionary.TryGetValue(baseItem.RowId, out var value) || value < requirement.Patch)
-            {
-                value = requirement.Patch;
-                patchDictionary[baseItem.RowId] = value;
+                if (highest == null || highest.Value < result.Patch)
+                {
+                    highest = result.Patch;
+                }
+
+                var below = HighestPatchBelow(highestBelow, result);
+                if (below != null && highest.Value < below.Value)
+                {
+                    highest = below;
+                }
             }
-            AddToIngredientList(patchDictionary, baseItem, requirement);
         }
+
+        highestBelow[item.RowId] = highest;
+        return highest;
     }
 }

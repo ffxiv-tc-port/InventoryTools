@@ -32,9 +32,9 @@ public class CraftBuyColumn : ButtonColumn
         _chatUtilities = chatUtilities;
         _teleporterService = teleporterService;
     }
-    public override string Name { get; set; } = "Buy Button";
+    public override string Name { get; set; } = "Buy Button".Loc();
     public override float Width { get; set; } = 80;
-    public override string HelpText { get; set; } = "A button/list to show you where you can buy an item";
+    public override string HelpText { get; set; } = "A button/list to show you where you can buy an item".Loc();
     public override List<MessageBase>? Draw(FilterConfiguration configuration, ColumnConfiguration columnConfiguration,
         SearchResult searchResult, int rowIndex, int columnIndex)
     {
@@ -113,7 +113,7 @@ public class CraftBuyColumn : ButtonColumn
             ImGui.TableNextColumn();
             if (ImGui.TableGetColumnFlags().HasFlag(ImGuiTableColumnFlags.IsEnabled))
             {
-                if (ImGui.Button("Teleport##" + tuple.shop.RowId + "_" + tuple.npc.RowId + "_" +
+                if (ImGui.Button("Teleport".Loc() + "##" + tuple.shop.RowId + "_" + tuple.npc.RowId + "_" +
                                  tuple.location.Map.RowId))
                 {
                     var nearestAetheryte = _teleporterService.GetNearestAetheryte(tuple.location);
@@ -140,7 +140,7 @@ public class CraftBuyColumn : ButtonColumn
         if (shops.Any())
         {
             ImGui.PushStyleVar(ImGuiStyleVar.FrameRounding, 0.0f);
-            if (ImGui.Button("Buy##Buy" + rowIndex))
+            if (ImGui.Button("Buy".Loc() + "##Buy" + rowIndex))
             {
                 var vendor = GetLocations(item).FirstOrDefault();
                 if (vendor.location != null)
@@ -156,7 +156,7 @@ public class CraftBuyColumn : ButtonColumn
                 else
                 {
                     var shopName = vendor.shop.Name;
-                    _chatUtilities.Print("No location available. Shop is called " + shopName);
+                    _chatUtilities.Print("No location available. Shop is called ".Loc() + shopName);
                 }
             }
 
@@ -178,7 +178,7 @@ public class CraftBuyColumn : ButtonColumn
                                 {
                                     DrawSupplierRow(item, tuple, messages);
                                 }, ImGuiTableFlags.None,
-                                new[] { "Shop Name", "NPC", "Location", "" });
+                                new[] { "Shop Name".Loc(), "NPC".Loc(), "Location".Loc(), "" });
                         }
                     }
                 }

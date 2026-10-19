@@ -37,11 +37,11 @@ namespace InventoryTools.Ui.Pages
 
         }
 
-        public override string Name { get; } =  "Import/Export";
+        public override string Name { get; } =  "Import/Export".Loc();
         public override List<MessageBase>? Draw()
         {
             ImGui.PushID("ImportSection");
-            if (ImGui.CollapsingHeader("Export", ImGuiTreeNodeFlags.DefaultOpen | ImGuiTreeNodeFlags.CollapsingHeader))
+            if (ImGui.CollapsingHeader("Export".Loc(), ImGuiTreeNodeFlags.DefaultOpen | ImGuiTreeNodeFlags.CollapsingHeader))
             {
                 var filterConfigurations = _listService.Lists;
                 ImGui.PushStyleVar(ImGuiStyleVar.CellPadding, new Vector2(5, 5) * ImGui.GetIO().FontGlobalScale);
@@ -54,15 +54,15 @@ namespace InventoryTools.Ui.Pages
                 {
                     if (table)
                     {
-                        ImGui.TableSetupColumn("Name", ImGuiTableColumnFlags.WidthStretch, 100.0f, (uint)0);
-                        ImGui.TableSetupColumn("Type", ImGuiTableColumnFlags.WidthStretch, 100.0f, (uint)1);
+                        ImGui.TableSetupColumn("Name".Loc(), ImGuiTableColumnFlags.WidthStretch, 100.0f, (uint)0);
+                        ImGui.TableSetupColumn("Type".Loc(), ImGuiTableColumnFlags.WidthStretch, 100.0f, (uint)1);
                         ImGui.TableSetupColumn("", ImGuiTableColumnFlags.WidthStretch, 100.0f, (uint)2);
                         ImGui.TableHeadersRow();
                         if (filterConfigurations.Count == 0)
                         {
                             ImGui.TableNextRow();
                             ImGui.TableNextColumn();
-                            ImGui.TextUnformatted("No lists created yet!");
+                            ImGui.TextUnformatted("No lists created yet!".Loc());
                             ImGui.TableNextColumn();
                             ImGui.TableNextColumn();
                         }
@@ -92,7 +92,7 @@ namespace InventoryTools.Ui.Pages
                             {
                                 var base64 = _importExportService.ToBase64(filterConfiguration);
                                 _clipboardService.CopyToClipboard(base64);
-                                _chatUtilities.PrintClipboardMessage("[Export] ", "Filter Configuration");
+                                _chatUtilities.PrintClipboardMessage("[Export] ".Loc(), "Filter Configuration".Loc());
                             }
                         }
                     }
@@ -101,7 +101,7 @@ namespace InventoryTools.Ui.Pages
                 ImGui.PopStyleVar();
             }
 
-            if (ImGui.CollapsingHeader("Import", ImGuiTreeNodeFlags.DefaultOpen | ImGuiTreeNodeFlags.CollapsingHeader))
+            if (ImGui.CollapsingHeader("Import".Loc(), ImGuiTreeNodeFlags.DefaultOpen | ImGuiTreeNodeFlags.CollapsingHeader))
             {
                 var importData = ImportData;
                 if (ImGui.InputTextMultiline("Paste list here",ref importData, 10000, new Vector2(400, 200) * ImGui.GetIO().FontGlobalScale))
@@ -110,7 +110,7 @@ namespace InventoryTools.Ui.Pages
                     ImportFailed = false;
                 }
 
-                if (ImGui.Button("Import##ImportBtn"))
+                if (ImGui.Button("Import".Loc() + "##ImportBtn"))
                 {
                     if (ImportData == "")
                     {

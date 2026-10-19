@@ -1,4 +1,4 @@
-﻿using InventoryTools.Logic.Settings.Abstract;
+using InventoryTools.Logic.Settings.Abstract;
 using InventoryTools.Services;
 using Microsoft.Extensions.Logging;
 
@@ -18,7 +18,7 @@ public class EnableTetrisSetting : BooleanSetting
     }
 
     public override string Key { get; set; } = "TetrisEnabled";
-    public override string Name { get; set; } = "Enable Tetris?";
+    public override string Name { get; set; } = "Enable Tetris?".Loc();
 
     public override string HelpText { get; set; } =
         "Should tetris be enabled? If enabled a new 'Tetris' option will show up in the hamburger menus in the plugin.";

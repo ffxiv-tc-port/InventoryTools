@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Net;
 using System.Net.Http;
 using System.Reflection;
 using AllaganLib.Data.Service;
@@ -87,6 +88,15 @@ namespace InventoryTools
             Stopwatch loadConfigStopwatch = new Stopwatch();
             loadConfigStopwatch.Start();
             pluginLog.Verbose("Starting Allagan Tools.");
+            Localization.Init(pluginInterface.AssemblyLocation.DirectoryName);
+            if (Localization.LoadError != null)
+            {
+                pluginLog.Warning("Localization: " + Localization.LoadError);
+            }
+            else
+            {
+                pluginLog.Information($"Localization: loaded {Localization.EntryCount} entries.");
+            }
             _pluginLog = pluginLog;
             _framework = framework;
             PluginInterface = pluginInterface;
@@ -112,7 +122,37 @@ namespace InventoryTools
             var dataAccess = Assembly.GetExecutingAssembly();
             var cclAssembly = typeof(CriticalCommonLib.Services.ICharacterMonitor).Assembly;
 
-            builder.Register(c => new HttpClient()).As<HttpClient>();
+            // universalis 的批次查價回應很大(台服世界一次 50 筆是 223 KB 未壓縮 / 約 28 KB gzip),
+            // 所以這個 HttpClient 要自動解壓:裸 HttpClient 不帶 Accept-Encoding,每一批都整包未壓縮下載。
+            // (HostedUniversalis 是這個容器裡唯一注入 HttpClient 的地方。)
+            builder.Register(c => new HttpClient(new HttpClientHandler
+            {
+                AutomaticDecompression = DecompressionMethods.All,
+            })).As<HttpClient>();
+
+            // API13：IClientState.LocalContentId 過時，替代品 IPlayerState.ContentId。
+            // CriticalCommonLib 需要 IPlayerState，但 DalaMock 的 HostedPlugin 沒有把它註冊進容器
+            // （見 PlayerStateProvider 的說明），因此在這裡透過 PluginInterface.Create 取得後補註冊。
+            // Mock 模式下取不到屬預期（CharacterMonitor 被 mock 取代，不會解析 IPlayerState）。
+            if (PluginInterface != null)
+            {
+                try
+                {
+                    var playerStateProvider = PluginInterface.Create<PlayerStateProvider>();
+                    if (playerStateProvider?.PlayerState != null)
+                    {
+                        builder.RegisterInstance(playerStateProvider.PlayerState).As<IPlayerState>();
+                    }
+                    else
+                    {
+                        _pluginLog.Warning("IPlayerState 無法取得，CriticalCommonLib 的 IPlayerState 相依將無法解析（Mock 模式屬預期）。");
+                    }
+                }
+                catch (Exception ex)
+                {
+                    _pluginLog.Warning(ex, "註冊 IPlayerState 時發生例外（Mock 模式屬預期）。");
+                }
+            }
 
             //Register all classes that are singletons and implement a particular interface/class
             builder.RegisterSingletonsSelfAndInterfaces<IHotkey>(dataAccess);
@@ -174,6 +214,10 @@ namespace InventoryTools
             this.RegisterHostedService(typeof(ShopMonitorService));
             this.RegisterHostedService(typeof(AcquisitionMonitorService));
 
+            // 以介面 IShopMonitorService 注入的地方（AcquisitionMonitorService 每幀一次）改拿快取層；
+            // 裝飾器與註冊順序無關，上面登記的實作在最後才真正註冊也一樣套得上。
+            builder.RegisterDecorator<CachedShopMonitorService, AllaganLib.Monitors.Interfaces.IShopMonitorService>();
+
             //AllaganLib modules
             builder.RegisterModule(new GameSheetManagerModule());
             builder.RegisterModule(new GameDataModule());
@@ -189,6 +233,8 @@ namespace InventoryTools
             builder.RegisterSingletonSelfAndInterfaces<AllaganDebugWindow>();
             builder.RegisterSingletonSelfAndInterfaces<ChangelogService>();
             builder.RegisterSingletonSelfAndInterfaces<CharacterMonitor>();
+            builder.RegisterSingletonSelfAndInterfaces<CharacterLocalizer>();
+            builder.RegisterSingletonSelfAndInterfaces<CofferContentLocalizer>();
             builder.RegisterSingletonSelfAndInterfaces<CharacterRetainerPage>();
             builder.RegisterSingletonSelfAndInterfaces<CharacterScopeCalculator>();
             builder.RegisterSingletonSelfAndInterfaces<ChatUtilities>();
@@ -234,12 +280,24 @@ namespace InventoryTools
             builder.RegisterSingletonSelfAndInterfaces<PluginCommands>();
             builder.RegisterSingletonSelfAndInterfaces<PopupService>();
             builder.RegisterSingletonSelfAndInterfaces<QuestManagerService>();
-            builder.RegisterSingletonSelfAndInterfaces<SeTime>();
+            //取代 AllaganLib 的 SeTime：位址解不出時退回本機時鐘，不讓插件載入失敗。
+            builder.RegisterSingletonSelfAndInterfaces<SeTimeService>();
             builder.RegisterSingletonSelfAndInterfaces<ShopHighlighting>();
             builder.RegisterSingletonSelfAndInterfaces<TeleporterIpc>();
             builder.RegisterSingletonSelfAndInterfaces<TooltipService>();
             builder.RegisterSingletonSelfAndInterfaces<TryOn>();
             builder.RegisterSingletonSelfAndInterfaces<UnlockTrackerService>();
+            //universalis 的逐世界可用性判定(CriticalCommonLib)。沒有實作任何介面,所以直接 AsSelf。
+            builder.RegisterType<UniversalisAvailability>().AsSelf().SingleInstance();
+            //TataruPraise 橋接、背包空間提醒與它讀的自動化狀態。三者都沒有實作任何介面,所以直接 AsSelf。
+            builder.RegisterType<TataruPraiseIpc>().AsSelf().SingleInstance();
+            builder.RegisterType<AutomationActivityIpc>().AsSelf().SingleInstance();
+            builder.RegisterType<BagSpacePraiseService>().AsSelf().SingleInstance();
+            //製作清單「哪裡買」用的兩座橋（ItemVendorLocation 查商人、Lifestream 帶人過去）與它們的查詢快取。
+            //三者都沒有實作任何介面,所以直接 AsSelf。兩座橋在對方沒安裝時全都是安靜的 no-op。
+            builder.RegisterType<ItemVendorLocationIpc>().AsSelf().SingleInstance();
+            builder.RegisterType<LifestreamIpc>().AsSelf().SingleInstance();
+            builder.RegisterType<VendorLookupService>().AsSelf().SingleInstance();
             builder.RegisterSingletonSelfAndInterfaces<VersionInfo>();
             builder.RegisterSingletonSelfAndInterfaces<WindowSystemFactory>();
             builder.RegisterSingletonSelfAndInterfaces<CsvLoaderService>();

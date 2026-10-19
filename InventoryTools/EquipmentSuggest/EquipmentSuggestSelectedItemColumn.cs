@@ -71,7 +71,7 @@ public class EquipmentSuggestSelectedItemColumn  : StringFormField<EquipmentSugg
             var containerSize = _viewModeSetting.GetIconContainerSize(_configuration);
             if (item.SelectedItem == null)
             {
-                ImGui.Text("No item selected");
+                ImGui.Text("No item selected".Loc());
             }
             else
             {
@@ -228,7 +228,7 @@ public class EquipmentSuggestSelectedItemColumn  : StringFormField<EquipmentSugg
                         c.FilterType == Logic.FilterType.CraftFilter && !c.CraftListDefault).ToArray();
                 if (craftFilters.Length != 0)
                 {
-                    using var menu = ImRaii.Menu("Add to Craft List");
+                    using var menu = ImRaii.Menu("Add to Craft List".Loc());
                     if(menu)
                     {
                         foreach (var filter in craftFilters)
@@ -250,7 +250,7 @@ public class EquipmentSuggestSelectedItemColumn  : StringFormField<EquipmentSugg
                     }
                 }
 
-                if (ImGui.Selectable("Add to new Craft List"))
+                if (ImGui.Selectable("Add to new Craft List".Loc()))
                 {
                     Task.Run(() =>
                     {
@@ -265,7 +265,7 @@ public class EquipmentSuggestSelectedItemColumn  : StringFormField<EquipmentSugg
                         filter.NeedsRefresh = true;
                     });
                 }
-                if (ImGui.Selectable("Add to new Craft List (ephemeral)"))
+                if (ImGui.Selectable("Add to new Craft List (ephemeral)".Loc()))
                 {
                     Task.Run(() =>
                     {
@@ -285,7 +285,7 @@ public class EquipmentSuggestSelectedItemColumn  : StringFormField<EquipmentSugg
                     _listService.Lists.Where(c => c.FilterType == FilterType.CuratedList).ToArray();
                 if (curatedLists.Length != 0)
                 {
-                    using var menu = ImRaii.Menu("Add to Curated List");
+                    using var menu = ImRaii.Menu("Add to Curated List".Loc());
                     if(menu)
                     {
                         foreach (var filter in curatedLists)
@@ -305,7 +305,7 @@ public class EquipmentSuggestSelectedItemColumn  : StringFormField<EquipmentSugg
                     }
                 }
 
-                if (ImGui.Selectable("Add to new Curated List"))
+                if (ImGui.Selectable("Add to new Curated List".Loc()))
                 {
                     Task.Run(() =>
                     {
@@ -345,7 +345,7 @@ public class EquipmentSuggestSelectedItemColumn  : StringFormField<EquipmentSugg
         return "";
     }
 
-    public override string HelpText { get; set; } = "The item you've selected from the list of recommendations";
+    public override string HelpText { get; set; } = SharedText.EquipmentSuggestSelectedItem.Loc();
     public override string Version { get; } = "1.12.0.10";
 
     public string? CurrentValue(EquipmentSuggestItem item)

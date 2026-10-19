@@ -29,7 +29,7 @@ public class CraftOutputOrderingFilter : ChoiceFilter<OutputOrderingSetting>
     }
 
     public override string Key { get; set; } = "CraftOutputOrderingFilter";
-    public override string Name { get; set; } = "Output Ordering";
+    public override string Name { get; set; } = "Output Ordering".Loc();
 
     public override string HelpText { get; set; } =
         "Should the list of output items be ordered in a specific way?";

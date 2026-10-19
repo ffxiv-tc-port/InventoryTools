@@ -49,8 +49,8 @@ public class ItemAnimaShopSourceRenderer : ItemInfoRenderer<ItemAnimaShopSource>
 
     public override RendererType RendererType => RendererType.Source;
     public override ItemInfoType Type => ItemInfoType.AnimaShop;
-    public override string SingularName => "Anima Shop";
-    public override string PluralName => "Anima Shops";
+    public override string SingularName => "Anima Shop".Loc();
+    public override string PluralName => "Anima Shops".Loc();
     public override string HelpText => "Can the item be purchased from a anima currency shop?";
     public override bool ShouldGroup => true;
 
@@ -68,7 +68,7 @@ public class ItemAnimaShopSourceRenderer : ItemInfoRenderer<ItemAnimaShopSource>
 
         ImGui.Text($"Shop: {asSource.Shop.Name}");
 
-        ImGui.Text("Rewards:");
+        ImGui.Text("Rewards:".Loc());
         using (ImRaii.PushIndent())
         {
             foreach (var reward in asSource.ShopListing.Rewards)
@@ -87,7 +87,7 @@ public class ItemAnimaShopSourceRenderer : ItemInfoRenderer<ItemAnimaShopSource>
                 }
             }
         }
-        ImGui.Text("Costs:");
+        ImGui.Text("Costs:".Loc());
         using (ImRaii.PushIndent())
         {
             foreach (var cost in asSource.ShopListing.Costs)

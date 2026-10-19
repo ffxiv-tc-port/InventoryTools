@@ -1,0 +1,102 @@
+# 2026-08-24 repo 重建後 touch：dispatch-only workflow 不會自動重新註冊，需一個觸及本檔的 commit
+name: Release
+
+on:
+  workflow_dispatch:
+permissions:
+  contents: write
+
+env:
+  INTERNAL_NAME: InventoryTools
+  CONFIGURATION: Release
+  DOTNET_CLI_TELEMETRY_OPTOUT: true
+
+jobs:
+  release:
+    runs-on: [self-hosted, Windows, X64]
+    steps:
+      - name: 取 App token（runner 本機私鑰，private 子模組 checkout 用）
+        id: app
+        shell: pwsh
+        run: |
+          $keyPath = 'D:\ffxiv-tc-port\tctoolbox-app.pem'
+          if (-not (Test-Path -LiteralPath $keyPath)) { throw "App private key not found on this runner: $keyPath" }
+          function B64Url([byte[]]$b) { [Convert]::ToBase64String($b).TrimEnd('=').Replace('+', '-').Replace('/', '_') }
+          $now = [DateTimeOffset]::UtcNow.ToUnixTimeSeconds()
+          $hdr = B64Url ([Text.Encoding]::UTF8.GetBytes('{"alg":"RS256","typ":"JWT"}'))
+          $pl = B64Url ([Text.Encoding]::UTF8.GetBytes('{"iat":' + ($now - 60) + ',"exp":' + ($now + 540) + ',"iss":"4448133"}'))
+          $rsa = [System.Security.Cryptography.RSA]::Create()
+          $rsa.ImportFromPem((Get-Content -LiteralPath $keyPath -Raw))
+          $sig = $rsa.SignData([Text.Encoding]::UTF8.GetBytes("$hdr.$pl"), [System.Security.Cryptography.HashAlgorithmName]::SHA256, [System.Security.Cryptography.RSASignaturePadding]::Pkcs1)
+          $h = @{ Authorization = "Bearer $hdr.$pl.$(B64Url $sig)"; Accept = 'application/vnd.github+json'; 'X-GitHub-Api-Version' = '2022-11-28' }
+          $inst = @(Invoke-RestMethod -Headers $h -Uri 'https://api.github.com/app/installations') | Where-Object { $_.account.login -eq 'ffxiv-tc-port' }
+          if (-not $inst) { throw 'App 4448133 has no installation on org ffxiv-tc-port' }
+          $tok = (Invoke-RestMethod -Method Post -Headers $h -Uri "https://api.github.com/app/installations/$($inst[0].id)/access_tokens").token
+          if (-not $tok) { throw 'installation access token is empty' }
+          Write-Host "::add-mask::$tok"
+          "token=$tok" >> $env:GITHUB_OUTPUT
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+          token: ${{ steps.app.outputs.token }}
+      - name: Setup MSBuild
+        uses: microsoft/setup-msbuild@v1.1.3
+      - name: Download Dalamud
+        run: |
+          $pin = 'D:\ffxiv-tc-port\dalamud-pins\dalamud-pin-v13.0.0.17\dalamud-api13-net9.zip'
+          if (-not (Test-Path -LiteralPath $pin)) { throw "pinned Dalamud not found on this runner: $pin" }
+          Copy-Item -LiteralPath $pin -Destination latest.zip
+          Expand-Archive -Force latest.zip "$env:RUNNER_TEMP\dalamud-pinned\"
+      - name: Get version
+        id: version
+        shell: bash
+        run: echo "version=${GITHUB_REF_NAME#v}" >> "$GITHUB_OUTPUT"
+      - name: Restore
+        run: dotnet restore InventoryTools
+      - name: Build
+        run: >
+          dotnet build -c ${{ env.CONFIGURATION }} --no-restore -p:DalamudLibPath="$env:RUNNER_TEMP\dalamud-pinned\"
+          -p:Version=${{ steps.version.outputs.version }}
+          -p:AssemblyVersion=${{ steps.version.outputs.version }}
+          -p:FileVersion=${{ steps.version.outputs.version }}
+          ${{ env.INTERNAL_NAME }}
+      - name: 移除發佈檔裡的重複安裝包與其他平台原生檔
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $outDir = 'InventoryTools/bin/${{ env.CONFIGURATION }}'
+          $asmName = '${{ env.INTERNAL_NAME }}'
+
+          # DalamudPackager 已經在 $outDir/$asmName/latest.zip 打包過一份完整內容，
+          # 下面的 Archive 步驟又把整個 $outDir 再包一次，導致同樣的內容被打包兩次。
+          # Dalamud 更新走的是 Archive 步驟產出的頂層 zip，這份巢狀 zip 使用者用不到。
+          $nestedZip = Join-Path $outDir "$asmName/latest.zip"
+          if (Test-Path -LiteralPath $nestedZip) {
+              Remove-Item -LiteralPath $nestedZip -Force
+              $nestedDir = Join-Path $outDir $asmName
+              if ((Get-ChildItem -LiteralPath $nestedDir -Force | Measure-Object).Count -eq 0) {
+                  Remove-Item -LiteralPath $nestedDir -Force
+              }
+          }
+
+          # SQLitePCLRaw 等套件的 nuget 包會把所有平台的原生函式庫一起帶進輸出目錄，
+          # 但這支外掛只在 Windows x64 的 Dalamud 上執行，其他平台的原生檔用不到。
+          # 只留 win／win-x64（沒有就跳過；不點名其他資料夾一律刪，避免漏掉某個平台變體）。
+          $runtimesDir = Join-Path $outDir 'runtimes'
+          if (Test-Path -LiteralPath $runtimesDir) {
+              Get-ChildItem -LiteralPath $runtimesDir -Directory |
+                  Where-Object { $_.Name -notin @('win', 'win-x64') } |
+                  Remove-Item -Recurse -Force
+          }
+      - name: Zip artifact
+        shell: pwsh
+        run: Compress-Archive -Path "InventoryTools\bin\${{ env.CONFIGURATION }}\*" -DestinationPath "${{ env.INTERNAL_NAME }}.zip"
+      - name: Create release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            ${{ env.INTERNAL_NAME }}.zip
+            InventoryTools\bin\${{ env.CONFIGURATION }}\${{ env.INTERNAL_NAME }}.json
+
+# 2026-08-16: repo 重建後 workflow_dispatch-only workflow 未被 Actions 重新註冊,touch 本檔強制重掃

@@ -39,11 +39,11 @@ public class DefaultFilterRetainers : ISampleFilter
         return allItemsFilter;
     }
 
-    public string Name => "Retainers";
+    public string Name => "Retainers".Loc();
     public string SampleDefaultName => "Retainers";
 
     public string SampleDescription =>
-        "This will add a list that will be preconfigured to show items across all retainer inventories.";
+        "This will add a list that will be preconfigured to show items across all retainer inventories.".Loc();
 
     public SampleFilterType SampleFilterType => SampleFilterType.Default;
 }

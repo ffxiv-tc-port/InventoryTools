@@ -24,9 +24,9 @@ public class ItemAirshipDropSourceRenderer : ItemInfoRenderer<ItemAirshipDropSou
 
     public override RendererType RendererType => RendererType.Source;
     public override ItemInfoType Type => ItemInfoType.Airship;
-    public override string SingularName => "Airship Exploration";
+    public override string SingularName => "Airship Exploration".Loc();
     public override bool ShouldGroup => true;
-    public override string HelpText => "Can the item be earned from a airship exploration route?";
+    public override string HelpText => "Can the item be earned from a airship exploration route?".Loc();
 
     public override Func<ItemSource, List<MessageBase>?>? OnClick => source =>
     {

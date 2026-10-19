@@ -71,6 +71,7 @@ namespace InventoryTools.Ui
         private readonly IKeyState _keyState;
         private readonly ItemSheet _itemSheet;
         private readonly IFramework _framework;
+        private readonly VendorLookupService _vendorLookupService;
         private IEnumerable<IMenuWindow> _menuWindows;
         private ThrottleDispatcher _throttleDispatcher;
 
@@ -100,7 +101,8 @@ namespace InventoryTools.Ui
             IClipboardService clipboardService,
             IKeyState keyState,
             ItemSheet itemSheet,
-            IFramework framework) : base(logger, mediator, imGuiService, configuration, "Crafts Window")
+            IFramework framework,
+            VendorLookupService vendorLookupService) : base(logger, mediator, imGuiService, configuration, "Crafts Window".Loc())
         {
             _tableService = tableService;
             _configuration = configuration;
@@ -126,31 +128,32 @@ namespace InventoryTools.Ui
             _keyState = keyState;
             _itemSheet = itemSheet;
             _framework = framework;
+            _vendorLookupService = vendorLookupService;
             Flags = ImGuiWindowFlags.MenuBar;
         }
         public override void Initialize()
         {
-            WindowName = "Crafts";
+            WindowName = "Crafts".Loc();
             Key = "crafts";
             _throttleDispatcher = new ThrottleDispatcher(5000, true);
             _splitter = new(_configuration.CraftWindowSplitterPosition, new(100, 100), true);
             _settingsMenu = new PopupMenu("configMenu", PopupMenu.PopupMenuButtons.All,
                 new List<PopupMenu.IPopupMenuItem>()
                 {
-                    new PopupMenu.PopupMenuItemSelectable("Mob Window", "mobs", OpenMobsWindow,
-                        "Open the mobs window."),
-                    new PopupMenu.PopupMenuItemSelectable("Npcs Window", "npcs", OpenNpcsWindow,
-                        "Open the npcs window."),
-                    new PopupMenu.PopupMenuItemSelectable("Duties Window", "duties", OpenDutiesWindow,
-                        "Open the duties window."),
-                    new PopupMenu.PopupMenuItemSelectable("Airships Window", "airships", OpenAirshipsWindow,
-                        "Open the airships window."),
-                    new PopupMenu.PopupMenuItemSelectable("Submarines Window", "submarines", OpenSubmarinesWindow,
-                        "Open the submarines window."),
-                    new PopupMenu.PopupMenuItemSelectable("Retainer Ventures Window", "ventures",
-                        OpenRetainerVenturesWindow, "Open the retainer ventures window."),
+                    new PopupMenu.PopupMenuItemSelectable("Mob Window".Loc(), "mobs", OpenMobsWindow,
+                        "Open the mobs window.".Loc()),
+                    new PopupMenu.PopupMenuItemSelectable("Npcs Window".Loc(), "npcs", OpenNpcsWindow,
+                        "Open the npcs window.".Loc()),
+                    new PopupMenu.PopupMenuItemSelectable("Duties Window".Loc(), "duties", OpenDutiesWindow,
+                        "Open the duties window.".Loc()),
+                    new PopupMenu.PopupMenuItemSelectable("Airships Window".Loc(), "airships", OpenAirshipsWindow,
+                        "Open the airships window.".Loc()),
+                    new PopupMenu.PopupMenuItemSelectable("Submarines Window".Loc(), "submarines", OpenSubmarinesWindow,
+                        "Open the submarines window.".Loc()),
+                    new PopupMenu.PopupMenuItemSelectable("Retainer Ventures Window".Loc(), "ventures",
+                        OpenRetainerVenturesWindow, "Open the retainer ventures window.".Loc()),
                     new PopupMenu.PopupMenuItemSeparator(),
-                    new PopupMenu.PopupMenuItemSelectable("Help", "help", OpenHelpWindow, "Open the help window."),
+                    new PopupMenu.PopupMenuItemSelectable("Help".Loc(), "help", OpenHelpWindow, "Open the help window.".Loc()),
                 });
             _menuWindows = _context.Resolve<IEnumerable<IMenuWindow>>().OrderBy(c => c.GenericName).Where(c => c.GetType() != this.GetType());
             MediatorService.Subscribe<ListInvalidatedMessage>(this, _ => Invalidate());
@@ -176,8 +179,8 @@ namespace InventoryTools.Ui
             {
                 foreach (var item in data.listData)
                 {
-                    bool isHq = item.Item1 > 1000000;
-                    var itemId = item.Item1 % 500000;
+                    bool isHq = item.Item1 >= ListImportExportService.HqItemIdOffset;
+                    var itemId = item.Item1 % ListImportExportService.HqItemIdOffset;
                     SelectedConfiguration.CraftList.AddCraftItem(itemId, item.Item2, isHq ? InventoryItem.ItemFlags.HighQuality : InventoryItem.ItemFlags.None);
                 }
                 SelectedConfiguration.NeedsRefresh = true;
@@ -191,7 +194,7 @@ namespace InventoryTools.Ui
         public override Vector2? MaxSize => new Vector2(5000, 5000);
         public override Vector2? MinSize => new Vector2(300, 300);
         public override string GenericKey => "crafts";
-        public override string GenericName => "Crafts";
+        public override string GenericName => "Crafts".Loc();
         public override bool DestroyOnClose => false;
         private int _selectedFilterTab;
         private bool _addItemBarOpen;
@@ -276,11 +279,11 @@ namespace InventoryTools.Ui
                 _popupMenus[configuration] = new Widgets.PopupMenu("fm" + configuration.Key, Widgets.PopupMenu.PopupMenuButtons.Right,
                     new List<Widgets.PopupMenu.IPopupMenuItem>()
                     {
-                        new Widgets.PopupMenu.PopupMenuItemSelectable("Edit", "ef_" + configuration.Key, EditFilter, "Edit the craft list."),
-                        new Widgets.PopupMenu.PopupMenuItemSelectableAskName("Duplicate", "df_" + configuration.Key, configuration.Name, DuplicateFilter, "Duplicate the craft list."),
-                        new Widgets.PopupMenu.PopupMenuItemSelectable(layout == WindowLayout.Tabs ? "Move Left" : "Move Up", "mu_" + configuration.Key, MoveFilterUp, layout == WindowLayout.Tabs ? "Move the craft list left." : "Move the craft list up."),
-                        new Widgets.PopupMenu.PopupMenuItemSelectable(layout == WindowLayout.Tabs ? "Move Right" : "Move Down", "md_" + configuration.Key, MoveFilterDown, layout == WindowLayout.Tabs ? "Move the craft list right." : "Move the craft list down."),
-                        new Widgets.PopupMenu.PopupMenuItemSelectableConfirm("Remove", "rf_" + configuration.Key, "Are you sure you want to remove this craft list?", RemoveFilter, "Remove the craft list."),
+                        new Widgets.PopupMenu.PopupMenuItemSelectable("Edit".Loc(), "ef_" + configuration.Key, EditFilter, "Edit the craft list.".Loc()),
+                        new Widgets.PopupMenu.PopupMenuItemSelectableAskName("Duplicate".Loc(), "df_" + configuration.Key, configuration.Name, DuplicateFilter, "Duplicate the craft list.".Loc()),
+                        new Widgets.PopupMenu.PopupMenuItemSelectable(layout == WindowLayout.Tabs ? "Move Left".Loc() : "Move Up".Loc(), "mu_" + configuration.Key, MoveFilterUp, layout == WindowLayout.Tabs ? "Move the craft list left.".Loc() : "Move the craft list up.".Loc()),
+                        new Widgets.PopupMenu.PopupMenuItemSelectable(layout == WindowLayout.Tabs ? "Move Right".Loc() : "Move Down".Loc(), "md_" + configuration.Key, MoveFilterDown, layout == WindowLayout.Tabs ? "Move the craft list right.".Loc() : "Move the craft list down.".Loc()),
+                        new Widgets.PopupMenu.PopupMenuItemSelectableConfirm("Remove".Loc(), "rf_" + configuration.Key, "Are you sure you want to remove this craft list?".Loc(), RemoveFilter, "Remove the craft list.".Loc()),
                     }
                 );
             }
@@ -406,36 +409,36 @@ namespace InventoryTools.Ui
             {
                 if (menuBar)
                 {
-                    using (var menu = ImRaii.Menu("File"))
+                    using (var menu = ImRaii.Menu("File".Loc()))
                     {
                         if (menu)
                         {
-                            if (ImGui.MenuItem("Configuration"))
+                            if (ImGui.MenuItem("Configuration".Loc()))
                             {
                                 this.MediatorService.Publish(new OpenGenericWindowMessage(typeof(ConfigurationWindow)));
                             }
 
-                            if (ImGui.MenuItem("Changelog"))
+                            if (ImGui.MenuItem("Changelog".Loc()))
                             {
                                 this.MediatorService.Publish(new OpenGenericWindowMessage(typeof(ChangelogWindow)));
                             }
 
-                            if (ImGui.MenuItem("Help"))
+                            if (ImGui.MenuItem("Help".Loc()))
                             {
                                 this.MediatorService.Publish(new OpenGenericWindowMessage(typeof(HelpWindow)));
                             }
 
-                            if (ImGui.MenuItem("Report a Issue"))
+                            if (ImGui.MenuItem("Report a Issue".Loc()))
                             {
                                 "https://github.com/Critical-Impact/InventoryTools".OpenBrowser();
                             }
 
-                            if (ImGui.MenuItem("Ko-Fi"))
+                            if (ImGui.MenuItem("Ko-Fi".Loc()))
                             {
                                 "https://ko-fi.com/critical_impact".OpenBrowser();
                             }
 
-                            if (ImGui.MenuItem("Close"))
+                            if (ImGui.MenuItem("Close".Loc()))
                             {
                                 this.IsOpen = false;
                             }
@@ -444,22 +447,22 @@ namespace InventoryTools.Ui
 
                     if (this.SelectedConfiguration != null)
                     {
-                        using(var editMenu = ImRaii.Menu("Edit"))
+                        using(var editMenu = ImRaii.Menu("Edit".Loc()))
                         {
                             if (editMenu)
                             {
-                                if (ImGui.MenuItem("Clear Search"))
+                                if (ImGui.MenuItem("Clear Search".Loc()))
                                 {
                                     _tableService.GetListTable(SelectedConfiguration).ClearFilters();
                                 }
 
                                 ImGui.Separator();
 
-                                using (var menu = ImRaii.Menu("Copy List Contents"))
+                                using (var menu = ImRaii.Menu("Copy List Contents".Loc()))
                                 {
                                     if (menu)
                                     {
-                                        if (ImGui.MenuItem("Craft List (All)"))
+                                        if (ImGui.MenuItem("Craft List (All)".Loc()))
                                         {
                                             var searchResults = SelectedConfiguration.CraftList
                                                 .GetFlattenedMergedMaterials()
@@ -467,10 +470,10 @@ namespace InventoryTools.Ui
                                             var tcString = _importExportService.ToTCString(searchResults);
                                             _clipboardService.CopyToClipboard(tcString);
                                             _chatUtilities.Print(
-                                                "The craft list's contents were copied to your clipboard.");
+                                                SharedText.CraftListContentsCopied.Loc());
                                         }
 
-                                        if (ImGui.MenuItem("Craft List (Outputs)"))
+                                        if (ImGui.MenuItem("Craft List (Outputs)".Loc()))
                                         {
                                             var searchResults = SelectedConfiguration.CraftList
                                                 .GetFlattenedMergedMaterials()
@@ -480,10 +483,10 @@ namespace InventoryTools.Ui
                                             var tcString = _importExportService.ToTCString(searchResults);
                                             _clipboardService.CopyToClipboard(tcString);
                                             _chatUtilities.Print(
-                                                "The craft list's outputs were copied to your clipboard.");
+                                                SharedText.CraftListOutputsCopied.Loc());
                                         }
 
-                                        if (ImGui.MenuItem("Craft List (Precrafts)"))
+                                        if (ImGui.MenuItem("Craft List (Precrafts)".Loc()))
                                         {
                                             var searchResults = SelectedConfiguration.CraftList
                                                 .GetFlattenedMergedMaterials()
@@ -497,10 +500,10 @@ namespace InventoryTools.Ui
                                             var tcString = _importExportService.ToTCString(searchResults);
                                             _clipboardService.CopyToClipboard(tcString);
                                             _chatUtilities.Print(
-                                                "The craft list's outputs were copied to your clipboard.");
+                                                SharedText.CraftListOutputsCopied.Loc());
                                         }
 
-                                        if (ImGui.MenuItem("Craft List (Gatherables)"))
+                                        if (ImGui.MenuItem("Craft List (Gatherables)".Loc()))
                                         {
                                             var searchResults = SelectedConfiguration.CraftList
                                                 .GetFlattenedMergedMaterials()
@@ -510,10 +513,10 @@ namespace InventoryTools.Ui
                                             var tcString = _importExportService.ToTCString(searchResults);
                                             _clipboardService.CopyToClipboard(tcString);
                                             _chatUtilities.Print(
-                                                "The craft list's gatherables were copied to your clipboard.");
+                                                SharedText.CraftListGatherablesCopied.Loc());
                                         }
 
-                                        if (ImGui.MenuItem("Craft List (Missing Gatherables)"))
+                                        if (ImGui.MenuItem("Craft List (Missing Gatherables)".Loc()))
                                         {
                                             var searchResults = SelectedConfiguration.CraftList
                                                 .GetFlattenedMergedMaterials()
@@ -524,36 +527,36 @@ namespace InventoryTools.Ui
                                                 _importExportService.ToTCString(searchResults, TCExportMode.Missing);
                                             _clipboardService.CopyToClipboard(tcString);
                                             _chatUtilities.Print(
-                                                "The craft list's gatherables were copied to your clipboard.");
+                                                SharedText.CraftListGatherablesCopied.Loc());
                                         }
 
-                                        if (ImGui.MenuItem("Retainer/Bag List"))
+                                        if (ImGui.MenuItem("Retainer/Bag List".Loc()))
                                         {
                                             var searchResults = _tableService.GetListTable(SelectedConfiguration)
                                                 .SearchResults
                                                 .ToList();
                                             var tcString = _importExportService.ToTCString(searchResults);
                                             _clipboardService.CopyToClipboard(tcString);
-                                            _chatUtilities.Print("The retainer/bag were copied to your clipboard.");
+                                            _chatUtilities.Print("The retainer/bag were copied to your clipboard.".Loc());
                                         }
                                     }
                                 }
 
-                                using (var menu = ImRaii.Menu("Copy List Contents (JSON)"))
+                                using (var menu = ImRaii.Menu("Copy List Contents (JSON)".Loc()))
                                 {
                                     if (menu)
                                     {
-                                        if (ImGui.MenuItem("Craft List (All)"))
+                                        if (ImGui.MenuItem("Craft List (All)".Loc()))
                                         {
                                             var craftTable = _tableService.GetCraftTable(SelectedConfiguration);
                                             var searchResults = craftTable.CraftItems
                                                 .ToList();
                                             _clipboardService.CopyToClipboard(craftTable.ExportToJson(searchResults));
                                             _chatUtilities.Print(
-                                                "The craft list's contents were copied to your clipboard.");
+                                                SharedText.CraftListContentsCopied.Loc());
                                         }
 
-                                        if (ImGui.MenuItem("Craft List (Outputs)"))
+                                        if (ImGui.MenuItem("Craft List (Outputs)".Loc()))
                                         {
                                             var craftTable = _tableService.GetCraftTable(SelectedConfiguration);
                                             var searchResults = craftTable.CraftItems
@@ -561,10 +564,10 @@ namespace InventoryTools.Ui
                                                 .ToList();
                                             _clipboardService.CopyToClipboard(craftTable.ExportToJson(searchResults));
                                             _chatUtilities.Print(
-                                                "The craft list's outputs were copied to your clipboard.");
+                                                SharedText.CraftListOutputsCopied.Loc());
                                         }
 
-                                        if (ImGui.MenuItem("Craft List (Precrafts)"))
+                                        if (ImGui.MenuItem("Craft List (Precrafts)".Loc()))
                                         {
                                             var craftTable = _tableService.GetCraftTable(SelectedConfiguration);
                                             var searchResults = craftTable.CraftItems
@@ -576,10 +579,10 @@ namespace InventoryTools.Ui
                                                 .ToList();
                                             _clipboardService.CopyToClipboard(craftTable.ExportToJson(searchResults));
                                             _chatUtilities.Print(
-                                                "The craft list's outputs were copied to your clipboard.");
+                                                SharedText.CraftListOutputsCopied.Loc());
                                         }
 
-                                        if (ImGui.MenuItem("Craft List (Gatherables)"))
+                                        if (ImGui.MenuItem("Craft List (Gatherables)".Loc()))
                                         {
                                             var craftTable = _tableService.GetCraftTable(SelectedConfiguration);
                                             var searchResults = craftTable.CraftItems
@@ -588,10 +591,10 @@ namespace InventoryTools.Ui
                                                 .ToList();
                                             _clipboardService.CopyToClipboard(craftTable.ExportToJson(searchResults));
                                             _chatUtilities.Print(
-                                                "The craft list's gatherables were copied to your clipboard.");
+                                                SharedText.CraftListGatherablesCopied.Loc());
                                         }
 
-                                        if (ImGui.MenuItem("Retainer/Bag List"))
+                                        if (ImGui.MenuItem("Retainer/Bag List".Loc()))
                                         {
                                             var itemTable = _tableService.GetListTable(SelectedConfiguration);
                                             _clipboardService.CopyToClipboard(itemTable.ExportToJson());
@@ -599,7 +602,7 @@ namespace InventoryTools.Ui
                                     }
                                 }
 
-                                if (ImGui.MenuItem("Paste List Contents"))
+                                if (ImGui.MenuItem("Paste List Contents".Loc()))
                                 {
                                     var pasteFromClipboard = _clipboardService.PasteFromClipboard();
                                     var importedList = _importExportService.FromTCString(pasteFromClipboard, false);
@@ -610,17 +613,17 @@ namespace InventoryTools.Ui
                                         if (importedList == null)
                                         {
                                             _chatUtilities.PrintError(
-                                                "The contents of your clipboard could not be parsed.");
+                                                SharedText.ClipboardCouldNotBeParsed.Loc());
                                         }
                                         else
                                         {
-                                            _chatUtilities.Print("The contents of your clipboard were imported.");
+                                            _chatUtilities.Print(SharedText.ClipboardImported.Loc());
                                             this.SelectedConfiguration.AddItemsToList(importedList);
                                         }
                                     }
                                     else
                                     {
-                                        _chatUtilities.Print("The contents of your clipboard were imported.");
+                                        _chatUtilities.Print(SharedText.ClipboardImported.Loc());
                                         this.SelectedConfiguration.AddItemsToList(importedList);
                                     }
                                 }
@@ -632,15 +635,15 @@ namespace InventoryTools.Ui
                                         if (tooltip)
                                         {
                                             ImGui.TextUnformatted(
-                                                "This will paste the contents of items copied via the 'Copy List Contents' menu above, it also will attempt to parse Teamcraft lists if one is in your clipboard. If you have a garland tools URL in your clipboard that points to a group, it will also attempt to parse that add it to your craft list.");
+                                                "This will paste the contents of items copied via the 'Copy List Contents' menu above, it also will attempt to parse Teamcraft lists if one is in your clipboard. If you have a garland tools URL in your clipboard that points to a group, it will also attempt to parse that add it to your craft list.".Loc());
                                         }
                                     }
                                 }
 
-                                if (ImGui.MenuItem("Clear List"))
+                                if (ImGui.MenuItem("Clear List".Loc()))
                                 {
                                     _popupService.AddPopup(new ConfirmPopup(GetType(), "craftListDelete",
-                                        "Are you sure you want to clear your craft list?",
+                                        "Are you sure you want to clear your craft list?".Loc(),
                                         result =>
                                         {
                                             if (result)
@@ -653,7 +656,7 @@ namespace InventoryTools.Ui
                                 }
 
                                 ImGui.Separator();
-                                using (var addToCraftListMenu = ImRaii.Menu("Add to Craft List"))
+                                using (var addToCraftListMenu = ImRaii.Menu("Add to Craft List".Loc()))
                                 {
                                     if (addToCraftListMenu)
                                     {
@@ -669,7 +672,7 @@ namespace InventoryTools.Ui
                                             {
                                                 if (menu)
                                                 {
-                                                    if (ImGui.MenuItem("Craft List (All)"))
+                                                    if (ImGui.MenuItem("Craft List (All)".Loc()))
                                                     {
                                                         var searchResults = SelectedConfiguration.CraftList
                                                             .GetFlattenedMergedMaterials()
@@ -689,7 +692,7 @@ namespace InventoryTools.Ui
                                                             craft));
                                                     }
 
-                                                    if (ImGui.MenuItem("Craft List (Outputs)"))
+                                                    if (ImGui.MenuItem("Craft List (Outputs)".Loc()))
                                                     {
                                                         var searchResults = SelectedConfiguration.CraftList
                                                             .GetFlattenedMergedMaterials()
@@ -710,7 +713,7 @@ namespace InventoryTools.Ui
                                                             craft));
                                                     }
 
-                                                    if (ImGui.MenuItem("Craft List (Precrafts)"))
+                                                    if (ImGui.MenuItem("Craft List (Precrafts)".Loc()))
                                                     {
                                                         var searchResults = SelectedConfiguration.CraftList
                                                             .GetFlattenedMergedMaterials()
@@ -736,7 +739,7 @@ namespace InventoryTools.Ui
                                                             craft));
                                                     }
 
-                                                    if (ImGui.MenuItem("Craft List (Gatherables)"))
+                                                    if (ImGui.MenuItem("Craft List (Gatherables)".Loc()))
                                                     {
                                                         var searchResults = SelectedConfiguration.CraftList
                                                             .GetFlattenedMergedMaterials()
@@ -757,7 +760,7 @@ namespace InventoryTools.Ui
                                                             craft));
                                                     }
 
-                                                    if (ImGui.MenuItem("Craft List (Missing Gatherables)"))
+                                                    if (ImGui.MenuItem("Craft List (Missing Gatherables)".Loc()))
                                                     {
                                                         var searchResults = SelectedConfiguration.CraftList
                                                             .GetFlattenedMergedMaterials()
@@ -778,7 +781,7 @@ namespace InventoryTools.Ui
                                                             craft));
                                                     }
 
-                                                    if (ImGui.MenuItem("Retainer/Bag List"))
+                                                    if (ImGui.MenuItem("Retainer/Bag List".Loc()))
                                                     {
                                                         var searchResults = _tableService
                                                             .GetListTable(SelectedConfiguration)
@@ -806,11 +809,11 @@ namespace InventoryTools.Ui
                                             ImGui.Separator();
                                         }
 
-                                        using (var menu = ImRaii.Menu("New Craft List"))
+                                        using (var menu = ImRaii.Menu("New Craft List".Loc()))
                                         {
                                             if (menu)
                                             {
-                                                if (ImGui.MenuItem("Craft List (All)"))
+                                                if (ImGui.MenuItem("Craft List (All)".Loc()))
                                                 {
                                                     var searchResults = SelectedConfiguration.CraftList
                                                         .GetFlattenedMergedMaterials()
@@ -818,7 +821,7 @@ namespace InventoryTools.Ui
 
                                                     _popupService.AddPopup(new NamePopup(typeof(CraftsWindow),
                                                         "newCraftList",
-                                                        "New Craft List",
+                                                        "New Craft List".Loc(),
                                                         result =>
                                                         {
                                                             if (result.Item1)
@@ -836,7 +839,7 @@ namespace InventoryTools.Ui
                                                         }));
                                                 }
 
-                                                if (ImGui.MenuItem("Craft List (Outputs)"))
+                                                if (ImGui.MenuItem("Craft List (Outputs)".Loc()))
                                                 {
                                                     var searchResults = SelectedConfiguration.CraftList
                                                         .GetFlattenedMergedMaterials()
@@ -845,7 +848,7 @@ namespace InventoryTools.Ui
 
                                                     _popupService.AddPopup(new NamePopup(typeof(CraftsWindow),
                                                         "newCraftList",
-                                                        "New Craft List",
+                                                        "New Craft List".Loc(),
                                                         result =>
                                                         {
                                                             if (result.Item1)
@@ -863,7 +866,7 @@ namespace InventoryTools.Ui
                                                         }));
                                                 }
 
-                                                if (ImGui.MenuItem("Craft List (Precrafts)"))
+                                                if (ImGui.MenuItem("Craft List (Precrafts)".Loc()))
                                                 {
                                                     var searchResults = SelectedConfiguration.CraftList
                                                         .GetFlattenedMergedMaterials()
@@ -875,7 +878,7 @@ namespace InventoryTools.Ui
                                                         .ToList();
                                                     _popupService.AddPopup(new NamePopup(typeof(CraftsWindow),
                                                         "newCraftList",
-                                                        "New Craft List",
+                                                        "New Craft List".Loc(),
                                                         result =>
                                                         {
                                                             if (result.Item1)
@@ -893,7 +896,7 @@ namespace InventoryTools.Ui
                                                         }));
                                                 }
 
-                                                if (ImGui.MenuItem("Craft List (Gatherables)"))
+                                                if (ImGui.MenuItem("Craft List (Gatherables)".Loc()))
                                                 {
                                                     var searchResults = SelectedConfiguration.CraftList
                                                         .GetFlattenedMergedMaterials()
@@ -901,7 +904,7 @@ namespace InventoryTools.Ui
                                                         .ToList();
                                                     _popupService.AddPopup(new NamePopup(typeof(CraftsWindow),
                                                         "newCraftList",
-                                                        "New Craft List",
+                                                        "New Craft List".Loc(),
                                                         result =>
                                                         {
                                                             if (result.Item1)
@@ -919,7 +922,7 @@ namespace InventoryTools.Ui
                                                         }));
                                                 }
 
-                                                if (ImGui.MenuItem("Craft List (Missing Gatherables)"))
+                                                if (ImGui.MenuItem("Craft List (Missing Gatherables)".Loc()))
                                                 {
                                                     var searchResults = SelectedConfiguration.CraftList
                                                         .GetFlattenedMergedMaterials()
@@ -927,7 +930,7 @@ namespace InventoryTools.Ui
                                                         .ToList();
                                                     _popupService.AddPopup(new NamePopup(typeof(CraftsWindow),
                                                         "newCraftList",
-                                                        "New Craft List",
+                                                        "New Craft List".Loc(),
                                                         result =>
                                                         {
                                                             if (result.Item1)
@@ -945,7 +948,7 @@ namespace InventoryTools.Ui
                                                         }));
                                                 }
 
-                                                if (ImGui.MenuItem("Retainer/Bag List"))
+                                                if (ImGui.MenuItem("Retainer/Bag List".Loc()))
                                                 {
                                                     var searchResults = _tableService
                                                         .GetListTable(SelectedConfiguration)
@@ -953,7 +956,7 @@ namespace InventoryTools.Ui
                                                         .ToList();
                                                     _popupService.AddPopup(new NamePopup(typeof(CraftsWindow),
                                                         "newCraftList",
-                                                        "New Craft List",
+                                                        "New Craft List".Loc(),
                                                         result =>
                                                         {
                                                             if (result.Item1)
@@ -974,11 +977,11 @@ namespace InventoryTools.Ui
                                             }
                                         }
 
-                                        using (var menu = ImRaii.Menu("New Craft List (Ephemeral)"))
+                                        using (var menu = ImRaii.Menu("New Craft List (Ephemeral)".Loc()))
                                         {
                                             if (menu)
                                             {
-                                                if (ImGui.MenuItem("Craft List (All)"))
+                                                if (ImGui.MenuItem("Craft List (All)".Loc()))
                                                 {
                                                     var searchResults = SelectedConfiguration.CraftList
                                                         .GetFlattenedMergedMaterials()
@@ -986,7 +989,7 @@ namespace InventoryTools.Ui
 
                                                     _popupService.AddPopup(new NamePopup(typeof(CraftsWindow),
                                                         "newCraftList",
-                                                        "New Craft List",
+                                                        "New Craft List".Loc(),
                                                         result =>
                                                         {
                                                             if (result.Item1)
@@ -1004,7 +1007,7 @@ namespace InventoryTools.Ui
                                                         }));
                                                 }
 
-                                                if (ImGui.MenuItem("Craft List (Outputs)"))
+                                                if (ImGui.MenuItem("Craft List (Outputs)".Loc()))
                                                 {
                                                     var searchResults = SelectedConfiguration.CraftList
                                                         .GetFlattenedMergedMaterials()
@@ -1013,7 +1016,7 @@ namespace InventoryTools.Ui
 
                                                     _popupService.AddPopup(new NamePopup(typeof(CraftsWindow),
                                                         "newCraftList",
-                                                        "New Craft List",
+                                                        "New Craft List".Loc(),
                                                         result =>
                                                         {
                                                             if (result.Item1)
@@ -1031,7 +1034,7 @@ namespace InventoryTools.Ui
                                                         }));
                                                 }
 
-                                                if (ImGui.MenuItem("Craft List (Precrafts)"))
+                                                if (ImGui.MenuItem("Craft List (Precrafts)".Loc()))
                                                 {
                                                     var searchResults = SelectedConfiguration.CraftList
                                                         .GetFlattenedMergedMaterials()
@@ -1043,7 +1046,7 @@ namespace InventoryTools.Ui
                                                         .ToList();
                                                     _popupService.AddPopup(new NamePopup(typeof(CraftsWindow),
                                                         "newCraftList",
-                                                        "New Craft List",
+                                                        "New Craft List".Loc(),
                                                         result =>
                                                         {
                                                             if (result.Item1)
@@ -1061,7 +1064,7 @@ namespace InventoryTools.Ui
                                                         }));
                                                 }
 
-                                                if (ImGui.MenuItem("Craft List (Gatherables)"))
+                                                if (ImGui.MenuItem("Craft List (Gatherables)".Loc()))
                                                 {
                                                     var searchResults = SelectedConfiguration.CraftList
                                                         .GetFlattenedMergedMaterials()
@@ -1069,7 +1072,7 @@ namespace InventoryTools.Ui
                                                         .ToList();
                                                     _popupService.AddPopup(new NamePopup(typeof(CraftsWindow),
                                                         "newCraftList",
-                                                        "New Craft List",
+                                                        "New Craft List".Loc(),
                                                         result =>
                                                         {
                                                             if (result.Item1)
@@ -1087,7 +1090,7 @@ namespace InventoryTools.Ui
                                                         }));
                                                 }
 
-                                                if (ImGui.MenuItem("Craft List (Missing Gatherables)"))
+                                                if (ImGui.MenuItem("Craft List (Missing Gatherables)".Loc()))
                                                 {
                                                     var searchResults = SelectedConfiguration.CraftList
                                                         .GetFlattenedMergedMaterials()
@@ -1095,7 +1098,7 @@ namespace InventoryTools.Ui
                                                         .ToList();
                                                     _popupService.AddPopup(new NamePopup(typeof(CraftsWindow),
                                                         "newCraftList",
-                                                        "New Craft List",
+                                                        "New Craft List".Loc(),
                                                         result =>
                                                         {
                                                             if (result.Item1)
@@ -1113,7 +1116,7 @@ namespace InventoryTools.Ui
                                                         }));
                                                 }
 
-                                                if (ImGui.MenuItem("Retainer/Bag List"))
+                                                if (ImGui.MenuItem("Retainer/Bag List".Loc()))
                                                 {
                                                     var searchResults = _tableService
                                                         .GetListTable(SelectedConfiguration)
@@ -1121,7 +1124,7 @@ namespace InventoryTools.Ui
                                                         .ToList();
                                                     _popupService.AddPopup(new NamePopup(typeof(CraftsWindow),
                                                         "newCraftList",
-                                                        "New Craft List",
+                                                        "New Craft List".Loc(),
                                                         result =>
                                                         {
                                                             if (result.Item1)
@@ -1144,7 +1147,7 @@ namespace InventoryTools.Ui
                                     }
                                 }
 
-                                using (var menu = ImRaii.Menu("Add to Curated List"))
+                                using (var menu = ImRaii.Menu("Add to Curated List".Loc()))
                                 {
                                     if (menu)
                                     {
@@ -1157,7 +1160,7 @@ namespace InventoryTools.Ui
                                         {
                                             if (ImGui.MenuItem(curatedList.Name))
                                             {
-                                                if (ImGui.MenuItem("Craft List (All)"))
+                                                if (ImGui.MenuItem("Craft List (All)".Loc()))
                                                 {
                                                     var searchResults = SelectedConfiguration.CraftList
                                                         .GetFlattenedMergedMaterials()
@@ -1171,7 +1174,7 @@ namespace InventoryTools.Ui
                                                     }
                                                 }
 
-                                                if (ImGui.MenuItem("Craft List (Outputs)"))
+                                                if (ImGui.MenuItem("Craft List (Outputs)".Loc()))
                                                 {
                                                     var searchResults = SelectedConfiguration.CraftList
                                                         .GetFlattenedMergedMaterials()
@@ -1186,7 +1189,7 @@ namespace InventoryTools.Ui
                                                     }
                                                 }
 
-                                                if (ImGui.MenuItem("Craft List (Precrafts)"))
+                                                if (ImGui.MenuItem("Craft List (Precrafts)".Loc()))
                                                 {
                                                     var searchResults = SelectedConfiguration.CraftList
                                                         .GetFlattenedMergedMaterials()
@@ -1205,7 +1208,7 @@ namespace InventoryTools.Ui
                                                     }
                                                 }
 
-                                                if (ImGui.MenuItem("Craft List (Gatherables)"))
+                                                if (ImGui.MenuItem("Craft List (Gatherables)".Loc()))
                                                 {
                                                     var searchResults = SelectedConfiguration.CraftList
                                                         .GetFlattenedMergedMaterials()
@@ -1220,7 +1223,7 @@ namespace InventoryTools.Ui
                                                     }
                                                 }
 
-                                                if (ImGui.MenuItem("Craft List (Missing Gatherables)"))
+                                                if (ImGui.MenuItem("Craft List (Missing Gatherables)".Loc()))
                                                 {
                                                     var searchResults = SelectedConfiguration.CraftList
                                                         .GetFlattenedMergedMaterials()
@@ -1235,7 +1238,7 @@ namespace InventoryTools.Ui
                                                     }
                                                 }
 
-                                                if (ImGui.MenuItem("Retainer/Bag List"))
+                                                if (ImGui.MenuItem("Retainer/Bag List".Loc()))
                                                 {
                                                     var searchResults = _tableService
                                                         .GetListTable(SelectedConfiguration)
@@ -1257,11 +1260,11 @@ namespace InventoryTools.Ui
                                             ImGui.Separator();
                                         }
 
-                                        using (var newCuratedListMenu = ImRaii.Menu("New Curated List"))
+                                        using (var newCuratedListMenu = ImRaii.Menu("New Curated List".Loc()))
                                         {
                                             if (newCuratedListMenu)
                                             {
-                                                if (ImGui.MenuItem("Craft List (All)"))
+                                                if (ImGui.MenuItem("Craft List (All)".Loc()))
                                                 {
                                                     var searchResults = SelectedConfiguration.CraftList
                                                         .GetFlattenedMergedMaterials()
@@ -1269,7 +1272,7 @@ namespace InventoryTools.Ui
 
                                                     _popupService.AddPopup(new NamePopup(typeof(CraftsWindow),
                                                         "newCuratedList",
-                                                        "New Curated List",
+                                                        "New Curated List".Loc(),
                                                         result =>
                                                         {
                                                             if (result.Item1)
@@ -1292,7 +1295,7 @@ namespace InventoryTools.Ui
                                                         }));
                                                 }
 
-                                                if (ImGui.MenuItem("Craft List (Outputs)"))
+                                                if (ImGui.MenuItem("Craft List (Outputs)".Loc()))
                                                 {
                                                     var searchResults = SelectedConfiguration.CraftList
                                                         .GetFlattenedMergedMaterials()
@@ -1301,7 +1304,7 @@ namespace InventoryTools.Ui
 
                                                     _popupService.AddPopup(new NamePopup(typeof(CraftsWindow),
                                                         "newCuratedList",
-                                                        "New Curated List",
+                                                        "New Curated List".Loc(),
                                                         result =>
                                                         {
                                                             if (result.Item1)
@@ -1324,7 +1327,7 @@ namespace InventoryTools.Ui
                                                         }));
                                                 }
 
-                                                if (ImGui.MenuItem("Craft List (Precrafts)"))
+                                                if (ImGui.MenuItem("Craft List (Precrafts)".Loc()))
                                                 {
                                                     var searchResults = SelectedConfiguration.CraftList
                                                         .GetFlattenedMergedMaterials()
@@ -1336,7 +1339,7 @@ namespace InventoryTools.Ui
                                                         .ToList();
                                                     _popupService.AddPopup(new NamePopup(typeof(CraftsWindow),
                                                         "newCuratedList",
-                                                        "New Curated List",
+                                                        "New Curated List".Loc(),
                                                         result =>
                                                         {
                                                             if (result.Item1)
@@ -1359,7 +1362,7 @@ namespace InventoryTools.Ui
                                                         }));
                                                 }
 
-                                                if (ImGui.MenuItem("Craft List (Gatherables)"))
+                                                if (ImGui.MenuItem("Craft List (Gatherables)".Loc()))
                                                 {
                                                     var searchResults = SelectedConfiguration.CraftList
                                                         .GetFlattenedMergedMaterials()
@@ -1367,7 +1370,7 @@ namespace InventoryTools.Ui
                                                         .ToList();
                                                     _popupService.AddPopup(new NamePopup(typeof(CraftsWindow),
                                                         "newCuratedList",
-                                                        "New Curated List",
+                                                        "New Curated List".Loc(),
                                                         result =>
                                                         {
                                                             if (result.Item1)
@@ -1390,7 +1393,7 @@ namespace InventoryTools.Ui
                                                         }));
                                                 }
 
-                                                if (ImGui.MenuItem("Craft List (Missing Gatherables)"))
+                                                if (ImGui.MenuItem("Craft List (Missing Gatherables)".Loc()))
                                                 {
                                                     var searchResults = SelectedConfiguration.CraftList
                                                         .GetFlattenedMergedMaterials()
@@ -1398,7 +1401,7 @@ namespace InventoryTools.Ui
                                                         .ToList();
                                                     _popupService.AddPopup(new NamePopup(typeof(CraftsWindow),
                                                         "newCuratedList",
-                                                        "New Curated List",
+                                                        "New Curated List".Loc(),
                                                         result =>
                                                         {
                                                             if (result.Item1)
@@ -1421,7 +1424,7 @@ namespace InventoryTools.Ui
                                                         }));
                                                 }
 
-                                                if (ImGui.MenuItem("Retainer/Bag List"))
+                                                if (ImGui.MenuItem("Retainer/Bag List".Loc()))
                                                 {
                                                     var searchResults = _tableService
                                                         .GetListTable(SelectedConfiguration)
@@ -1429,7 +1432,7 @@ namespace InventoryTools.Ui
                                                         .ToList();
                                                     _popupService.AddPopup(new NamePopup(typeof(CraftsWindow),
                                                         "newCuratedList",
-                                                        "New Curated List",
+                                                        "New Curated List".Loc(),
                                                         result =>
                                                         {
                                                             if (result.Item1)
@@ -1460,23 +1463,23 @@ namespace InventoryTools.Ui
                     }
 
 
-                    using (var menu = ImRaii.Menu("View"))
+                    using (var menu = ImRaii.Menu("View".Loc()))
                     {
                         if (menu)
                         {
-                            if (ImGui.MenuItem("Tabs", "",
+                            if (ImGui.MenuItem("Tabs".Loc(), "",
                                     _layoutSetting.CurrentValue(_configuration) == WindowLayout.Tabs))
                             {
                                 _layoutSetting.UpdateFilterConfiguration(_configuration, WindowLayout.Tabs);
                             }
 
-                            if (ImGui.MenuItem("Sidebar", "",
+                            if (ImGui.MenuItem("Sidebar".Loc(), "",
                                     _layoutSetting.CurrentValue(_configuration) == WindowLayout.Sidebar))
                             {
                                 _layoutSetting.UpdateFilterConfiguration(_configuration, WindowLayout.Sidebar);
                             }
 
-                            if (ImGui.MenuItem("Single", "",
+                            if (ImGui.MenuItem("Single".Loc(), "",
                                     _layoutSetting.CurrentValue(_configuration) == WindowLayout.Single))
                             {
                                 _layoutSetting.UpdateFilterConfiguration(_configuration, WindowLayout.Single);
@@ -1484,20 +1487,20 @@ namespace InventoryTools.Ui
 
                             ImGui.Separator();
 
-                            if (ImGui.MenuItem("Crafts", "",
+                            if (ImGui.MenuItem("Crafts".Loc(), "",
                                     _craftWindowViewSetting.CurrentValue(_configuration) == CraftWindowView.Crafts))
                             {
                                 _craftWindowViewSetting.UpdateFilterConfiguration(_configuration,
                                     CraftWindowView.Crafts);
                             }
 
-                            if (ImGui.MenuItem("Tree View", "",
+                            if (ImGui.MenuItem("Tree View".Loc(), "",
                                     _craftWindowViewSetting.CurrentValue(_configuration) == CraftWindowView.Tree))
                             {
                                 _craftWindowViewSetting.UpdateFilterConfiguration(_configuration, CraftWindowView.Tree);
                             }
 
-                            if (ImGui.MenuItem("Configuration", "",
+                            if (ImGui.MenuItem("Configuration".Loc(), "",
                                     _craftWindowViewSetting.CurrentValue(_configuration) ==
                                     CraftWindowView.Configuration))
                             {
@@ -1507,15 +1510,15 @@ namespace InventoryTools.Ui
                         }
                     }
 
-                    using (var menu = ImRaii.Menu("Export"))
+                    using (var menu = ImRaii.Menu("Export".Loc()))
                     {
                         if (menu)
                         {
-                            if (ImGui.MenuItem("Craft List (CSV)"))
+                            if (ImGui.MenuItem("Craft List (CSV)".Loc()))
                             {
                                 if (SelectedConfiguration != null)
                                 {
-                                    _fileDialogManager.SaveFileDialog("Save to csv", "*.csv",
+                                    _fileDialogManager.SaveFileDialog("Save to csv".Loc(), "*.csv",
                                         "export-craft-list.csv", ".csv",
                                         (b, s) =>
                                         {
@@ -1525,23 +1528,23 @@ namespace InventoryTools.Ui
                                 }
                             }
 
-                            if (ImGui.MenuItem("Retainer/Bag List (CSV)"))
+                            if (ImGui.MenuItem("Retainer/Bag List (CSV)".Loc()))
                             {
                                 if (SelectedConfiguration != null)
                                 {
                                     var itemTable = _tableService.GetListTable(SelectedConfiguration);
-                                    _fileDialogManager.SaveFileDialog("Save to csv", "*.csv", "export.csv", ".csv",
+                                    _fileDialogManager.SaveFileDialog("Save to csv".Loc(), "*.csv", "export.csv", ".csv",
                                         (b, s) => { SaveCallback(itemTable, b, s); }, null, true);
                                 }
                             }
                         }
                     }
 
-                    using (var menu = ImRaii.Menu("Market"))
+                    using (var menu = ImRaii.Menu("Market".Loc()))
                     {
                         if (menu)
                         {
-                            if (ImGui.MenuItem("Refresh All Prices (Craft List)"))
+                            if (ImGui.MenuItem("Refresh All Prices (Craft List)".Loc()))
                             {
                                 var activeCharacter = _characterMonitor.ActiveCharacter;
                                 if (activeCharacter != null && SelectedConfiguration != null)
@@ -1554,7 +1557,7 @@ namespace InventoryTools.Ui
                                 }
                             }
 
-                            if (ImGui.MenuItem("Refresh All Prices (Retainer/Bags)"))
+                            if (ImGui.MenuItem("Refresh All Prices (Retainer/Bags)".Loc()))
                             {
                                 var activeCharacter = _characterMonitor.ActiveCharacter;
                                 if (activeCharacter != null && SelectedConfiguration != null)
@@ -1569,15 +1572,15 @@ namespace InventoryTools.Ui
                         }
                     }
 
-                    using (var menu = ImRaii.Menu("Lists"))
+                    using (var menu = ImRaii.Menu("Lists".Loc()))
                     {
                         if (menu)
                         {
-                            using (var addMenu = ImRaii.Menu("Add"))
+                            using (var addMenu = ImRaii.Menu("Add".Loc()))
                             {
                                 if (addMenu)
                                 {
-                                    if (ImGui.MenuItem("Craft List"))
+                                    if (ImGui.MenuItem("Craft List".Loc()))
                                     {
                                         _popupService.AddPopup(new NamePopup(GetType(), "addCraftList", "", result =>
                                         {
@@ -1588,7 +1591,7 @@ namespace InventoryTools.Ui
                                         }));
                                     }
 
-                                    if (ImGui.MenuItem("Craft List (Ephemeral)"))
+                                    if (ImGui.MenuItem("Craft List (Ephemeral)".Loc()))
                                     {
                                         _popupService.AddPopup(new NamePopup(GetType(), "addCraftListEphemeral", "",
                                             result =>
@@ -1661,7 +1664,7 @@ namespace InventoryTools.Ui
                                         }
                                     }
 
-                                    ImGuiUtil.HoverTooltip("[CTRL] to open in a new window.");
+                                    ImGuiUtil.HoverTooltip("[CTRL] to open in a new window.".Loc());
                                 }
 
                                 if (index != windowGroups.Count - 1)
@@ -1672,7 +1675,7 @@ namespace InventoryTools.Ui
                         }
                     }
 
-                    using (var menu = ImRaii.Menu("Windows"))
+                    using (var menu = ImRaii.Menu("Windows".Loc()))
                     {
                         if (menu)
                         {
@@ -1689,7 +1692,7 @@ namespace InventoryTools.Ui
                         }
                     }
 
-                    if (ImGui.MenuItem("Toggle Crafting Overlay"))
+                    if (ImGui.MenuItem("Toggle Crafting Overlay".Loc()))
                     {
                         this.MediatorService.Publish(new ToggleGenericWindowMessage(typeof(CraftOverlayWindow)));
                     }
@@ -1710,36 +1713,36 @@ namespace InventoryTools.Ui
 
             ImGuiUtil.HelpPopup("notification", new Vector2(750,340) * ImGui.GetIO().FontGlobalScale, () =>
             {
-                ImGui.TextUnformatted("Craft System Notice");
+                ImGui.TextUnformatted("Craft System Notice".Loc());
                 ImGui.Separator();
                 ImGui.NewLine();
                 ImGui.PushTextWrapPos();
                 ImGui.Bullet();
-                ImGui.Text("The craft system has received an update, and your default configuration has been reset. Please readjust it according to your preferences.");
+                ImGui.Text("The craft system has received an update, and your default configuration has been reset. Please readjust it according to your preferences.".Loc());
                 ImGui.PopTextWrapPos();
 
-                ImGui.BulletText("You can now copy configurations between your craft lists.");
+                ImGui.BulletText("You can now copy configurations between your craft lists.".Loc());
 
-                ImGui.BulletText("Two new columns have been added to your craft lists: 'Next Step' and 'Settings'.");
+                ImGui.BulletText("Two new columns have been added to your craft lists: 'Next Step' and 'Settings'.".Loc());
 
                 ImGui.Indent();
-                ImGui.BulletText("The 'Next Step' column provides guidance on what you should do next.");
+                ImGui.BulletText("The 'Next Step' column provides guidance on what you should do next.".Loc());
                 ImGui.Unindent();
 
                 ImGui.Indent();
-                ImGui.BulletText("The 'Settings' column allows you to configure item sourcing, retainer settings, and recipes.");
+                ImGui.BulletText("The 'Settings' column allows you to configure item sourcing, retainer settings, and recipes.".Loc());
                 ImGui.Unindent();
 
-                ImGui.BulletText("The update includes the following changes:");
+                ImGui.BulletText("The update includes the following changes:".Loc());
 
                 ImGui.Indent();
-                ImGui.BulletText("You can now change groupings for crafts based on class or required crafting order.");
-                ImGui.BulletText("Retrievable items can be prioritized in their own group.");
-                ImGui.BulletText("Gatherable and purchasable items can be grouped by zone.");
-                ImGui.BulletText("Improved handling of items that can be purchased with seals, poetics, and scrip currencies.");
+                ImGui.BulletText("You can now change groupings for crafts based on class or required crafting order.".Loc());
+                ImGui.BulletText("Retrievable items can be prioritized in their own group.".Loc());
+                ImGui.BulletText("Gatherable and purchasable items can be grouped by zone.".Loc());
+                ImGui.BulletText("Improved handling of items that can be purchased with seals, poetics, and scrip currencies.".Loc());
                 ImGui.Unindent();
 
-                ImGui.BulletText("You can customize these options further by clicking the pencil icon in the top right corner of a list.");
+                ImGui.BulletText("You can customize these options further by clicking the pencil icon in the top right corner of a list.".Loc());
 
             });
 
@@ -1786,19 +1789,19 @@ namespace InventoryTools.Ui
             {
                 if (popup.Success)
                 {
-                    if (ImGui.Selectable("Normal List"))
+                    if (ImGui.Selectable("Normal List".Loc()))
                     {
                         _ephemeralList = false;
                         openNewFilterNamePopup = true;
                     }
-                    ImGuiUtil.HoverTooltip("Add a new craft list.");
+                    ImGuiUtil.HoverTooltip("Add a new craft list.".Loc());
 
-                    if (ImGui.Selectable("Ephemeral List"))
+                    if (ImGui.Selectable("Ephemeral List".Loc()))
                     {
                         _ephemeralList = true;
                         openNewFilterNamePopup = true;
                     }
-                    ImGuiUtil.HoverTooltip("Add a new ephemeral craft list that will be deleted once all the items in it are completed.");
+                    ImGuiUtil.HoverTooltip("Add a new ephemeral craft list that will be deleted once all the items in it are completed.".Loc());
                 }
             }
 
@@ -1829,7 +1832,7 @@ namespace InventoryTools.Ui
                             }
                         }
                     }
-                    using (var tabItem = ImRaii.TabItem("Default Configuration"))
+                    using (var tabItem = ImRaii.TabItem("Default Configuration".Loc()))
                     {
                         if (_filters != null && tabItem.Success)
                         {
@@ -1841,7 +1844,7 @@ namespace InventoryTools.Ui
                     {
                         openNewTypePopup = true;
                     }
-                    ImGuiUtil.HoverTooltip("Add a new craft list");
+                    ImGuiUtil.HoverTooltip("Add a new craft list".Loc());
                 }
             }
         }
@@ -1862,7 +1865,7 @@ namespace InventoryTools.Ui
         {
             var isWindowFocused = ImGui.IsWindowFocused();
             var filterConfigurations = Filters;
-            using (var child = ImRaii.Child("Main",
+            using (var child = ImRaii.Child("Main".Loc(),
                        new Vector2(_addItemBarOpen ? -250 : -1, -1) * ImGui.GetIO().FontGlobalScale, false,
                        ImGuiWindowFlags.HorizontalScrollbar))
             {
@@ -1875,7 +1878,7 @@ namespace InventoryTools.Ui
                             if (contentChild.Success)
                             {
                                 ImGui.TextUnformatted(
-                                    "Get started by adding a craft list by hitting the + button on the bottom left.");
+                                    SharedText.GetStartedAddCraftList.Loc());
                             }
                         }
                     }
@@ -1955,7 +1958,7 @@ namespace InventoryTools.Ui
                                 var filterConfiguration = filterConfigurations[index];
                                 if (filterConfiguration.FilterType == FilterType.CraftFilter)
                                 {
-                                    ImGui.TextUnformatted("Add new Item");
+                                    ImGui.TextUnformatted("Add new Item".Loc());
                                     var searchString = SearchString;
                                     ImGui.InputText("##ItemSearch", ref searchString, 50);
                                     if (_searchString != searchString)
@@ -1969,19 +1972,19 @@ namespace InventoryTools.Ui
                                         SearchString = "";
                                     }
 
-                                    ImGuiUtil.HoverTooltip("Clear the current search.");
+                                    ImGuiUtil.HoverTooltip("Clear the current search.".Loc());
 
                                     ImGui.Separator();
                                     if (_searchString == "")
                                     {
-                                        ImGui.TextUnformatted("Start typing to search...");
+                                        ImGui.TextUnformatted("Start typing to search...".Loc());
                                     }
 
                                     using var table = ImRaii.Table("", 2, ImGuiTableFlags.SizingStretchProp);
                                     if (!table || !table.Success)
                                         return;
 
-                                    ImGui.TableSetupColumn("Name", ImGuiTableColumnFlags.None, 200);
+                                    ImGui.TableSetupColumn("Name".Loc(), ImGuiTableColumnFlags.None, 200);
                                     ImGui.TableSetupColumn("", ImGuiTableColumnFlags.None, 16);
 
                                     foreach (var datum in SearchItems)
@@ -2005,7 +2008,7 @@ namespace InventoryTools.Ui
         {
             if (filterConfiguration.CraftList.CraftItems.Count == 0)
             {
-                ImGui.TextUnformatted("No craft data available.");
+                ImGui.TextUnformatted("No craft data available.".Loc());
                 return;
             }
 
@@ -2045,7 +2048,7 @@ namespace InventoryTools.Ui
                 }
             }
             ImGui.SameLine();
-            using (var main = ImRaii.Child("Main", new Vector2(0, 0)))
+            using (var main = ImRaii.Child("Main".Loc(), new Vector2(0, 0)))
             {
                 if (!main)
                 {
@@ -2078,7 +2081,7 @@ namespace InventoryTools.Ui
             {
                 if (popup.Success)
                 {
-                    ImGui.Text("Configure Sourcing:");
+                    ImGui.Text("Configure Sourcing:".Loc());
                     ImGui.Separator();
 
                     _craftSettingsColumn.DrawRecipeSelector(SelectedConfiguration, item, index);
@@ -2259,11 +2262,11 @@ namespace InventoryTools.Ui
 
                             if (filterConfigurations.Count == 0)
                             {
-                                ImGui.TextUnformatted("No craft lists created.");
+                                ImGui.TextUnformatted("No craft lists created.".Loc());
                             }
 
                             ImGui.Separator();
-                            if (_filters != null && ImGui.Selectable("Default Configuration",
+                            if (_filters != null && ImGui.Selectable("Default Configuration".Loc(),
                                     filterConfigurations.Count + 1 == _selectedFilterTab))
                             {
                                 _selectedFilterTab = filterConfigurations.Count + 1;
@@ -2282,7 +2285,7 @@ namespace InventoryTools.Ui
                                 _pluginLogic.AddNewCraftFilter();
                             }
 
-                            ImGuiUtil.HoverTooltip("Add a new craft list.");
+                            ImGuiUtil.HoverTooltip("Add a new craft list.".Loc());
                         }
                     }
                 }
@@ -2303,7 +2306,7 @@ namespace InventoryTools.Ui
                 {
                     var highlightItems = itemTable.HighlightItems;
                     ImGuiService.CenterElement(22 * ImGui.GetIO().FontGlobalScale);
-                    ImGui.Checkbox("Highlight?" + "###" + itemTable.Key + "VisibilityCheckbox", ref highlightItems);
+                    ImGui.Checkbox("Highlight?".Loc() + "###" + itemTable.Key + "VisibilityCheckbox", ref highlightItems);
                     if (highlightItems != itemTable.HighlightItems)
                     {
                         _framework.RunOnFrameworkThread(() =>
@@ -2311,7 +2314,7 @@ namespace InventoryTools.Ui
                             _listService.ToggleActiveUiList(itemTable.FilterConfiguration);
                         });
                     }
-                    ImGuiUtil.HoverTooltip("When checked, any items you need to retrieve from external sources will be highlighted.");
+                    ImGuiUtil.HoverTooltip("When checked, any items you need to retrieve from external sources will be highlighted.".Loc());
 
                     ImGui.SameLine();
                     if (_clearIcon.Draw(ImGuiService.GetIconTexture(66308).Handle, "tb_cf"))
@@ -2319,19 +2322,19 @@ namespace InventoryTools.Ui
                         itemTable.ClearFilters();
                     }
 
-                    ImGuiUtil.HoverTooltip("Clear the current search.");
+                    ImGuiUtil.HoverTooltip("Clear the current search.".Loc());
 
                     ImGui.SameLine();
                     ImGuiService.CenterElement(22 * ImGui.GetIO().FontGlobalScale);
                     var hideCompleted = filterConfiguration.CraftList.HideComplete;
-                    ImGui.Checkbox("Hide Completed?" + "###" + itemTable.Key + "HideCompleted", ref hideCompleted);
+                    ImGui.Checkbox("Hide Completed?".Loc() + "###" + itemTable.Key + "HideCompleted", ref hideCompleted);
                     if (hideCompleted != filterConfiguration.CraftList.HideComplete)
                     {
                         filterConfiguration.CraftList.HideComplete = hideCompleted;
                         filterConfiguration.NeedsRefresh = true;
                     }
 
-                    ImGuiUtil.HoverTooltip("Hide any precrafts/gather/buy items once completed?");
+                    ImGuiUtil.HoverTooltip("Hide any precrafts/gather/buy items once completed?".Loc());
 
                     ImGui.SameLine();
                     float width = ImGui.GetWindowSize().X;
@@ -2342,7 +2345,7 @@ namespace InventoryTools.Ui
                         _addItemBarOpen = !_addItemBarOpen;
                     }
 
-                    ImGuiUtil.HoverTooltip("Toggles the add item side bar.");
+                    ImGuiUtil.HoverTooltip("Toggles the add item side bar.".Loc());
 
                     ImGui.SameLine();
                     width -= 28 * ImGui.GetIO().FontGlobalScale;
@@ -2360,7 +2363,7 @@ namespace InventoryTools.Ui
                         }
                     }
 
-                    ImGuiUtil.HoverTooltip("Edit the craft list's configuration.");
+                    ImGuiUtil.HoverTooltip("Edit the craft list's configuration.".Loc());
 
                     ImGui.SameLine();
                     width -= 28 * ImGui.GetIO().FontGlobalScale;
@@ -2369,7 +2372,7 @@ namespace InventoryTools.Ui
                     {
                         _listService.ToggleActiveCraftList(filterConfiguration);
                     }
-                    ImGuiUtil.HoverTooltip("Toggle the current craft list.");
+                    ImGuiUtil.HoverTooltip("Toggle the current craft list.".Loc());
 
                     ImGui.SameLine();
                     width -= 28 * ImGui.GetIO().FontGlobalScale;
@@ -2385,18 +2388,18 @@ namespace InventoryTools.Ui
                             _craftWindowViewSetting.UpdateFilterConfiguration(_configuration, CraftWindowView.Tree);
                         }
                     }
-                    ImGuiUtil.HoverTooltip("Open the craft list's tree view.");
+                    ImGuiUtil.HoverTooltip("Open the craft list's tree view.".Loc());
 
                     ImGui.SameLine();
                     width -= 156 * ImGui.GetIO().FontGlobalScale;
                     ImGui.SetCursorPosX(width);
                     ImGui.SetNextItemWidth(150);
                     var activeCraftList = _listService.GetActiveCraftList();
-                    using (var combo = ImRaii.Combo("##ActiveCraftList",activeCraftList != null ? activeCraftList.Name : "None"))
+                    using (var combo = ImRaii.Combo("##ActiveCraftList",activeCraftList != null ? activeCraftList.Name : "None".Loc()))
                     {
                         if (combo.Success)
                         {
-                            if (ImGui.Selectable("None"))
+                            if (ImGui.Selectable("None".Loc()))
                             {
                                 _listService.ClearActiveCraftList();
                             }
@@ -2410,12 +2413,12 @@ namespace InventoryTools.Ui
                             }
                         }
                     }
-                    ImGuiUtil.HoverTooltip("This is the craft list that finished crafts will count towards.");
+                    ImGuiUtil.HoverTooltip("This is the craft list that finished crafts will count towards.".Loc());
                     ImGui.SameLine();
-                    var textSize = ImGui.CalcTextSize("Active: ");
+                    var textSize = ImGui.CalcTextSize("Active: ".Loc());
                     width -= textSize.X * ImGui.GetIO().FontGlobalScale;
                     ImGui.SetCursorPosX(width);
-                    ImGui.Text("Active: ");
+                    ImGui.Text("Active: ".Loc());
                     if (SelectedConfiguration?.IsEphemeralCraftList ?? false)
                     {
                         ImGui.SameLine();
@@ -2423,10 +2426,12 @@ namespace InventoryTools.Ui
                         ImGui.SetCursorPosX(width);
                         ImGui.Image(ImGuiService.GetImageTexture("recycle").Handle,
                             new Vector2(22, 22));
-                        ImGuiUtil.HoverTooltip("This is the ephemeral craft list, once all items in it are completed, the list will delete itself.");
+                        ImGuiUtil.HoverTooltip("This is the ephemeral craft list, once all items in it are completed, the list will delete itself.".Loc());
                     }
                 }
             }
+
+            this.DrawVendorSummary(craftTable);
 
             using (var contentChild = ImRaii.Child("Content", new Vector2(0, -44) * ImGui.GetIO().FontGlobalScale, true))
             {
@@ -2441,7 +2446,7 @@ namespace InventoryTools.Ui
                                 MediatorService.Publish(craftTable.Draw(new Vector2(0, 0), shouldDraw));
                             },
                             (shouldDraw) => { MediatorService.Publish(itemTable.Draw(new Vector2(0, 0), shouldDraw)); },
-                            "To Craft", "Items in Retainers/Bags");
+                            "To Craft".Loc(), "Items in Retainers/Bags".Loc());
                         if (result != null)
                         {
                             _configuration.CraftWindowSplitterPosition = (int)result.Value;
@@ -2510,7 +2515,7 @@ namespace InventoryTools.Ui
                         }
                     }
 
-                    ImGuiUtil.HoverTooltip("Refresh Market Prices");
+                    ImGuiUtil.HoverTooltip("Refresh Market Prices".Loc());
                     ImGui.SameLine();
 
                     if (_gameUiManager.IsWindowVisible(
@@ -2519,7 +2524,7 @@ namespace InventoryTools.Ui
                         var subMarinePartsMenu = _gameUiManager.GetWindow("SubmarinePartsMenu");
                         if (subMarinePartsMenu != null)
                         {
-                            if (ImGui.Button("Add Company Craft to List"))
+                            if (ImGui.Button("Add Company Craft to List".Loc()))
                             {
                                 var subAddon = (SubmarinePartsMenuAddon*)subMarinePartsMenu;
                                 for (byte i = 0; i < 6; i++)
@@ -2544,14 +2549,16 @@ namespace InventoryTools.Ui
                         ImGui.SameLine();
                     }
 
-                    ImGuiService.VerticalCenter("Pending Market Requests: " + _universalis.QueuedCount);
+                    ImGuiService.VerticalCenter("Pending Market Requests: ".Loc() + _universalis.QueuedCount);
 
-                    if (_universalis.LastFailure != null)
+                    // 🔴 只讀一次:背景查價工作會把它清成 null,分兩次讀 .Value 會擲例外。
+                    var lastFailure = _universalis.LastFailure;
+                    if (lastFailure != null)
                     {
                         ImGui.SameLine();
                         ImGui.Image(ImGuiService.GetIconTexture(Icons.ExclamationIcon).Handle,
                             new Vector2(22, 22));
-                        ImGuiUtil.HoverTooltip($"There was an error when contacting Universalis at {_universalis.LastFailure.Value.ToString(CultureInfo.CurrentCulture)}. This likely means Universalis is having issues. Allagan Tools will back off requests for 30 seconds whenever this happens.");
+                        ImGuiUtil.HoverTooltip("There was an error when contacting Universalis at ??. This likely means Universalis is having issues. Allagan Tools will back off requests for 30 seconds whenever this happens.".Loc(lastFailure.Value.ToString(CultureInfo.CurrentCulture)));
                     }
 
                     if (_universalis.TooManyRequests)
@@ -2559,7 +2566,7 @@ namespace InventoryTools.Ui
                         ImGui.SameLine();
                         ImGui.Image(ImGuiService.GetIconTexture(Icons.ExclamationIcon).Handle,
                             new Vector2(22, 22));
-                        ImGuiUtil.HoverTooltip($"It appears you are sending too many requests to Universalis, if you have multiple plugins requesting marketboard data, this is the most likely cause.");
+                        ImGuiUtil.HoverTooltip("It appears you are sending too many requests to Universalis, if you have multiple plugins requesting marketboard data, this is the most likely cause.".Loc());
                     }
 
                     craftTable?.DrawFooterItems();
@@ -2585,7 +2592,7 @@ namespace InventoryTools.Ui
                         MediatorService.Publish(new ToggleGenericWindowMessage(typeof(ConfigurationWindow)));
                     }
 
-                    ImGuiUtil.HoverTooltip("Open the configuration window.");
+                    ImGuiUtil.HoverTooltip("Open the configuration window.".Loc());
 
                     ImGui.SetCursorPosY(0);
                     width -= 30 * ImGui.GetIO().FontGlobalScale;
@@ -2596,13 +2603,15 @@ namespace InventoryTools.Ui
                         MediatorService.Publish(new ToggleGenericWindowMessage(typeof(FiltersWindow)));
                     }
 
-                    ImGuiUtil.HoverTooltip("Open the items window.");
+                    ImGuiUtil.HoverTooltip("Open the items window.".Loc());
 
                     if (craftTable != null)
                     {
-                        var totalItems =  itemTable.RenderSearchResults.Count + " items / " + craftTable.GetCraftListCount() + " craft items";
+
+                        var totalItems =  itemTable.RenderSearchResults.Count + " items / ".Loc() + craftTable.GetCraftListCount() + " craft items".Loc();
                         var calcTextSize = ImGui.CalcTextSize(totalItems);
                         width -= calcTextSize.X + 15;
+                        ImGui.SameLine();
                         ImGui.SetCursorPosX(width);
                         ImGuiService.VerticalCenter(totalItems);
                     }
@@ -2611,6 +2620,72 @@ namespace InventoryTools.Ui
         }
 
         private string? _newName;
+        /// <summary>
+        /// 製作清單頂端的一行摘要：缺幾件、其中幾件 NPC 買得到。
+        /// </summary>
+        /// <remarks>
+        /// 🔴 <b>「不知道」不可以被算進「買不到」。</b>ItemVendorLocation 沒安裝時
+        /// 這一行會改口說「不知道」，而不是報一個看起來很正常的 0。
+        /// <para>
+        /// 📌 查詢本身在 <see cref="VendorLookupService"/> 裡有快取，而且這個方法只在視窗繪製時跑，
+        /// 所以「每幀重數一次」的成本是一串字典查詢。
+        /// </para>
+        /// </remarks>
+        private void DrawVendorSummary(CraftItemTable craftTable)
+        {
+            //CraftItems 是整份重新指派上去的（TableService），所以先抓住這一份再走訪，
+            //不會走到一半被換掉。
+            var craftItems = craftTable.CraftItems;
+            var missing = 0;
+            var buyable = 0;
+            var unknown = 0;
+            foreach (var searchResult in craftItems)
+            {
+                var craftItem = searchResult.CraftItem;
+                if (craftItem == null || craftItem.IsOutputItem || craftItem.QuantityMissingOverall == 0)
+                {
+                    continue;
+                }
+
+                missing++;
+                switch (_vendorLookupService.Lookup(craftItem.ItemId).State)
+                {
+                    case VendorLookupState.Found:
+                        buyable++;
+                        break;
+                    case VendorLookupState.Unknown:
+                        unknown++;
+                        break;
+                }
+            }
+
+            if (missing == 0)
+            {
+                return;
+            }
+
+            using (ImRaii.PushColor(ImGuiCol.Text, ImGuiColors.DalamudGrey))
+            {
+                if (unknown == missing)
+                {
+                    ImGui.TextWrapped("Missing ?? items; whether NPCs sell them is unknown.".Loc(missing));
+                }
+                else if (unknown != 0)
+                {
+                    ImGui.TextWrapped("Missing ?? items, ?? of which can be bought from an NPC, ?? unknown.".Loc(missing, buyable, unknown));
+                }
+                else
+                {
+                    ImGui.TextWrapped("Missing ?? items, ?? of which can be bought from an NPC.".Loc(missing, buyable));
+                }
+            }
+
+            if (unknown != 0)
+            {
+                ImGuiUtil.HoverTooltip("ItemVendorLocation is not installed, so whether an NPC sells this is unknown.".Loc());
+            }
+        }
+
         private void DrawSettingsPanel(FilterConfiguration filterConfiguration)
         {
             using (var contentChild = ImRaii.Child("Content", new Vector2(0, -44) * ImGui.GetIO().FontGlobalScale, true))
@@ -2619,13 +2694,13 @@ namespace InventoryTools.Ui
                 {
                     var filterName = _newName ?? filterConfiguration.Name;
                     var labelName = "##" + filterConfiguration.Key;
-                    if (ImGui.CollapsingHeader("General",
+                    if (ImGui.CollapsingHeader("General".Loc(),
                             ImGuiTreeNodeFlags.DefaultOpen | ImGuiTreeNodeFlags.CollapsingHeader))
                     {
                         if (!filterConfiguration.CraftListDefault)
                         {
                             ImGui.SetNextItemWidth(100);
-                            ImGui.LabelText(labelName + "FilterNameLabel", "Name: ");
+                            ImGui.LabelText(labelName + "FilterNameLabel", "Name: ".Loc());
                             ImGui.SameLine();
                             ImGui.InputText(labelName + "FilterName", ref filterName, 100);
                             if (filterName != _newName && filterName != filterConfiguration.Name)
@@ -2636,7 +2711,7 @@ namespace InventoryTools.Ui
                             if (_newName != null)
                             {
                                 ImGui.SameLine();
-                                if (ImGui.Button("Save"))
+                                if (ImGui.Button("Save".Loc()))
                                 {
                                     filterConfiguration.Name = _newName;
                                     Invalidate();
@@ -2645,22 +2720,22 @@ namespace InventoryTools.Ui
                             }
 
                             ImGui.NewLine();
-                            if (ImGui.Button("Export Configuration to Clipboard"))
+                            if (ImGui.Button("Export Configuration to Clipboard".Loc()))
                             {
                                 var base64 = _importExportService.ToBase64(filterConfiguration);
                                 _clipboardService.CopyToClipboard(base64);
-                                _chatUtilities.PrintClipboardMessage("[Export] ", "Filter Configuration");
+                                _chatUtilities.PrintClipboardMessage("[Export] ".Loc(), "Filter Configuration".Loc());
                             }
                         }
                         else
                         {
                             ImGui.TextWrapped(
-                                "This is the default configuration for new craft lists. Any new craft list will inherit this lists settings.");
+                                "This is the default configuration for new craft lists. Any new craft list will inherit this lists settings.".Loc());
                         }
 
                         var filterType = filterConfiguration.FormattedFilterType;
                         ImGui.SetNextItemWidth(100);
-                        ImGui.LabelText(labelName + "FilterTypeLabel", "Filter Type: ");
+                        ImGui.LabelText(labelName + "FilterTypeLabel", "Filter Type: ".Loc());
                         ImGui.SameLine();
                         ImGui.TextDisabled(filterType);
 
@@ -2813,12 +2888,12 @@ namespace InventoryTools.Ui
                     if (filterConfiguration.CraftListDefault)
                     {
                         ImGuiService.VerticalCenter(
-                            "You are currently editing default craft list configuration.");
+                            "You are currently editing default craft list configuration.".Loc());
                     }
                     else
                     {
                         ImGuiService.VerticalCenter(
-                            "You are currently editing the craft list's configuration. Press the tick on the right hand side to save configuration.");
+                            "You are currently editing the craft list's configuration. Press the tick on the right hand side to save configuration.".Loc());
                     }
                     float width = ImGui.GetWindowSize().X;
 
@@ -2833,7 +2908,7 @@ namespace InventoryTools.Ui
                             var currentViewMode = _craftWindowViewSetting.CurrentValue(_configuration);
                             _craftWindowViewSetting.UpdateFilterConfiguration(_configuration, CraftWindowView.Crafts);
                         }
-                        ImGuiUtil.HoverTooltip("Return to the craft list.");
+                        ImGuiUtil.HoverTooltip("Return to the craft list.".Loc());
 
                         ImGui.SameLine();
                         width -= 30 * ImGui.GetIO().FontGlobalScale;
@@ -2846,13 +2921,13 @@ namespace InventoryTools.Ui
 
                         var result = InventoryTools.Ui.Widgets.ImGuiUtil.ConfirmPopup("confirmReset", new Vector2(400, 100), () =>
                         {
-                            ImGui.TextWrapped("Are you sure you want to reset your configuration to the default?");
+                            ImGui.TextWrapped("Are you sure you want to reset your configuration to the default?".Loc());
                         });
                         if (result == true)
                         {
                             _listService.ResetFilter(_filterService.AvailableFilters, filterConfiguration);
                         }
-                        ImGuiUtil.HoverTooltip("Reset craft list to default configuration (keeps items).");
+                        ImGuiUtil.HoverTooltip("Reset craft list to default configuration (keeps items).".Loc());
                     }
                     else
                     {
@@ -2862,20 +2937,20 @@ namespace InventoryTools.Ui
                         ImGuiService.CenterElement(24 * ImGui.GetIO().FontGlobalScale);
                         if (_resetButton.Draw(ImGuiService.GetImageTexture("nuke").Handle, "bb_reset"))
                         {
-                            ImGui.OpenPopup("Reset the default craft list?##defaultReset");
+                            ImGui.OpenPopup("Reset the default craft list?".Loc() + "##defaultReset");
                         }
 
-                        ImGuiUtil.HoverTooltip("Reset to the default settings.");
+                        ImGuiUtil.HoverTooltip("Reset to the default settings.".Loc());
 
-                        using (var popup = ImRaii.Popup("Reset the default craft list?##defaultReset"))
+                        using (var popup = ImRaii.Popup("Reset the default craft list?".Loc() + "##defaultReset"))
                         {
                             if (popup.Success)
                             {
                                 ImGui.TextUnformatted(
-                                    "Are you sure you want to reset the default craft list?.\nThis operation cannot be undone!\n\n");
+                                    "Are you sure you want to reset the default craft list?.\nThis operation cannot be undone!\n\n".Loc());
                                 ImGui.Separator();
 
-                                if (ImGui.Button("OK", new Vector2(120, 0) * ImGui.GetIO().FontGlobalScale))
+                                if (ImGui.Button("OK".Loc(), new Vector2(120, 0) * ImGui.GetIO().FontGlobalScale))
                                 {
                                     _listService.ResetFilter(_filterService.AvailableFilters, DefaultConfiguration);
                                     ImGui.CloseCurrentPopup();
@@ -2883,7 +2958,7 @@ namespace InventoryTools.Ui
 
                                 ImGui.SetItemDefaultFocus();
                                 ImGui.SameLine();
-                                if (ImGui.Button("Cancel", new Vector2(120, 0) * ImGui.GetIO().FontGlobalScale))
+                                if (ImGui.Button("Cancel".Loc(), new Vector2(120, 0) * ImGui.GetIO().FontGlobalScale))
                                 {
                                     ImGui.CloseCurrentPopup();
                                 }
@@ -2898,7 +2973,7 @@ namespace InventoryTools.Ui
                     {
                         ImGui.OpenPopup("copyFilter");
                     }
-                    ImGuiUtil.HoverTooltip("Copy existing filter's settings");
+                    ImGuiUtil.HoverTooltip("Copy existing filter's settings".Loc());
 
                     using (var popup = ImRaii.ContextPopup("copyFilter"))
                     {
@@ -2907,7 +2982,7 @@ namespace InventoryTools.Ui
                             var filterConfigurations = Filters.Where(c => c != SelectedConfiguration).ToList();
                             foreach (var filter in filterConfigurations)
                             {
-                                if (ImGui.Selectable("Copy configuration from '" + filter.Name + "'"))
+                                if (ImGui.Selectable("Copy configuration from '".Loc() + filter.Name + "'"))
                                 {
                                     _listService.ResetFilter(_filterService.AvailableFilters, filterConfiguration, filter);
                                 }
@@ -2915,7 +2990,7 @@ namespace InventoryTools.Ui
 
                             if (filterConfigurations.Count == 0)
                             {
-                                ImGui.Text("No other configurations available to copy from.");
+                                ImGui.Text("No other configurations available to copy from.".Loc());
                             }
                         }
                     }

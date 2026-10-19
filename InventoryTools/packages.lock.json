@@ -522,7 +522,6 @@
           "Humanizer.Core": "[3.0.0-beta.54, )",
           "Microsoft.Extensions.Hosting": "[9.0.9, )",
           "NaturalSort.Extension": "[4.4.0, )",
-          "SerialQueue": "[2.1.0, )",
           "Sylvan.Data.Csv": "[1.4.2, )",
           "System.Reactive": "[6.1.0, )"
         }

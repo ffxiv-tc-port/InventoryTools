@@ -27,7 +27,7 @@ public class CustomLinkButtonColumn : ButtonColumn
         Settings.Add(_buttonText);
         Settings.Add(_actionSetting);
     }
-    public override string Name { get; set; } = "Custom Link Button";
+    public override string Name { get; set; } = "Custom Link Button".Loc();
     public override float Width { get; set; } = 50;
 
     public override bool HasFilter { get; set; } = false;

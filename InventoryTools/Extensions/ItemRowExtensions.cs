@@ -1,10 +1,33 @@
+using System;
+using System.Runtime.InteropServices;
 using System.Web;
+using AllaganLib.GameSheets.Caches;
 using AllaganLib.GameSheets.Sheets.Rows;
 
 namespace InventoryTools.Extensions;
 
 public static class ItemRowExtensions
 {
+    /// <summary>
+    /// Same answer as AllaganLib's <c>HasUsesByType(types)</c> (first use in <see cref="ItemRow.Uses"/> order whose type is
+    /// listed), without the closure, delegate and params array that one allocates on every call.
+    /// </summary>
+    public static bool HasAnyUseOfType(this ItemRow itemRow, params ReadOnlySpan<ItemInfoType> types)
+    {
+        foreach (var use in CollectionsMarshal.AsSpan(itemRow.Uses))
+        {
+            foreach (var type in types)
+            {
+                if (use.Type == type)
+                {
+                    return true;
+                }
+            }
+        }
+
+        return false;
+    }
+
     public static string ToGarlandToolsUrl(this ItemRow itemRow)
     {
         return $"https://www.garlandtools.org/db/#item/{itemRow.GarlandToolsId}";
@@ -28,6 +51,14 @@ public static class ItemRowExtensions
         if (name.StartsWith("_")) // "level sync" icon
             name = name.Substring(2);
         return $"https://ffxiv.gamerescape.com/wiki/{HttpUtility.UrlEncode(name)}?useskin=Vector";
+    }
+
+    public static string ToHuijiWikiUrl(this ItemRow itemRow)
+    {
+        // 台服物品名是繁體,灰機wiki 的頁面標題是簡體;它的搜尋分析器能把繁體轉簡體,
+        // 且限定「物品」命名空間(ns220)後精確物品會排第一,所以用搜尋 URL 比直連
+        // 標題可靠(直連遇到繁簡差異或缺頁會 404,搜尋則優雅降級成相關結果)。
+        return $"https://ff14.huijiwiki.com/index.php?search={HttpUtility.UrlEncode(itemRow.NameString)}&ns220=1";
     }
 
     public static string ToConsoleGamesWikiUrl(this ItemRow itemRow)

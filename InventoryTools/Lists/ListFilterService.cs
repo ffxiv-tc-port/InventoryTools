@@ -215,6 +215,12 @@ public class ListFilterService : DisposableMediatorBackgroundService
 
         var filtersWithValues = _filterService.AvailableFilters.Where(c => c.HasValueSet(filter) && c.AvailableIn.HasFlag(filter.FilterType)).ToList();
 
+        // 每次搜尋開頭失效一次（不是每件物品）：篩選器是單例，只在 Sorting/Craft 清的話，搜尋型清單整場沿用第一個角色的快取。
+        foreach (var availableFilter in filtersWithValues)
+        {
+            availableFilter.InvalidateSearchCache();
+        }
+
         if (filter.FilterType == FilterType.SortingFilter || filter.FilterType == FilterType.CraftFilter)
         {
             ct.ThrowIfCancellationRequested();
@@ -229,11 +235,6 @@ public class ListFilterService : DisposableMediatorBackgroundService
             if (filter.FilterType == FilterType.CraftFilter)
             {
                 filter.CraftList.GetFlattenedMergedMaterials(true);
-            }
-
-            foreach (var availableFilter in filtersWithValues)
-            {
-                availableFilter.InvalidateSearchCache();
             }
 
             foreach (var sourceInventory in sourceInventories)
@@ -863,7 +864,14 @@ public class ListFilterService : DisposableMediatorBackgroundService
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
-        await BackgroundProcessing(stoppingToken);
+        // 停用外掛或關閉遊戲時 stoppingToken 被取消是正常收工，刻意吞掉不記成錯誤。
+        try
+        {
+            await BackgroundProcessing(stoppingToken);
+        }
+        catch (OperationCanceledException) when (stoppingToken.IsCancellationRequested)
+        {
+        }
     }
 
     private async Task BackgroundProcessing(CancellationToken stoppingToken)

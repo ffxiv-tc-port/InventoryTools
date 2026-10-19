@@ -31,7 +31,9 @@ namespace InventoryTools.Logic.Columns
             ImGui.TableNextColumn();
             if (ImGui.TableGetColumnFlags().HasFlag(ImGuiTableColumnFlags.IsEnabled))
             {
-                if (CurrentValue(columnConfiguration, searchResult) > 0)
+                // 背景重新整理可能在推與彈之間改掉數量；PopStyleColor 必須照推入當下的判定。
+                var highlight = CurrentValue(columnConfiguration, searchResult) > 0;
+                if (highlight)
                 {
                     ImGui.PushStyleColor(ImGuiCol.Text, ImGuiColors.ParsedBlue);
                 }
@@ -52,7 +54,7 @@ namespace InventoryTools.Logic.Columns
                     ImGuiUtil.VerticalAlignText(EmptyText, configuration.TableHeight, false);
                 }
 
-                if (CurrentValue(columnConfiguration, searchResult) > 0)
+                if (highlight)
                 {
                     ImGui.PopStyleColor();
                 }
@@ -61,8 +63,8 @@ namespace InventoryTools.Logic.Columns
             return null;
         }
 
-        public override string Name { get; set; } = "Amount can Craft";
-        public override string RenderName => "Craftable";
+        public override string Name { get; set; } = "Amount can Craft".Loc();
+        public override string RenderName => "Craftable".Loc();
         public override float Width { get; set; } = 60;
         public override bool? CraftOnly => true;
         public override string HelpText { get; set; } =

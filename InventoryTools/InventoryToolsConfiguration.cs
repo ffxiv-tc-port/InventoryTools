@@ -58,6 +58,7 @@ namespace InventoryTools
         private int _marketSaleHistoryLimit = 7;
         private bool _showItemNumberRetainerList = true;
         private bool _historyEnabled;
+        private int _historyMaxEntries = 50000;
         private bool _addTitleMenuButton;
 
         private Vector4 _tabHighlightColor = new (0.007f, 0.008f,
@@ -181,6 +182,28 @@ namespace InventoryTools
             set
             {
                 _historyEnabled = value;
+                IsDirty = true;
+            }
+        }
+
+        /// <summary>
+        /// Maximum number of item history entries to retain. Once exceeded, the oldest entries are
+        /// dropped first (both in memory and the next time history.csv is saved). Defaults to 50,000 to
+        /// keep history.csv - which is fully read/written on every plugin start/stop - from growing
+        /// without bound. Set to 0 or a negative value to disable the limit entirely.
+        /// </summary>
+        // 🔴 The attribute and the field initialiser DISAGREE ON PURPOSE (a grandfather clause) - keep both halves.
+        // The config is read back with DefaultValueHandling.IgnoreAndPopulate: the attribute is what an EXISTING user with
+        // no HistoryMaxEntries key gets, the field initialiser is what a BRAND NEW install (no json file at all) gets.
+        // 0 means "no limit", and existing users have been accumulating history on that basis: populating 50000 into them
+        // would make TrimHistory() PERMANENTLY drop everything past the cap on the very next load.
+        [DefaultValue(0)]
+        public int HistoryMaxEntries
+        {
+            get => _historyMaxEntries;
+            set
+            {
+                _historyMaxEntries = value;
                 IsDirty = true;
             }
         }
@@ -346,8 +369,11 @@ namespace InventoryTools
         }
 
         public int SelectedConfigurationPage { get; set; }
+        [DefaultValue(true)]
         public bool ShowFilterTab { get; set; } = true;
+        [DefaultValue(true)]
         public bool SwitchFiltersAutomatically { get; set; } = true;
+        [DefaultValue(true)]
         public bool SwitchCraftListsAutomatically { get; set; } = true;
         private bool _tooltipCurrentCharacter;
         private bool _tooltipDisplayAmountOwned = true;
@@ -362,6 +388,7 @@ namespace InventoryTools
         private int _tooltipHeaderLines;
         private int _tooltipFooterLines;
         private TooltipLocationDisplayMode _tooltipLocationDisplayMode = TooltipLocationDisplayMode.CharacterCategoryQuantityQuality;
+        private TooltipOwnerTypeDisplayMode _tooltipOwnerTypeDisplayMode = TooltipOwnerTypeDisplayMode.Never;
         private WindowLayout _craftWindowLayout =  WindowLayout.Tabs;
         private WindowLayout _filtersLayout = WindowLayout.Tabs;
         private uint? _tooltipColor;
@@ -389,6 +416,7 @@ namespace InventoryTools
             }
         }
 
+        [Vector4Default("0, 0.8, 0.1333333, 1")]
         public Vector4 RetainerListColor
         {
             get => _retainerListColor;
@@ -410,6 +438,7 @@ namespace InventoryTools
             }
         }
 
+        [DefaultValue(true)]
         public bool DisplayCrossCharacter
         {
             get => _displayCrossCharacter;
@@ -420,6 +449,7 @@ namespace InventoryTools
             }
         }
 
+        [DefaultValue(true)]
         public bool DisplayTooltip
         {
             get => _displayTooltip;
@@ -440,6 +470,7 @@ namespace InventoryTools
             }
         }
 
+        [DefaultValue(true)]
         public bool TooltipDisplayAmountOwned
         {
             get => _tooltipDisplayAmountOwned;
@@ -488,6 +519,7 @@ namespace InventoryTools
             }
         }
 
+        [DefaultValue(true)]
         public bool TooltipDisplayMarketLowestPrice
         {
             get => _tooltipDisplayMarketLowestPrice;
@@ -518,6 +550,7 @@ namespace InventoryTools
                 IsDirty = true;
             }
         }
+        [DefaultValue(Logic.Settings.TooltipLocationDisplayMode.CharacterCategoryQuantityQuality)]
         public TooltipLocationDisplayMode TooltipLocationDisplayMode
         {
             get => _tooltipLocationDisplayMode;
@@ -527,6 +560,22 @@ namespace InventoryTools
                 IsDirty = true;
             }
         }
+
+        // The DefaultValue attribute is load bearing, not decoration: the configuration is read
+        // back with DefaultValueHandling.IgnoreAndPopulate, which overwrites the backing field's
+        // initializer with default(T) for any property missing from the json - and this property
+        // is missing from every existing user's json.
+        [DefaultValue(Logic.Settings.TooltipOwnerTypeDisplayMode.Never)]
+        public TooltipOwnerTypeDisplayMode TooltipOwnerTypeDisplayMode
+        {
+            get => _tooltipOwnerTypeDisplayMode;
+            set
+            {
+                _tooltipOwnerTypeDisplayMode = value;
+                IsDirty = true;
+            }
+        }
+        [DefaultValue(WindowLayout.Tabs)]
         public WindowLayout CraftWindowLayout
         {
             get => _craftWindowLayout;
@@ -536,6 +585,7 @@ namespace InventoryTools
                 IsDirty = true;
             }
         }
+        [DefaultValue(WindowLayout.Tabs)]
         public WindowLayout FiltersLayout
         {
             get => _filtersLayout;
@@ -588,6 +638,7 @@ namespace InventoryTools
             }
         }
 
+        [DefaultValue(true)]
         public bool ColorRetainerList
         {
             get => _colorRetainerList;
@@ -598,6 +649,7 @@ namespace InventoryTools
             }
         }
 
+        [DefaultValue(true)]
         public bool ShowItemNumberRetainerList
         {
             get => _showItemNumberRetainerList;
@@ -608,6 +660,7 @@ namespace InventoryTools
             }
         }
 
+        [DefaultValue(true)]
         public bool InvertHighlighting
         {
             get => _invertHighlighting;
@@ -768,6 +821,40 @@ namespace InventoryTools
             }
         }
 
+        /// <summary>
+        /// 使用者指定「不要查價、也不要出現在查價目標清單裡」的世界。
+        /// </summary>
+        /// <remarks>
+        /// 🔴 出廠預設(排除台服已停運的拉姆 4034)刻意**不**寫在這裡的初始式上:設定是自己走
+        /// JsonConvert.DeserializeObject 讀的,沒有設 ObjectCreationHandling ⇒ 走 Newtonsoft 預設的 Auto ⇒ 對「現值不是 null 的
+        /// 集合成員」是**併入**而不是取代。把 4034 寫進初始式的話,使用者存成 [] 之後下次讀回來又會變成 [4034],
+        /// **永遠刪不掉而且完全無聲**。
+        /// ⇒ 出廠值改由 MarketBoardExcludedWorldsSeeded 這個一次性旗標在啟動時灌。
+        /// </remarks>
+        public List<uint> MarketBoardExcludedWorldIds
+        {
+            get => _marketBoardExcludedWorldIds ??= new List<uint>();
+            set
+            {
+                _marketBoardExcludedWorldIds = value;
+                IsDirty = true;
+            }
+        }
+
+        /// <summary>
+        /// 出廠排除清單是否已經灌過。灌過就再也不灌,使用者把某個世界從排除清單裡拿掉
+        /// 之後不會被下次啟動加回去。
+        /// </summary>
+        public bool MarketBoardExcludedWorldsSeeded
+        {
+            get => _marketBoardExcludedWorldsSeeded;
+            set
+            {
+                _marketBoardExcludedWorldsSeeded = value;
+                IsDirty = true;
+            }
+        }
+
 
         public bool SeenWizardVersion(string versionNumber)
         {
@@ -823,7 +910,9 @@ namespace InventoryTools
         #if DEBUG
         public int SelectedDebugPage { get; set; }
         #endif
+        [DefaultValue(true)]
         public bool AutoSave { get; set; } = true;
+        [DefaultValue(10)]
         public int AutoSaveMinutes { get; set; } = 10;
         public int InternalVersion { get; set; } = 0;
         public int Version { get; set; }
@@ -890,6 +979,8 @@ namespace InventoryTools
         private bool _marketBoardUseActiveWorld = true;
         private bool _marketBoardUseHomeWorld = true;
         private List<uint>? _marketBoardWorldIds;
+        private List<uint>? _marketBoardExcludedWorldIds;
+        private bool _marketBoardExcludedWorldsSeeded;
         private HighlightWhen _highlightWhenEnum;
 
         public ModifiableHotkey? GetHotkey(string hotkey)
@@ -947,6 +1038,7 @@ namespace InventoryTools
             }
         }
 
+        [DefaultValue(Microsoft.Extensions.Logging.LogLevel.Information)]
         public LogLevel LogLevel { get; set; } = LogLevel.Information;
 
         public Dictionary<string, bool> BooleanSettings

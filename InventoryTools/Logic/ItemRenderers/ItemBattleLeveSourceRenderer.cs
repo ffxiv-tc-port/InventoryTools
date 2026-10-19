@@ -32,22 +32,22 @@ public class ItemBattleLeveSourceRenderer : ItemInfoRenderer<ItemBattleLeveSourc
 
     public override RendererType RendererType => RendererType.Source;
     public override ItemInfoType Type => ItemInfoType.BattleLeve;
-    public override string SingularName => "Battle Leve";
-    public override string PluralName => "Battle Leves";
-    public override string HelpText => "Is this item obtained from a battle leve?";
+    public override string SingularName => "Battle Leve".Loc();
+    public override string PluralName => "Battle Leves".Loc();
+    public override string HelpText => "Is this item obtained from a battle leve?".Loc();
     public override bool ShouldGroup => true;
     public override IReadOnlyList<ItemInfoRenderCategory> Categories => [ItemInfoRenderCategory.Leve];
     public override Action<ItemSource> DrawTooltip => source =>
     {
         var asSource = AsSource(source);
         var leveRow = asSource.Leve.Value;
-        ImGui.TextUnformatted("Leve: " + leveRow.Name.ExtractText());
-        ImGui.TextUnformatted("Class: " + leveRow.ClassJobCategory.Value.Name.ExtractText());
-        ImGui.TextUnformatted("EXP Reward: " + asSource.ExpReward);
-        ImGui.TextUnformatted("Allowance Cost: " + leveRow.AllowanceCost);
-        ImGui.TextUnformatted("Loot Chance: " + asSource.LeveRewardItem.Value.ProbabilityPercent[asSource.RewardItemIndex] + "%");
+        ImGui.TextUnformatted("Leve: ".Loc() + leveRow.Name.ExtractText());
+        ImGui.TextUnformatted("Class: ".Loc() + leveRow.ClassJobCategory.Value.Name.ExtractText());
+        ImGui.TextUnformatted("EXP Reward: ".Loc() + asSource.ExpReward);
+        ImGui.TextUnformatted("Allowance Cost: ".Loc() + leveRow.AllowanceCost);
+        ImGui.TextUnformatted("Loot Chance: ".Loc() + asSource.LeveRewardItem.Value.ProbabilityPercent[asSource.RewardItemIndex] + "%");
 
-        DrawItems("Possible Reward Items: ", asSource.RewardItems);
+        DrawItems("Possible Reward Items: ".Loc(), asSource.RewardItems);
         DrawMaps(asSource);
     };
 
@@ -64,6 +64,6 @@ public class ItemBattleLeveSourceRenderer : ItemInfoRenderer<ItemBattleLeveSourc
         var asSource = AsSource(source);
         var leveRow = asSource.Leve.Value;
         return
-            $"{leveRow.Name.ExtractText()} ({leveRow.ClassJobCategory.Value.Name.ExtractText()}) ({leveRow.ExpReward} xp) ({leveRow.AllowanceCost} allowances)";
+            "?? (??) (?? xp) (?? allowances)".Loc(leveRow.Name.ExtractText(), leveRow.ClassJobCategory.Value.Name.ExtractText(), leveRow.ExpReward, leveRow.AllowanceCost);
     };
 }

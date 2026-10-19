@@ -77,7 +77,7 @@ namespace InventoryTools.Logic.Columns
             return null;
         }
 
-        public override string Name { get; set; } = "Relative Item Level";
+        public override string Name { get; set; } = "Relative Item Level".Loc();
         public override float Width { get; set; } = 150;
 
         public override string HelpText { get; set; } =

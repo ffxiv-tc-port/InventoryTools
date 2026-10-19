@@ -39,7 +39,7 @@ public class CraftEverythingElseGroupFilter : ChoiceFilter<EverythingElseGroupSe
     }
 
     public override string Key { get; set; } = "CraftEverythingElseGroupFilter";
-    public override string Name { get; set; } = "Group Everything Else By";
+    public override string Name { get; set; } = "Group Everything Else By".Loc();
 
     public override string HelpText { get; set; } =
         "How should everything else not in it's own group be grouped?";

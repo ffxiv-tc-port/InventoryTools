@@ -20,7 +20,7 @@ namespace InventoryTools.Logic.Columns
         }
         public override ColumnCategory ColumnCategory => ColumnCategory.Market;
         public override string HelpText { get; set; } =
-            "Shows the minimum price of both the NQ and HQ form of the item and multiplies it by the quantity available. If no world is selected, your home world is used. This data is sourced from universalis.";
+            "Shows the minimum price of both the NQ and HQ form of the item and multiplies it by the quantity available. If no world is selected, your home world is used. 此資料來自 universalis 的社群上傳，涵蓋台服 8 個世界；沒有人上傳過的道具會顯示為無資料。";
         public override FilterType AvailableIn => Logic.FilterType.SearchFilter | Logic.FilterType.SortingFilter;
 
         public override List<MessageBase>? DoDraw(SearchResult searchResult, (int, int)? currentValue, int rowIndex,
@@ -84,8 +84,8 @@ namespace InventoryTools.Logic.Columns
             return base.CurrentValue(columnConfiguration, searchResult);
         }
 
-        public override string Name { get; set; } = "Market Board Minimum Total Price(Qty * Price) NQ/HQ";
-        public override string RenderName => "MB Min. Total NQ/HQ";
+        public override string Name { get; set; } = "Market Board Minimum Total Price(Qty * Price) NQ/HQ".Loc();
+        public override string RenderName => "MB Min. Total NQ/HQ".Loc();
 
         public override FilterType DefaultIn => Logic.FilterType.CraftFilter;
     }

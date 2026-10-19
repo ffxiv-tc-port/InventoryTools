@@ -9,6 +9,7 @@ using Dalamud.Game.Text.SeStringHandling.Payloads;
 using Dalamud.Interface.Utility.Raii;
 using Dalamud.Plugin;
 using Dalamud.Plugin.Ipc;
+using Dalamud.Plugin.Ipc.Exceptions;
 using Dalamud.Plugin.Services;
 using Dalamud.Bindings.ImGui;
 using InventoryTools.Logic;
@@ -51,10 +52,23 @@ public class Chat2Ipc : IChat2Ipc
     }
 
     private void Register() {
+        // 刻意不加「_id != null 就直接 return」的重入防護（上游有）。依 ChatTwo 的 IpcManager 實作:
+        // ChatTwo.Available 只在 IpcManager 建構子裡送出一次,所以 _id != null 時還收到 Available,只可能是 ChatTwo 被重新載入了,
+        // 此時舊的 _id 已經不在 ChatTwo 新的 Registered 清單裡、永遠不會再被呼叫到。若照上游早退,
+        // 右鍵選單會在 ChatTwo 重載後永久失效;重新註冊才是正確行為,且舊 id 隨舊實例一起消失,不會有註冊洩漏。
         try
         {
             _id = RegisterCallGate.InvokeFunc();
             _logger.LogTrace("Attempting to register with chat2");
+        }
+        catch (IpcNotReadyError)
+        {
+            // ChatTwo 是選用相依,可能比 InventoryTools 晚載入。
+            // 這是預期中的載入順序狀況而不是錯誤:ChatTwo 就緒時會送出 ChatTwo.Available,
+            // 屆時 StartAsync 裡的 AvailableCallGate 訂閱會再呼叫一次 Register()。
+            // 這條路徑只寫 Debug,通用 catch 的 Warning 保持原樣
+            // 留給真正非預期的例外,避免沒裝 ChatTwo 的使用者每次啟動都看到警告與堆疊。
+            _logger.LogDebug("ChatTwo's IPC is not ready yet; waiting for its ChatTwo.Available event.");
         }
         catch (Exception exception)
         {
@@ -64,6 +78,10 @@ public class Chat2Ipc : IChat2Ipc
     }
 
     public void Disable() {
+        // StartAsync 有 AvailableCallGate.Subscribe(Register),這裡要取消訂閱:
+        // CallGate 通道是 Dalamud 全域且生命週期比外掛長,不取消訂閱的話,本外掛卸載後
+        // ChatTwo 下次送出 Available 仍會 DynamicInvoke 到已卸載組件裡的 Register。先停掉新的註冊來源,再往下做清理。
+        AvailableCallGate.Unsubscribe(Register);
 
         if (_id != null) {
             try
@@ -71,12 +89,21 @@ public class Chat2Ipc : IChat2Ipc
                 UnregisterCallGate.InvokeAction(_id);
                 _logger.LogTrace("Attempting to unregister with chat2's IPC");
             }
+            catch (IpcNotReadyError)
+            {
+                // ChatTwo 先卸載了（更新或關遊戲時的卸載順序）：它的 Dispose 已清空註冊清單，沒有東西要取消。
+                _logger.LogDebug("ChatTwo unloaded before us; its registration list went with it, nothing to unregister.");
+            }
             catch (Exception exception)
             {
                 _logger.LogWarning(exception, "Something went wrong while trying to unregister with Chat2's IPC. Ignore this if you don't have it installed.");
             }
             _id = null;
         }
+        // 刻意不採用上游在此處加的 catch (IpcNotReadyError)。
+        // 查本 pin 的 Dalamud:CallGatePubSubBase.Unsubscribe 只轉呼叫 CallGateChannel.Unsubscribe,
+        // 內容是 lock 之後的 List.Remove,不會擲 IpcNotReadyError;
+        // 只有 InvokeAction / InvokeFunc 在 Action/Func 為 null 時才擲。那個 catch 是死碼。
         try
         {
             InvokeCallGate.Unsubscribe(Integration);

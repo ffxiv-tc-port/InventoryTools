@@ -27,7 +27,7 @@ public class CraftCraftCompletionModeFilter : ChoiceFilter<CraftCompletionMode>
     }
 
     public override string Key { get; set; } = "HideCompletedMode";
-    public override string Name { get; set; } = "Craft Completion Mode";
+    public override string Name { get; set; } = "Craft Completion Mode".Loc();
 
     public override string HelpText { get; set; } =
         "When an output reaches 0, should it be deleted or just be hidden(when Hide Completed is checked).";

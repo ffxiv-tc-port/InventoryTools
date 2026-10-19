@@ -18,7 +18,7 @@ public class TooltipFooterLinesSetting : IntegerSetting
     }
 
     public override string Key { get; set; } = "TooltipFooterLines";
-    public override string Name { get; set; } = "Footer New Lines";
+    public override string Name { get; set; } = "Footer New Lines".Loc();
 
     public override string HelpText { get; set; } =
         "How many new lines should be added below any tooltip modifications made by this plugin?";

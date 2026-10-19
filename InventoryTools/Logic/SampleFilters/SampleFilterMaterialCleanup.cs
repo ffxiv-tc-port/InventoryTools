@@ -49,7 +49,7 @@ public class SampleFilterMaterialCleanup : BooleanSetting, ISampleFilter
     public override string HelpText { get; set; } = "Finds all gatherable items in your characters inventory and attempts to show you where to put them in your retainers.";
     public string SampleDefaultName => "100 gil or less";
     public string SampleDescription =>
-        "This will add a list that will be setup to quickly put away any excess materials. It will have all the material categories automatically added. When calculating where to put items it will try to prioritise existing stacks of items.";
+        "This will add a list that will be setup to quickly put away any excess materials. It will have all the material categories automatically added. When calculating where to put items it will try to prioritise existing stacks of items.".Loc();
     public SampleFilterType SampleFilterType => SampleFilterType.Sample;
     public override SettingCategory SettingCategory { get; set; } = SettingCategory.None;
     public override SettingSubCategory SettingSubCategory { get; } = SettingSubCategory.None;

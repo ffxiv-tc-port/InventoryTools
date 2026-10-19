@@ -19,8 +19,8 @@ namespace InventoryTools.Logic.Filters
         }
 
         public override string Key { get; set; } = "Collectible";
-        public override string Name { get; set; } = "Is Collectible?";
-        public override string HelpText { get; set; } = "Is the item Collectible?";
+        public override string Name { get; set; } = "Is Collectible?".Loc();
+        public override string HelpText { get; set; } = "Is the item Collectible?".Loc();
 
         public override FilterCategory FilterCategory { get; set; } = FilterCategory.Gathering;
 

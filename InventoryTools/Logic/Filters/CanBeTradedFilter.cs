@@ -10,8 +10,8 @@ namespace InventoryTools.Logic.Filters
     public class CanBeTradedFilter : BooleanFilter
     {
         public override string Key { get; set; } = "CanBeTraded";
-        public override string Name { get; set; } = "Can be Traded?";
-        public override string HelpText { get; set; } = "Can this item be traded?";
+        public override string Name { get; set; } = "Can be Traded?".Loc();
+        public override string HelpText { get; set; } = "Can this item be traded?".Loc();
         public override FilterCategory FilterCategory { get; set; } = FilterCategory.Acquisition;
 
 

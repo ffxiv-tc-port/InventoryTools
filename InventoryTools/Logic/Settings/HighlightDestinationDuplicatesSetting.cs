@@ -18,7 +18,7 @@ namespace InventoryTools.Logic.Settings
         }
 
         public override string Key { get; set; } = "HighlightDestination";
-        public override string Name { get; set; } = "Highlight Destination?";
+        public override string Name { get; set; } = "Highlight Destination?".Loc();
 
         public override string HelpText { get; set; } =
             "Should the destination for items be highlighted? This can be overridden in the filter configuration.";

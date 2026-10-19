@@ -16,21 +16,34 @@ public class OutdatedGearColumn : CheckboxColumn
         _gameInteropService = gameInteropService;
     }
 
-    public override string Name { get; set; } = "Outdated Gear?";
+    public override string Name { get; set; } = "Outdated Gear?".Loc();
     public override float Width { get; set; } = 50;
-    public override string HelpText { get; set; } = "Will show any gear considered to be outdated. This will compare the item level of each item with the level of your classes. It will use the lowest level you have applicable to the weapon to determine if it's outdated. Any classes you do not have are not taken into consideration.";
+    public override string HelpText { get; set; } = SharedText.OutdatedGear.Loc();
     public override ColumnCategory ColumnCategory { get; } = ColumnCategory.Tools;
     public override bool HasFilter { get; set; } = true;
     public override ColumnFilterType FilterType { get; set; } = ColumnFilterType.Boolean;
 
+    private static readonly Dictionary<uint, short> NoLevels = new();
+
+    // 表格重整可能在背景執行緒：讀寫都經區域變數，別處剛好清掉欄位時才不會回 null。
     private Dictionary<uint, short> GetClassJobLevels()
     {
-        if (_jobClassLevels == null)
+        var levels = _jobClassLevels;
+        if (levels != null)
         {
-            _jobClassLevels = _gameInteropService.GetClassJobLevels()?.ToDictionary(c => c.Key.RowId, c=> c.Value) ?? new();
+            return levels;
         }
 
-        return _jobClassLevels;
+        var current = _gameInteropService.GetClassJobLevels();
+        // 未登入不快取：快取了空表，登入後要等到下一次表格重整才看得到等級。
+        if (current == null)
+        {
+            return NoLevels;
+        }
+
+        levels = current.ToDictionary(c => c.Key.RowId, c => c.Value);
+        _jobClassLevels = levels;
+        return levels;
     }
 
 

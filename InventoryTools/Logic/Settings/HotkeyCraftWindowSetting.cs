@@ -11,7 +11,7 @@ namespace InventoryTools.Logic.Settings
         public override ModifiableHotkey DefaultValue { get; set; } = new(VirtualKey.NO_KEY);
         public static string AsKey => "HotkeyCraftWindow";
         public override string Key { get; set; } = AsKey;
-        public override string Name { get; set; } = "Toggle Craft Window";
+        public override string Name { get; set; } = "Toggle Craft Window".Loc();
 
         public override string HelpText { get; set; } =
             "The hotkey to toggle the craft window.";

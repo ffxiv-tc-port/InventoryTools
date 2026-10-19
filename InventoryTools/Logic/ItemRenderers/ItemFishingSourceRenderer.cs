@@ -26,8 +26,8 @@ public class ItemFishingSourceRenderer : ItemInfoRenderer<ItemFishingSource>
 
     public override RendererType RendererType => RendererType.Source;
     public override ItemInfoType Type => ItemInfoType.Fishing;
-    public override string HelpText => "Can the item be gathered via fishing?";
-    public override string SingularName => "Fishing";
+    public override string HelpText => "Can the item be gathered via fishing?".Loc();
+    public override string SingularName => "Fishing".Loc();
     public override bool ShouldGroup => true;
     public override IReadOnlyList<ItemInfoRenderCategory> Categories => [ItemInfoRenderCategory.Gathering, ItemInfoRenderCategory.Fishing];
 
@@ -36,7 +36,7 @@ public class ItemFishingSourceRenderer : ItemInfoRenderer<ItemFishingSource>
         var asSources = AsSource(sources);
 
         var level = asSources.First().FishParameter.Base.GatheringItemLevel.Value.GatheringItemLevel;
-        ImGui.Text("Level:" + (level == 0 ? "N/A" : level));
+        ImGui.Text("Level:".Loc() + (level == 0 ? "N/A".Loc() : level));
 
         DrawMaps(sources);
     };
@@ -46,7 +46,7 @@ public class ItemFishingSourceRenderer : ItemInfoRenderer<ItemFishingSource>
         var asSource = AsSource(source);
 
         var level = asSource.FishParameter.Base.GatheringItemLevel.Value.GatheringItemLevel;
-        ImGui.Text("Level:" + (level == 0 ? "N/A" : level));
+        ImGui.Text("Level:".Loc() + (level == 0 ? "N/A".Loc() : level));
 
         DrawMaps(source);
     };
@@ -65,6 +65,6 @@ public class ItemFishingSourceRenderer : ItemInfoRenderer<ItemFishingSource>
         var level = asSource.FishParameter.Base.GatheringItemLevel.Value.GatheringItemLevel;
         var fishingType = asSource.FishParameter.FishRecordType;
 
-        return $"Level {(level == 0 ? "N/A" : level)} {fishingType} spot";
+        return $"Level {(level == 0 ? "N/A".Loc() : level)} {fishingType} spot";
     };
 }

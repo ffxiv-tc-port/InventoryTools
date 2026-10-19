@@ -29,21 +29,23 @@ namespace InventoryTools.Logic.Columns
         {
             if (searchResult.CraftItem == null) return null;
 
-            if (CurrentValue(columnConfiguration, searchResult) > 0)
+            // 背景重新整理可能在推與彈之間改掉數量；PopStyleColor 必須照推入當下的判定。
+            var highlight = CurrentValue(columnConfiguration, searchResult) > 0;
+            if (highlight)
             {
                 ImGui.PushStyleColor(ImGuiCol.Text, ImGuiColors.DalamudRed);
             }
 
             base.Draw(configuration, columnConfiguration, searchResult, rowIndex, columnIndex);
-            if (CurrentValue(columnConfiguration, searchResult) > 0)
+            if (highlight)
             {
                 ImGui.PopStyleColor();
             }
             return null;
         }
         public override FilterType AvailableIn { get; } = Logic.FilterType.CraftFilter;
-        public override string Name { get; set; } = "Amount Missing";
-        public override string RenderName => "Missing";
+        public override string Name { get; set; } = "Amount Missing".Loc();
+        public override string RenderName => "Missing".Loc();
         public override float Width { get; set; } = 60;
         public override bool? CraftOnly => true;
         public override string HelpText { get; set; } =

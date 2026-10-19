@@ -32,7 +32,7 @@ namespace InventoryTools.Logic.Filters.Abstract
 
         public virtual string GetHelpText(FilterConfiguration configuration)
         {
-            return HelpText;
+            return HelpText.Loc();
         }
 
         public bool ShowReset { get; set; } = false;

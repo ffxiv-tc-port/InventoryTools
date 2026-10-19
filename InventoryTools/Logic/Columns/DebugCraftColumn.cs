@@ -30,16 +30,16 @@ namespace InventoryTools.Logic.Columns
             ImGui.Text("Required: " +  searchResult.CraftItem.QuantityRequired);
             ImGui.Text("Needed: " +  searchResult.CraftItem.QuantityNeeded);
             ImGui.Text("Needed Pre Update: " +  searchResult.CraftItem.QuantityNeededPreUpdate);
-            ImGui.Text("Available: " +  searchResult.CraftItem.QuantityAvailable);
+            ImGui.Text("Available: ".Loc() +  searchResult.CraftItem.QuantityAvailable);
             ImGui.Text("Ready: " +  searchResult.CraftItem.QuantityReady);
             ImGui.Text("Can Craft: " +  searchResult.CraftItem.QuantityCanCraft);
             ImGui.Text("Will Retrieve: " + searchResult.CraftItem.QuantityWillRetrieve);
             return null;
         }
 
-        public override string Name { get; set; } = "Debug - Craft";
+        public override string Name { get; set; } = "Debug - Craft".Loc();
         public override float Width { get; set; } = 200;
-        public override string HelpText { get; set; } = "Shows craft debug information";
+        public override string HelpText { get; set; } = "Shows craft debug information".Loc();
         public override bool HasFilter { get; set; } = true;
         public override bool IsDebug { get; set; } = true;
         public override ColumnFilterType FilterType { get; set; } = ColumnFilterType.Text;

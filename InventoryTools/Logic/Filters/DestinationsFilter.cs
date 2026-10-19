@@ -5,6 +5,7 @@ using CriticalCommonLib.Models;
 using CriticalCommonLib.Services;
 using Dalamud.Interface.Colors;
 using Dalamud.Bindings.ImGui;
+using InventoryTools.Extensions;
 using InventoryTools.Lists;
 using InventoryTools.Logic.Editors;
 using InventoryTools.Logic.Filters.Abstract;
@@ -29,7 +30,7 @@ namespace InventoryTools.Logic.Filters
         }
         public override int Order { get; set; } = 2;
         public override string Key { get; set; } = "Destinations";
-        public override string Name { get; set; } = "Destinations";
+        public override string Name { get; set; } = "Destinations".Loc();
 
         public override string HelpText { get; set; } =
             "This lists all the destinations that are applicable given the destinations picked above.";
@@ -46,7 +47,7 @@ namespace InventoryTools.Logic.Filters
         public override void Draw(FilterConfiguration configuration)
         {
             ImGui.NewLine();
-            ImGui.Text("Destination Information: ");
+            ImGui.Text("Destination Information: ".Loc());
             ImGui.SameLine();
             ImGuiService.HelpMarker(GetHelpText(configuration));
             var allCharacters = _characterMonitor.Characters;
@@ -73,7 +74,7 @@ namespace InventoryTools.Logic.Filters
                         }
                         if (_scopeCalculator.Filter(destinationInventories, retainer.Key, category))
                         {
-                            var formattedName = retainer.Value.FormattedName + " - " + category.FormattedName();
+                            var formattedName = retainer.Value.FormattedName + " - " + category.LocalizedName();
                             destinations.Add(formattedName);
                         }
                     }
@@ -109,7 +110,7 @@ namespace InventoryTools.Logic.Filters
                         }
                         if (_scopeCalculator.Filter(destinationInventories, retainer.Key, category))
                         {
-                            var formattedName = retainer.Value.FormattedName + " - " + category.FormattedName();
+                            var formattedName = retainer.Value.FormattedName + " - " + category.LocalizedName();
                             destinations.Add(formattedName);
                         }
                     }
@@ -146,7 +147,7 @@ namespace InventoryTools.Logic.Filters
                         }
                         if (_scopeCalculator.Filter(destinationInventories, retainer.Key, category))
                         {
-                            var formattedName = retainer.Value.FormattedName + " - " + category.FormattedName();
+                            var formattedName = retainer.Value.FormattedName + " - " + category.LocalizedName();
                             destinations.Add(formattedName);
                         }
                     }
@@ -182,7 +183,7 @@ namespace InventoryTools.Logic.Filters
                         }
                         if (_scopeCalculator.Filter(destinationInventories, retainer.Key, category))
                         {
-                            var formattedName = retainer.Value.FormattedName + " - " + category.FormattedName();
+                            var formattedName = retainer.Value.FormattedName + " - " + category.LocalizedName();
                             destinations.Add(formattedName);
                         }
                     }

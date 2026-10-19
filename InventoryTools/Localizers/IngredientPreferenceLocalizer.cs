@@ -16,6 +16,17 @@ public class IngredientPreferenceLocalizer
         _craftTypeSheet = craftTypeSheet;
     }
 
+    // AllaganLib's ItemSheet.GetRow does NOT return null for a missing row: it fabricates an empty ItemRow and caches it,
+    // and ItemRow.NameString then reads ItemRow.Base, which throws ArgumentOutOfRangeException when the row is absent.
+    // Item ids here come from the saved list configuration or an imported list string, so they may not exist on this
+    // client; throwing would take out the whole ImGui draw path. GetRowOrDefault does the HasRow check, really can
+    // return null, and does not poison the sheet's row cache (shared with every other GetRowOrDefault caller).
+    private string ItemName(uint itemId)
+    {
+        return _itemSheet.GetRowOrDefault(itemId)?.NameString
+               ?? ("Unknown Item".Loc() + " (#" + itemId + ")");
+    }
+
     public string FormattedName(IngredientPreference ingredientPreference)
     {
         switch (ingredientPreference.Type)
@@ -30,21 +41,15 @@ public class IngredientPreferenceLocalizer
                         if (ingredientPreference.LinkedItem3Id != null &&
                             ingredientPreference.LinkedItem3Quantity != null)
                         {
-                            itemName3 =
-                                (_itemSheet.GetRow(ingredientPreference.LinkedItem3Id.Value)
-                                    ?.NameString ?? "Unknown Item") + " - " +
-                                ingredientPreference.LinkedItem3Quantity.Value;
+                            itemName3 = ItemName(ingredientPreference.LinkedItem3Id.Value) + " - " +
+                                        ingredientPreference.LinkedItem3Quantity.Value;
                         }
 
-                        itemName2 =
-                            (_itemSheet.GetRow(ingredientPreference.LinkedItem2Id.Value)
-                                ?.NameString ?? "Unknown Item") + " - " +
-                            ingredientPreference.LinkedItem2Quantity.Value;
+                        itemName2 = ItemName(ingredientPreference.LinkedItem2Id.Value) + " - " +
+                                    ingredientPreference.LinkedItem2Quantity.Value;
                     }
 
-                    var itemName =
-                        _itemSheet.GetRow(ingredientPreference.LinkedItemId.Value)?.NameString ??
-                        "Unknown Item";
+                    var itemName = ItemName(ingredientPreference.LinkedItemId.Value);
                     if (itemName3 != null)
                     {
                         itemName = itemName + "," + itemName2 + "," + itemName3;
@@ -57,30 +62,26 @@ public class IngredientPreferenceLocalizer
                     return itemName + " - " + ingredientPreference.LinkedItemQuantity.Value;
                 }
 
-                return "No item selected";
+                return "No item selected".Loc();
             case IngredientPreferenceType.Reduction:
                 if (ingredientPreference.LinkedItemId != null && ingredientPreference.LinkedItemQuantity != null)
                 {
-                    var itemName =
-                        _itemSheet.GetRow(ingredientPreference.LinkedItemId.Value)?.NameString ??
-                        "Unknown Item";
-                    return "Reduction (" + itemName + " - " + ingredientPreference.LinkedItemQuantity.Value + ")";
+                    var itemName = ItemName(ingredientPreference.LinkedItemId.Value);
+                    return "Reduction (".Loc() + itemName + " - " + ingredientPreference.LinkedItemQuantity.Value + ")";
                 }
 
-                return "No item selected";
+                return "No item selected".Loc();
             case IngredientPreferenceType.Desynthesis:
                 if (ingredientPreference.LinkedItemId != null && ingredientPreference.LinkedItemQuantity != null)
                 {
-                    var itemName =
-                        _itemSheet.GetRow(ingredientPreference.LinkedItemId.Value)?.NameString ??
-                        "Unknown Item";
-                    return "Desynthesis (" + itemName + " - " + ingredientPreference.LinkedItemQuantity.Value + ")";
+                    var itemName = ItemName(ingredientPreference.LinkedItemId.Value);
+                    return "Desynthesis (".Loc() + itemName + " - " + ingredientPreference.LinkedItemQuantity.Value + ")";
                 }
 
-                return "No item selected";
+                return "No item selected".Loc();
         }
 
-        return ingredientPreference.Type.FormattedName();
+        return ingredientPreference.Type.FormattedName().Loc();
     }
 
     public int? SourceIcon(IngredientPreference ingredientPreference)

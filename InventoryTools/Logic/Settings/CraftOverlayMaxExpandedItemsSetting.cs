@@ -9,8 +9,8 @@ public class CraftOverlayMaxExpandedItemsSetting : GenericIntegerSetting
 {
     public CraftOverlayMaxExpandedItemsSetting(ILogger<CraftOverlayMaxExpandedItemsSetting> logger,
         ImGuiService imGuiService) : base("CraftOverlayMaxItems",
-        "Max items when expanded",
-        "When the craft overlay is expanded, how many items should be shown?",
+        "Max items when expanded".Loc(),
+        "When the craft overlay is expanded, how many items should be shown?".Loc(),
         5,
         SettingCategory.CraftOverlay,
         SettingSubCategory.General,

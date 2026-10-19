@@ -12,8 +12,8 @@ namespace InventoryTools.Logic.Filters
     public class SellToVendorPriceFilter : StringFilter
     {
         public override string Key { get; set; } = "GSSalePrice";
-        public override string Name { get; set; } = "Sell to Shop Price";
-        public override string HelpText { get; set; } = "The price when bought from shops.";
+        public override string Name { get; set; } = "Sell to Shop Price".Loc();
+        public override string HelpText { get; set; } = "The price when bought from shops.".Loc();
         public override FilterCategory FilterCategory { get; set; } = FilterCategory.Acquisition;
 
 

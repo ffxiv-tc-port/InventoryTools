@@ -12,7 +12,7 @@ namespace InventoryTools.Logic.Settings
 
         public static string AsKey => "HotkeyListsWindow";
         public override string Key { get; set; } = AsKey;
-        public override string Name { get; set; } = "Toggle Lists Window";
+        public override string Name { get; set; } = "Toggle Lists Window".Loc();
 
         public override string HelpText { get; set; } =
             "The hotkey to toggle the lists window.";

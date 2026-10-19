@@ -9,7 +9,17 @@ public class LayerDebuggerPane : IDebugPane
     public string Name => "Layer Debugger";
     public unsafe void Draw()
     {
-        var activeLayout = LayoutWorld.Instance()->ActiveLayout;
+        // LayoutWorld.Instance() is a [StaticAddress(..., isPointer: true)]: it loads a global pointer
+        // that the game itself null-checks, so it legitimately returns null - title screen, between
+        // zones, early startup. Fail closed and say so instead of dereferencing null.
+        var world = LayoutWorld.Instance();
+        if (world == null)
+        {
+            ImGui.TextUnformatted("Layout world unavailable");
+            return;
+        }
+
+        var activeLayout = world->ActiveLayout;
         if (activeLayout != null)
         {
             ImGui.TextUnformatted($"Level ID: {activeLayout->LevelId}");
@@ -35,6 +45,10 @@ public class LayerDebuggerPane : IDebugPane
                     ImGui.TextUnformatted($"Festival ID: " + pointer->FestivalId);
                 }
             }
+        }
+        else
+        {
+            ImGui.TextUnformatted("Active layout unavailable");
         }
     }
 }

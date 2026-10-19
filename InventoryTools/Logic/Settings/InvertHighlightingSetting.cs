@@ -18,7 +18,7 @@ namespace InventoryTools.Logic.Settings
         }
 
         public override string Key { get; set; } = "InvertHighlighting";
-        public override string Name { get; set; } = "Invert Highlighting?";
+        public override string Name { get; set; } = "Invert Highlighting?".Loc();
 
         public override string HelpText { get; set; } =
             "Should all the items not matching a list be highlighted instead? This can be overridden in the list configuration.";

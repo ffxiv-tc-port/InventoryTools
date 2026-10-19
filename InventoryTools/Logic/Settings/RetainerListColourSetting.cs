@@ -20,7 +20,7 @@ namespace InventoryTools.Logic.Settings
         }
 
         public override string Key { get; set; } = "RetainerListColour";
-        public override string Name { get; set; } = "Retainer List Colour";
+        public override string Name { get; set; } = "Retainer List Colour".Loc();
 
         public override string HelpText { get; set; } =
             "The color to set the retainer(when the retainer contains filtered items) list to.";

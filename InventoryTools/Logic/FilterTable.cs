@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Dynamic;
 using System.Globalization;
@@ -121,13 +121,13 @@ namespace InventoryTools.Logic
 
 
 
-                        if (ImGui.Selectable("Yes", currentItem == "Yes"))
+                        if (ImGui.Selectable("Yes".Loc(), currentItem == "Yes"))
                         {
                             columnConfiguration.FilterText = "true";
                             hasChanged = true;
                         }
 
-                        if (ImGui.Selectable("No", currentItem == "No"))
+                        if (ImGui.Selectable("No".Loc(), currentItem == "No"))
                         {
                             columnConfiguration.FilterText = "false";
                             hasChanged = true;
@@ -181,8 +181,8 @@ namespace InventoryTools.Logic
                             using var tooltip = ImRaii.Tooltip();
                             if (tooltip)
                             {
-                                ImGui.Text("Extra Filters");
-                                ImGui.Text("Right Click: Clear All");
+                                ImGui.Text("Extra Filters".Loc());
+                                ImGui.Text("Right Click: Clear All".Loc());
                             }
                         }
                     }
@@ -261,7 +261,7 @@ namespace InventoryTools.Logic
                             {
                                 ImGuiUtil.RightAlign("?", SortColumn == index ? 8 : 0);
                             }
-                            ImGuiUtil.HoverTooltip(column.Column.HelpText);
+                            ImGuiUtil.HoverTooltip(column.Column.HelpText.Loc());
                         }
 
                         var currentSortSpecs = ImGui.TableGetSortSpecs();

@@ -80,10 +80,10 @@ public class NameIconColumn : TextIconColumn
         return null;
     }
 
-    public override string Name { get; set; } = "Name & Icon";
-    public override string RenderName => "Name";
+    public override string Name { get; set; } = "Name & Icon".Loc();
+    public override string RenderName => "Name".Loc();
     public override float Width { get; set; } = 100;
-    public override string HelpText { get; set; } = "The name of the item with the icon next to it.";
+    public override string HelpText { get; set; } = "The name of the item with the icon next to it.".Loc();
     public override bool HasFilter { get; set; } = false;
     public override ColumnFilterType FilterType { get; set; } = ColumnFilterType.Text;
 }

@@ -17,7 +17,7 @@ public class CraftTrackerTrackGatheringFilter : BooleanFilter
     public override FilterType AvailableIn { get; set; } = FilterType.CraftFilter;
     
     public override string Key { get; set; } = "CraftTrackerTrackGathering";
-    public override string Name { get; set; } = "Track Gathering?";
+    public override string Name { get; set; } = "Track Gathering?".Loc();
     
     public override string HelpText { get; set; } =
         "When gathering is performed and it matches one of the output items in this craft list, should it reduce the quantity of that item? The craft list must be active for this to count.";

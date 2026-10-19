@@ -10,8 +10,8 @@ namespace InventoryTools.Logic.Filters;
 public class PatchFilter : StringFilter
 {
     public override string Key { get; set; } = "PatchFilter";
-    public override string Name { get; set; } = "Patch";
-    public override string HelpText { get; set; } = "The patch in which the item was added.";
+    public override string Name { get; set; } = "Patch".Loc();
+    public override string HelpText { get; set; } = "The patch in which the item was added.".Loc();
     public override FilterCategory FilterCategory { get; set; } = FilterCategory.Basic;
 
     public override bool? FilterItem(FilterConfiguration configuration, InventoryItem item)

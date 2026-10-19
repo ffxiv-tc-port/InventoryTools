@@ -21,8 +21,8 @@ public class OutdatedGearFilter : BooleanFilter
 
 
     public override string Key { get; set; } = "OutdatedGearFilter";
-    public override string Name { get; set; } = "Outdated Gear?";
-    public override string HelpText { get; set; } = "Will show any gear considered to be outdated. This will compare the item level of each item with the level of your classes. It will use the lowest level you have applicable to the weapon to determine if it's outdated. Any classes you do not have are not taken into consideration.";
+    public override string Name { get; set; } = "Outdated Gear?".Loc();
+    public override string HelpText { get; set; } = SharedText.OutdatedGear.Loc();
     public override FilterCategory FilterCategory { get; set; } = FilterCategory.Basic;
 
     public override FilterType AvailableIn { get; set; } = FilterType.SearchFilter | FilterType.SortingFilter | FilterType.GameItemFilter | FilterType.HistoryFilter;
@@ -79,14 +79,27 @@ public class OutdatedGearFilter : BooleanFilter
     }
 
 
+    private static readonly Dictionary<uint, short> NoLevels = new();
+
+    // 搜尋在背景執行緒、可能多份清單同時跑：讀寫都經區域變數，別的搜尋剛好清掉欄位時才不會回 null。
     private Dictionary<uint, short> GetClassJobLevels()
     {
-        if (_jobClassLevels == null)
+        var levels = _jobClassLevels;
+        if (levels != null)
         {
-            _jobClassLevels = _gameInteropService.GetClassJobLevels()?.ToDictionary(c => c.Key.RowId, c=> c.Value) ?? new();
+            return levels;
         }
 
-        return _jobClassLevels;
+        var current = _gameInteropService.GetClassJobLevels();
+        // 未登入不快取：快取了空表，登入後要等到下一次失效才看得到等級。
+        if (current == null)
+        {
+            return NoLevels;
+        }
+
+        levels = current.ToDictionary(c => c.Key.RowId, c => c.Value);
+        _jobClassLevels = levels;
+        return levels;
     }
 
     public override void InvalidateSearchCache()

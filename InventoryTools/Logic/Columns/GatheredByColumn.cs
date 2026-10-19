@@ -25,7 +25,7 @@ public class GatheredByColumn : TextColumn
         return string.Join(",", currentValue);
     }
 
-    public override string Name { get; set; } = "Gathered By?";
+    public override string Name { get; set; } = "Gathered By?".Loc();
     public override float Width { get; set; } = 100;
-    public override string HelpText { get; set; } = "How is this item gathered?";
+    public override string HelpText { get; set; } = "How is this item gathered?".Loc();
 }

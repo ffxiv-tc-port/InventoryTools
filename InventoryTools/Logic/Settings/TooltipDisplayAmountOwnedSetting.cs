@@ -19,9 +19,9 @@ namespace InventoryTools.Logic.Settings
         }
 
         public override string Key { get; set; } = "TooltipDisplayOwned";
-        public override string Name { get; set; } = "Add Item Locations";
+        public override string Name { get; set; } = "Add Item Locations".Loc();
 
-        public override string WizardName { get; } = "Add Item Locations";
+        public override string WizardName { get; } = "Add Item Locations".Loc();
 
         public override string HelpText { get; set; } =
             "When hovering an item, should the tooltip show the locations of any copies of the item you currently own?";

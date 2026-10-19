@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using AllaganLib.Shared.Interfaces;
 using AllaganLib.Shared.Services;
 using CriticalCommonLib.Crafting;
+using CriticalCommonLib.Helpers;
 using CriticalCommonLib.Interfaces;
 using CriticalCommonLib.Services.Mediator;
 using DalaMock.Host.Mediator;
@@ -29,6 +30,8 @@ public class TableService : DisposableMediatorBackgroundService
     private readonly CraftReverseListDisplayFilter _craftReverseListDisplayFilter;
     private ConcurrentDictionary<string, FilterTable> _itemListTables;
     private ConcurrentDictionary<string, CraftItemTable> _craftItemTables;
+    private readonly ReusableDictionaryEnumerator<string, FilterTable> _itemListTableEnumerator = new();
+    private readonly ReusableDictionaryEnumerator<string, CraftItemTable> _craftItemTableEnumerator = new();
 
     public delegate void TableRefreshedDelegate(RenderTableBase table);
     public event TableRefreshedDelegate TableRefreshed;
@@ -57,8 +60,10 @@ public class TableService : DisposableMediatorBackgroundService
 
     private void OnUpdate(IFramework framework)
     {
-        foreach (var filter in _itemListTables)
+        var itemTables = _itemListTableEnumerator.Begin(_itemListTables);
+        while (itemTables.MoveNext())
         {
+            var filter = itemTables.Current;
             if (!filter.Value.InitialColumnSetupDone)
             {
                 filter.Value.RefreshColumns();
@@ -69,8 +74,10 @@ public class TableService : DisposableMediatorBackgroundService
                 RequestRefresh(filter.Value);
             }
         }
-        foreach (var filter in _craftItemTables)
+        var craftTables = _craftItemTableEnumerator.Begin(_craftItemTables);
+        while (craftTables.MoveNext())
         {
+            var filter = craftTables.Current;
             if (!filter.Value.InitialColumnSetupDone)
             {
                 filter.Value.RefreshColumns();
@@ -224,7 +231,7 @@ public class TableService : DisposableMediatorBackgroundService
                     {
                         filterTable.IsSearching = true;
                     }
-
+                    column.Column.InvalidateSearchCache();
                     items = column.Column.Filter(column, items);
                     if (filterTable.SortColumn != null && index == filterTable.SortColumn)
                     {
@@ -304,7 +311,14 @@ public class TableService : DisposableMediatorBackgroundService
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
-        await BackgroundProcessing(stoppingToken);
+        // 停用外掛或關閉遊戲時 stoppingToken 被取消是正常收工，刻意吞掉不記成錯誤。
+        try
+        {
+            await BackgroundProcessing(stoppingToken);
+        }
+        catch (OperationCanceledException) when (stoppingToken.IsCancellationRequested)
+        {
+        }
     }
 
     public void RefreshTables(FilterConfiguration filterConfiguration)

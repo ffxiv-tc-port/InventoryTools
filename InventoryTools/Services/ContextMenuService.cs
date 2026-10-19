@@ -79,7 +79,7 @@ public class ContextMenuService : DisposableMediatorSubscriberBase, IHostedServi
             if (_configuration.AddMoreInformationContextMenu)
             {
                 var menuItem = new MenuItem();
-                menuItem.Name = "More Information";
+                menuItem.Name = "More Information".Loc();
                 menuItem.PrefixChar = 'A';
                 menuItem.OnClicked += clickedArgs => MoreInformationClicked(clickedArgs, itemId);
                 args.AddMenuItem(menuItem);
@@ -88,7 +88,7 @@ public class ContextMenuService : DisposableMediatorSubscriberBase, IHostedServi
             if (_configuration.ItemSearchContextMenu)
             {
                 var menuItem = new MenuItem();
-                menuItem.Name = "Search";
+                menuItem.Name = "Search".Loc();
                 menuItem.PrefixChar = 'A';
                 menuItem.OnClicked += clickedArgs => ItemSearchClicked(clickedArgs, itemId);
                 args.AddMenuItem(menuItem);
@@ -100,7 +100,7 @@ public class ContextMenuService : DisposableMediatorSubscriberBase, IHostedServi
                 if (activeList != null)
                 {
                     var menuItem = new MenuItem();
-                    menuItem.Name = "Add to Active Craft List";
+                    menuItem.Name = "Add to Active Craft List".Loc();
                     menuItem.PrefixChar = 'A';
                     menuItem.OnClicked += clickedArgs => AddToCraftList(activeList, clickedArgs, itemId);
                     args.AddMenuItem(menuItem);
@@ -110,7 +110,7 @@ public class ContextMenuService : DisposableMediatorSubscriberBase, IHostedServi
             if (_configuration.AddToCraftListContextMenu)
             {
                 var menuItem = new MenuItem();
-                menuItem.Name = "Add to Craft List";
+                menuItem.Name = "Add to Craft List".Loc();
                 menuItem.PrefixChar = 'A';
                 menuItem.IsSubmenu = true;
                 menuItem.OnClicked += clickedArgs => OpenAddCraftListSubmenu(clickedArgs, itemId);
@@ -120,7 +120,7 @@ public class ContextMenuService : DisposableMediatorSubscriberBase, IHostedServi
             if (_curatedListSetting.CurrentValue(_configuration))
             {
                 var menuItem = new MenuItem();
-                menuItem.Name = "Add to Curated List";
+                menuItem.Name = "Add to Curated List".Loc();
                 menuItem.PrefixChar = 'A';
                 menuItem.IsSubmenu = true;
                 menuItem.OnClicked += clickedArgs => OpenAddCuratedListSubmenu(clickedArgs, itemId);
@@ -142,7 +142,7 @@ public class ContextMenuService : DisposableMediatorSubscriberBase, IHostedServi
                 if (item != null && item.CanOpenCraftingLog)
                 {
                     var menuItem = new MenuItem();
-                    menuItem.Name = "Open Crafting Log";
+                    menuItem.Name = "Open Crafting Log".Loc();
                     menuItem.PrefixChar = 'A';
                     menuItem.OnClicked += _ => _gameInterface.OpenCraftingLog(itemId.Value);
                     args.AddMenuItem(menuItem);
@@ -155,7 +155,7 @@ public class ContextMenuService : DisposableMediatorSubscriberBase, IHostedServi
                 if (item != null && item.CanOpenGatheringLog)
                 {
                     var menuItem = new MenuItem();
-                    menuItem.Name = "Open Gathering Log";
+                    menuItem.Name = "Open Gathering Log".Loc();
                     menuItem.PrefixChar = 'A';
                     menuItem.OnClicked += _ => _gameInterface.OpenGatheringLog(itemId.Value);
                     args.AddMenuItem(menuItem);
@@ -167,7 +167,7 @@ public class ContextMenuService : DisposableMediatorSubscriberBase, IHostedServi
                 if (item != null && item.CanOpenFishingLog)
                 {
                     var menuItem = new MenuItem();
-                    menuItem.Name = "Open Fishing Log";
+                    menuItem.Name = "Open Fishing Log".Loc();
                     menuItem.PrefixChar = 'A';
                     menuItem.OnClicked += _ => _gameInterface.OpenFishingLog(itemId.Value, item.ObtainedSpearFishing);
                     args.AddMenuItem(menuItem);
@@ -241,6 +241,16 @@ public class ContextMenuService : DisposableMediatorSubscriberBase, IHostedServi
         var addonPtr = this._gameGui.GetAddonByName(addonName);
         if (addonPtr == IntPtr.Zero) return null;
         var addon = (AtkUnitBase*)addonPtr.Address;
+
+        // 🔴 `AtkValues` 是 [FieldOffset(0x178)] 的**指標欄位** —— 視窗剛做完 setup、值還沒填進去時是 null，
+        //    解參考 null+索引就是 AccessViolationException（try/catch 攔不到）。`AtkValuesCount` 也可能遠小於 aktValue：
+        //    呼叫端傳進來的索引是**寫死的**，在台服一律要假設是錯的，而且錯法是安靜的（型別碰巧對上就會回一個看起來很正常的道具 id）。
+        //    三重守衛（null / 負索引 / 上界）都取不到就回 null，與這個方法既有的失敗形式一致（呼叫端已經處理 null＝不掛選單項目）。
+        if (addon->AtkValues == null || aktValue < 0 || aktValue >= addon->AtkValuesCount)
+        {
+            return null;
+        }
+
         var atkValue = addon->AtkValues[aktValue];
         if (atkValue.Type is ValueType.Null or ValueType.Undefined)
         {
@@ -315,12 +325,12 @@ public class ContextMenuService : DisposableMediatorSubscriberBase, IHostedServi
         }
 
         var newButton = new MenuItem();
-        newButton.Name = "Add to New Craft List";
+        newButton.Name = "Add to New Craft List".Loc();
         newButton.OnClicked += args => AddToNewCraftList(args, itemId);
         menuItems.Add(newButton);
 
         newButton = new MenuItem();
-        newButton.Name = "Add to New Ephemeral Craft List";
+        newButton.Name = "Add to New Ephemeral Craft List".Loc();
         newButton.OnClicked += args => AddToNewEphemeralCraftList(args, itemId);
         menuItems.Add(newButton);
         obj.OpenSubmenu(menuItems);
@@ -342,7 +352,7 @@ public class ContextMenuService : DisposableMediatorSubscriberBase, IHostedServi
         }
 
         var newButton = new MenuItem();
-        newButton.Name = "Add to New Curated List";
+        newButton.Name = "Add to New Curated List".Loc();
         newButton.OnClicked += args => AddToNewCuratedList(args, itemId);
         menuItems.Add(newButton);
 
@@ -351,9 +361,20 @@ public class ContextMenuService : DisposableMediatorSubscriberBase, IHostedServi
 
     private unsafe IntPtr AgentById(AgentId id)
     {
-        var uiModule = (UIModule*)_gameGui.GetUIModule().Address;
-        var agents   = uiModule->GetAgentModule();
-        var agent    = agents->GetAgentByInternalId(id);
+        // 🔴 `_gameGui.GetUIModule()` 是 Dalamud 的服務包裝（UIModulePtr），**`.Address` 合法為 0**
+        // （UIModule.Instance() 內部是 `Framework.Instance() == null ? null : ...`）。把 0 轉型成 UIModule* 再
+        // `->GetAgentModule()` 就是 AccessViolationException（try/catch 攔不到）；中間每一跳都是獨立的 null 路徑，所以三跳都要各自判。
+        // 呼叫端一律走 `GetObjectItemId(IntPtr, int)`，它已經檢查 `agent != IntPtr.Zero`，
+        // 因此回 IntPtr.Zero 就是正確的 fail-closed 值（選單項目不出現）。
+        var uiModuleAddress = _gameGui.GetUIModule().Address;
+        if (uiModuleAddress == nint.Zero)
+            return IntPtr.Zero;
+
+        var agents = ((UIModule*)uiModuleAddress)->GetAgentModule();
+        if (agents == null)
+            return IntPtr.Zero;
+
+        var agent = agents->GetAgentByInternalId(id);
         return (IntPtr)agent;
     }
 

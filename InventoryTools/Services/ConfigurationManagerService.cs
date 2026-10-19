@@ -7,6 +7,7 @@ using System.Text;
 using System.Threading;
 using AllaganLib.Shared.Interfaces;
 using AllaganLib.Shared.Services;
+using CriticalCommonLib.Helpers;
 using CriticalCommonLib.Interfaces;
 using CriticalCommonLib.Models;
 using CriticalCommonLib.Resolvers;
@@ -31,7 +32,6 @@ namespace InventoryTools.Services
         public delegate void ConfigurationChangedDelegate();
         private readonly IFramework _framework;
         private bool _configurationLoaded = false;
-        private Task? _currentInventorySaveTask = null;
 
         public event ConfigurationChangedDelegate? ConfigurationChanged;
 
@@ -318,18 +318,9 @@ namespace InventoryTools.Services
 
         }
 
-        public Task SaveInventoriesAsync(List<InventoryItem> items)
-        {
-            if (_currentInventorySaveTask == null || _currentInventorySaveTask.IsCompleted || _currentInventorySaveTask.IsFaulted)
-            {
-                _currentInventorySaveTask = Task.Run(() => SaveInventories(items));
-            }
-            return _currentInventorySaveTask;
-        }
-
         public bool SaveInventories(List<InventoryItem> items)
         {
-            return _containerAwareCsvLoader.ToCsvRaw(items, Path.Join(_pluginInterfaceService.ConfigDirectory.FullName, "inventories.csv"));
+            return TrySaveInventories(items) == null;
         }
 
         public List<InventoryItem> LoadInventoriesFromCsv(out bool success, string? csvPath = null)
@@ -339,7 +330,7 @@ namespace InventoryTools.Services
             {
                 try
                 {
-                    var items = _containerAwareCsvLoader.LoadCsv<InventoryItem>(inventoryCsv,  out _, out _);
+                    var items = _containerAwareCsvLoader.LoadInventoryItemsCsv(inventoryCsv,  out _, out _);
                     success = true;
                     return items;
                 }
@@ -387,15 +378,23 @@ namespace InventoryTools.Services
             return new List<InventoryChange>();
         }
 
+        /// <summary>整份重寫 history.csv：直接覆寫、任何例外回 false（與 <see cref="ContainerAwareCsvLoader.ToCsvRaw{T}"/> 相同）。</summary>
         public bool SaveHistory(List<InventoryChange> changes)
         {
-            return _containerAwareCsvLoader.ToCsvRaw(changes, Path.Join(_pluginInterfaceService.ConfigDirectory.FullName, "history.csv"));
+            return CsvRowWriter.ToCsvRaw(changes, Path.Join(_pluginInterfaceService.ConfigDirectory.FullName, "history.csv"));
         }
 
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
-            await BackgroundProcessing(stoppingToken);
+            // 停用外掛或關閉遊戲時 stoppingToken 被取消是正常收工，刻意吞掉不記成錯誤。
+            try
+            {
+                await BackgroundProcessing(stoppingToken);
+            }
+            catch (OperationCanceledException) when (stoppingToken.IsCancellationRequested)
+            {
+            }
         }
 
         private async Task BackgroundProcessing(CancellationToken stoppingToken)
@@ -430,6 +429,15 @@ namespace InventoryTools.Services
         {
             _framework.Update -= OnUpdate;
             disposed = true;
+        }
+
+        /// <summary>
+        /// 整份重寫 inventories.csv（暫存檔＋取代）。成功回 null；失敗回例外、正式檔保持原內容。
+        /// 可在任何執行緒呼叫；兩個呼叫重疊時後到的回失敗（暫存檔是獨占開啟）。
+        /// </summary>
+        public Exception? TrySaveInventories(List<InventoryItem> items)
+        {
+            return ContainerAwareCsvLoader.ToCsvRawAtomic(items, Path.Join(_pluginInterfaceService.ConfigDirectory.FullName, "inventories.csv"));
         }
     }
 }

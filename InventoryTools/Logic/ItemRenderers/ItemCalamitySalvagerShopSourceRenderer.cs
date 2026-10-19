@@ -23,7 +23,7 @@ public class ItemCalamitySalvagerShopUseRenderer : ItemCalamitySalvagerShopSourc
     private readonly ItemSheet _itemSheet;
     private readonly ITextureProvider _textureProvider;
 
-    public override string HelpText => "Can the item be spent at the calamity salvager?";
+    public override string HelpText => "Can the item be spent at the calamity salvager?".Loc();
 
     public ItemCalamitySalvagerShopUseRenderer(MapSheet mapSheet, ItemSheet itemSheet, ITextureProvider textureProvider,
         IDalamudPluginInterface dalamudPluginInterface) : base(mapSheet, itemSheet, textureProvider, dalamudPluginInterface)
@@ -41,7 +41,7 @@ public class ItemCalamitySalvagerShopUseRenderer : ItemCalamitySalvagerShopSourc
             ? new List<string>()
             : shopSource.MapIds.Select(c => _mapSheet.GetRow(c).FormattedName)).Distinct().ToList();
 
-        ImGui.Text($"{allGilShops.Count} items available for purchase with gil in {maps.Count} zones");
+        ImGui.Text(SharedText.GilShopSourceSummary.Loc(allGilShops.Count, maps.Count));
     };
 
 
@@ -58,10 +58,10 @@ public class ItemCalamitySalvagerShopSourceRenderer : ItemInfoRenderer<ItemCalam
     public override IReadOnlyList<ItemInfoRenderCategory> Categories => [ItemInfoRenderCategory.Shop];
     public override RendererType RendererType => RendererType.Source;
     public override ItemInfoType Type => ItemInfoType.CalamitySalvagerShop;
-    public override string SingularName => "Calamity Salvager";
-    public override string PluralName => "Calamity Salvagers";
+    public override string SingularName => "Calamity Salvager".Loc();
+    public override string PluralName => "Calamity Salvagers".Loc();
     public override bool ShouldGroup => true;
-    public override string HelpText => "Can the item be purchased from the Calamity Salvager?";
+    public override string HelpText => "Can the item be purchased from the Calamity Salvager?".Loc();
 
     public override byte MaxColumns => 1;
 
@@ -71,14 +71,14 @@ public class ItemCalamitySalvagerShopSourceRenderer : ItemInfoRenderer<ItemCalam
         var firstItem = asSources[0];
 
         var costItems = asSources.SelectMany(c => c.CostItems).DistinctBy(d => d.ItemId).ToList();
-        DrawItems("Costs: ", costItems);
+        DrawItems("Costs: ".Loc(), costItems);
         var rewardItems = asSources.SelectMany(c => c.RewardItems).DistinctBy(d => d.ItemId).ToList();
-        DrawItems("Rewards: ", rewardItems);
+        DrawItems("Rewards: ".Loc(), rewardItems);
 
         if (firstItem.GilShopItem.Base.AchievementRequired.RowId != 0)
         {
             ImGui.Text(
-                $"Achievement Required: {firstItem.GilShopItem.Base.AchievementRequired.Value.Name.ExtractText()}");
+                "Achievement Required: ??".Loc(firstItem.GilShopItem.Base.AchievementRequired.Value.Name.ExtractText()));
         }
 
         foreach (var quest in firstItem.GilShopItem.Base.QuestRequired)
@@ -86,7 +86,7 @@ public class ItemCalamitySalvagerShopSourceRenderer : ItemInfoRenderer<ItemCalam
             if (quest.RowId != 0)
             {
                 ImGui.Text(
-                    $"Quest Required: {quest.Value.Name.ExtractText()}");
+                    "Quest Required: ??".Loc(quest.Value.Name.ExtractText()));
             }
         }
 
@@ -97,13 +97,13 @@ public class ItemCalamitySalvagerShopSourceRenderer : ItemInfoRenderer<ItemCalam
     {
         var asSource = AsSource(source);
 
-        DrawItems("Costs: ", asSource.CostItems);
-        DrawItems("Rewards: ", asSource.RewardItems);
+        DrawItems("Costs: ".Loc(), asSource.CostItems);
+        DrawItems("Rewards: ".Loc(), asSource.RewardItems);
 
         if (asSource.GilShopItem.Base.AchievementRequired.RowId != 0)
         {
             ImGui.Text(
-                $"Achievement Required: {asSource.GilShopItem.Base.AchievementRequired.Value.Name.ExtractText()}");
+                "Achievement Required: ??".Loc(asSource.GilShopItem.Base.AchievementRequired.Value.Name.ExtractText()));
         }
 
         foreach (var quest in asSource.GilShopItem.Base.QuestRequired)
@@ -111,7 +111,7 @@ public class ItemCalamitySalvagerShopSourceRenderer : ItemInfoRenderer<ItemCalam
             if (quest.RowId != 0)
             {
                 ImGui.Text(
-                    $"Quest Required: {quest.Value.Name.ExtractText()}");
+                    "Quest Required: ??".Loc(quest.Value.Name.ExtractText()));
             }
         }
 
@@ -141,14 +141,14 @@ public class ItemCalamitySalvagerShopSourceRenderer : ItemInfoRenderer<ItemCalam
 
         if (asSource.GilShopItem.Base.AchievementRequired.RowId != 0)
         {
-            description += $" (Requires achievement: {asSource.GilShopItem.Base.AchievementRequired.Value.Name.ExtractText()})";
+            description += " (Requires achievement: ??)".Loc(asSource.GilShopItem.Base.AchievementRequired.Value.Name.ExtractText());
         }
 
         foreach (var quest in asSource.GilShopItem.Base.QuestRequired)
         {
             if (quest.RowId != 0)
             {
-                description += ($" (Requires quest: {quest.Value.Name.ExtractText()})");
+                description += (" (Requires quest: ??)".Loc(quest.Value.Name.ExtractText()));
             }
         }
 

@@ -35,10 +35,10 @@ public class SubmarinesWindow : GenericTabbedTable<SubmarineExplorationRow>, IMe
     public override void Initialize()
     {
         Key = "submarines";
-        WindowName = "Submarines";
+        WindowName = "Submarines".Loc();
         _columns = new List<TableColumn<SubmarineExplorationRow>>()
         {
-            new("Icon", 32, ImGuiTableColumnFlags.WidthFixed)
+            new("Icon".Loc(), 32, ImGuiTableColumnFlags.WidthFixed)
             {
                 OnLeftClick = OnLeftClick,
                 Draw = (ex, contentTypeId) =>
@@ -50,7 +50,7 @@ public class SubmarinesWindow : GenericTabbedTable<SubmarineExplorationRow>, IMe
                     }
                 }
             },
-            new("Name", 200, ImGuiTableColumnFlags.WidthFixed)
+            new("Name".Loc(), 200, ImGuiTableColumnFlags.WidthFixed)
             {
                 Sort = (specs, exes) =>
                 {
@@ -74,7 +74,7 @@ public class SubmarinesWindow : GenericTabbedTable<SubmarineExplorationRow>, IMe
                     ImGui.TextUnformatted(ex.Base.Location.ExtractText());
                 }
             },
-            new("Unlock Zone", 200, ImGuiTableColumnFlags.WidthFixed)
+            new("Unlock Zone".Loc(), 200, ImGuiTableColumnFlags.WidthFixed)
             {
                 Sort = (specs, exes) =>
                 {
@@ -101,7 +101,7 @@ public class SubmarinesWindow : GenericTabbedTable<SubmarineExplorationRow>, IMe
                     }
                 }
             },
-            new("Rank Required", 100, ImGuiTableColumnFlags.WidthFixed)
+            new("Rank Required".Loc(), 100, ImGuiTableColumnFlags.WidthFixed)
             {
                 Sort = (specs, exes) =>
                 {
@@ -128,7 +128,7 @@ public class SubmarinesWindow : GenericTabbedTable<SubmarineExplorationRow>, IMe
                     }
                 }
             },
-            new("Drops", 200, ImGuiTableColumnFlags.WidthFixed | ImGuiTableColumnFlags.NoSort)
+            new("Drops".Loc(), 200, ImGuiTableColumnFlags.WidthFixed | ImGuiTableColumnFlags.NoSort)
             {
                 Sort = (specs, exes) =>
                 {
@@ -201,7 +201,7 @@ public class SubmarinesWindow : GenericTabbedTable<SubmarineExplorationRow>, IMe
     }
 
     public override string GenericKey { get; } = "submarines";
-    public override string GenericName { get; } = "Submarines";
+    public override string GenericName { get; } = "Submarines".Loc();
     public override bool DestroyOnClose => false;
     public override bool SaveState => true;
     public override Vector2? MaxSize { get; } = new(2000, 2000);

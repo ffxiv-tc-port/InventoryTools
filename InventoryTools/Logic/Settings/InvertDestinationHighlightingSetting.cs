@@ -18,7 +18,7 @@ namespace InventoryTools.Logic.Settings
         }
 
         public override string Key { get; set; } = "InvertDestinationHighlighting";
-        public override string Name { get; set; } = "Invert Destination Highlighting?";
+        public override string Name { get; set; } = "Invert Destination Highlighting?".Loc();
 
         public override string HelpText { get; set; } =
             "When highlighting destination items should the colour of the items be inverted?";

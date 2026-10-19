@@ -10,7 +10,7 @@ namespace InventoryTools.Logic.Filters
     public class HighlightDestinationFilter : BooleanFilter
     {
         public override string Key { get; set; } = "HighlightDestination";
-        public override string Name { get; set; } = "Highlight Destination Duplicates?";
+        public override string Name { get; set; } = "Highlight Destination Duplicates?".Loc();
         public override string HelpText { get; set; } =
             "Should any items that match in the destination bag be highlighted?";
         public override FilterCategory FilterCategory { get; set; } = FilterCategory.Display;

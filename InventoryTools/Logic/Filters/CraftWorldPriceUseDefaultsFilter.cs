@@ -14,7 +14,7 @@ public class CraftWorldPriceUseDefaultsFilter : BooleanFilter
     }
 
     public override string Key { get; set; } = "CraftWorldPriceUseDefaults";
-    public override string Name { get; set; } = "Use Default Worlds?";
+    public override string Name { get; set; } = "Use Default Worlds?".Loc();
 
     public override string HelpText { get; set; } =
         "Should the worlds selected in 'Price Worlds' in the main settings be automatically used for pricing?";

@@ -37,8 +37,8 @@ public class ButtonColumnSetting : MultiChoiceColumnSetting<ButtonType?>
     }
 
     public override string Key { get; set; } = "ButtonTypes";
-    public override string Name { get; set; } = "Button Types";
-    public override string HelpText { get; set; } = "The buttons to display";
+    public override string Name { get; set; } = "Button Types".Loc();
+    public override string HelpText { get; set; } = "The buttons to display".Loc();
 
     public override List<ButtonType?> DefaultValue { get; set; } = new();
     public override List<ButtonType?> GetChoices(ColumnConfiguration configuration)

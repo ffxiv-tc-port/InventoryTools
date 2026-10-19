@@ -146,6 +146,14 @@ namespace InventoryTools.Services
             }
             var activeFilter = _listService.GetActiveUiList(false);
             var activeBackgroundFilter = _listService.GetActiveBackgroundList();
+            // 兩個清單都沒有、且上一次已經是「沒有清單」⇒ 疊加層早就是空的，
+            // 這一輪不會改變任何狀態。從有清單變成沒有那一次 _lastState 還不是 null，
+            // 所以那一次仍然會走下去把疊加層清掉。
+            if (activeFilter == null && activeBackgroundFilter == null && _lastState == null)
+            {
+                return;
+            }
+
             _logger.LogDebug($"Overlays refreshing, active list: {activeFilter?.Name ?? "no list"}, background list: {activeBackgroundFilter?.Name ?? "no list"}");
             if (activeFilter != null && _tableService.HasListTable(activeFilter))
             {

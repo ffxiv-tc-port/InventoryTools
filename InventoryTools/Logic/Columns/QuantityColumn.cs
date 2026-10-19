@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using System.Linq;
 using CharacterTools.Logic.Editors;
 using CriticalCommonLib.Services;
@@ -93,7 +93,7 @@ namespace InventoryTools.Logic.Columns
                 ImGui.NewLine();
                 ImGui.Separator();
                 ImGui.SetNextItemWidth(220);
-                ImGui.LabelText("##" + configuration.Key + "Search", "Characters to search in:");
+                ImGui.LabelText("##" + configuration.Key + "Search", "Characters to search in:".Loc());
                 ImGui.SetNextItemWidth(250);
                 ImGui.SameLine();
                 _scopePickerColumnSetting.Draw(columnConfiguration,
@@ -138,8 +138,8 @@ namespace InventoryTools.Logic.Columns
             return base.Draw(configuration, columnConfiguration, searchResult, rowIndex, columnIndex);
         }
 
-        public override string Name { get; set; } = "Quantity/Total Quantity Available";
-        public override string RenderName => "Quantity";
+        public override string Name { get; set; } = "Quantity/Total Quantity Available".Loc();
+        public override string RenderName => "Quantity".Loc();
 
         public override float Width { get; set; } = 70.0f;
 

@@ -15,8 +15,8 @@ public class PhysicalDamageFilter : StringFilter
     }
 
     public override string Key { get; set; } = "PhysicalDamageFilter";
-    public override string Name { get; set; } = "Physical Damage";
-    public override string HelpText { get; set; } = "The physical damage of the item";
+    public override string Name { get; set; } = "Physical Damage".Loc();
+    public override string HelpText { get; set; } = "The physical damage of the item".Loc();
     public override FilterCategory FilterCategory { get; set; } = FilterCategory.Stats;
     public override bool? FilterItem(FilterConfiguration configuration, InventoryItem item)
     {

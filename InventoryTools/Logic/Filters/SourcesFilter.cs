@@ -5,6 +5,7 @@ using CriticalCommonLib.Models;
 using CriticalCommonLib.Services;
 using Dalamud.Interface.Colors;
 using Dalamud.Bindings.ImGui;
+using InventoryTools.Extensions;
 using InventoryTools.Lists;
 using InventoryTools.Logic.Editors;
 using InventoryTools.Logic.Filters.Abstract;
@@ -29,7 +30,7 @@ namespace InventoryTools.Logic.Filters
         }
         public override int Order { get; set; } = 1;
         public override string Key { get; set; } = "Sources";
-        public override string Name { get; set; } = "Sources";
+        public override string Name { get; set; } = "Sources".Loc();
 
         public override string HelpText { get; set; } =
             "This lists all the sources that are applicable given the sources picked above.";
@@ -48,7 +49,7 @@ namespace InventoryTools.Logic.Filters
             ImGui.NewLine();
             ImGui.Separator();
             ImGui.NewLine();
-            ImGui.Text("Source Information: ");
+            ImGui.Text("Source Information: ".Loc());
             ImGui.SameLine();
             ImGuiService.HelpMarker(GetHelpText(configuration));
             var allCharacters = _characterMonitor.Characters;
@@ -76,7 +77,7 @@ namespace InventoryTools.Logic.Filters
                         }
                         if (_scopeCalculator.Filter(sourceInventories, retainer.Key, category))
                         {
-                            var formattedName = retainer.Value.FormattedName + " - " + category.FormattedName();
+                            var formattedName = retainer.Value.FormattedName + " - " + category.LocalizedName();
                             sources.Add(formattedName);
                         }
                     }
@@ -113,7 +114,7 @@ namespace InventoryTools.Logic.Filters
                         }
                         if (_scopeCalculator.Filter(sourceInventories, retainer.Key, category))
                         {
-                            var formattedName = retainer.Value.FormattedName + " - " + category.FormattedName();
+                            var formattedName = retainer.Value.FormattedName + " - " + category.LocalizedName();
                             sources.Add(formattedName);
                         }
                     }
@@ -150,7 +151,7 @@ namespace InventoryTools.Logic.Filters
                         }
                         if (_scopeCalculator.Filter(sourceInventories, retainer.Key, category))
                         {
-                            var formattedName = retainer.Value.FormattedName + " - " + category.FormattedName();
+                            var formattedName = retainer.Value.FormattedName + " - " + category.LocalizedName();
                             sources.Add(formattedName);
                         }
                     }
@@ -188,7 +189,7 @@ namespace InventoryTools.Logic.Filters
                         }
                         if (_scopeCalculator.Filter(sourceInventories, retainer.Key, category))
                         {
-                            var formattedName = retainer.Value.FormattedName + " - " + category.FormattedName();
+                            var formattedName = retainer.Value.FormattedName + " - " + category.LocalizedName();
                             sources.Add(formattedName);
                         }
                     }

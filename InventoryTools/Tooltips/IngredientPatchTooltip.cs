@@ -10,6 +10,7 @@ using Dalamud.Game.Text.SeStringHandling.Payloads;
 using Dalamud.Plugin;
 using Dalamud.Plugin.Services;
 using FFXIVClientStructs.FFXIV.Component.GUI;
+using InventoryTools.Extensions;
 using InventoryTools.Logic.Settings;
 using InventoryTools.Services;
 using Microsoft.Extensions.Logging;
@@ -36,7 +37,7 @@ public class IngredientPatchTooltip : BaseTooltip
     {
         if (!ShouldShow()) return;
         var item = HoverItem;
-        if (item != null && item.HasUsesByType(ItemInfoType.CraftRecipe))
+        if (item != null && item.HasAnyUseOfType(ItemInfoType.CraftRecipe))
         {
             if (!_ingredientPatchService.IngredientPatches.TryGetValue(item.RowId, out var patch))
             {
@@ -76,7 +77,7 @@ public class IngredientPatchTooltip : BaseTooltip
             seStr.Payloads.Add(GetLinkPayload());
             seStr.Payloads.Add(RawPayload.LinkTerminator);
 
-            var newText = $"\nIngredient Patch: {patch.ToString(CultureInfo.InvariantCulture)}";
+            var newText = "\n" + "Ingredient Patch: ??".Loc(patch.ToString(CultureInfo.InvariantCulture));
 
             newText = newText.TrimEnd('\n');
             if (newText != "")

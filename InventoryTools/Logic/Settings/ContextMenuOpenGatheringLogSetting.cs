@@ -22,9 +22,9 @@ public class ContextMenuOpenGatheringLogSetting : BooleanSetting
     }
 
     public override string Key { get; set; } = "OpenGatheringLogContextMenu";
-    public override string Name { get; set; } = "Context Menu - Open Gathering Log";
+    public override string Name { get; set; } = "Context Menu - Open Gathering Log".Loc();
 
-    public override string WizardName { get; } = "Open Gathering Log";
+    public override string WizardName { get; } = "Open Gathering Log".Loc();
 
     public override string HelpText { get; set; } =
         "Add a context menu item to open the gathering log for any item that can be gathered?";

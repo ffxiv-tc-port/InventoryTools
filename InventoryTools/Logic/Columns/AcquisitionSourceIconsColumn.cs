@@ -141,7 +141,7 @@ namespace InventoryTools.Logic.Columns
             return String.Join(", ", itemSources.Select(c => _itemInfoRenderService.GetSourceDescription(c)));
         }
 
-        public override string Name { get; set; } = "Acquisition";
+        public override string Name { get; set; } = "Acquisition".Loc();
         public override float Width { get; set; } = 250;
 
         public override string HelpText { get; set; } =

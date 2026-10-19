@@ -17,7 +17,7 @@ public class CraftTrackerTrackShoppingFilter : BooleanFilter
     public override FilterType AvailableIn { get; set; } = FilterType.CraftFilter;
     
     public override string Key { get; set; } = "CraftTrackerTrackShopping";
-    public override string Name { get; set; } = "Track Shopping?";
+    public override string Name { get; set; } = "Track Shopping?".Loc();
     
     public override string HelpText { get; set; } =
         "When an item is purchased from a shop and it matches one of the output items in this craft list, should it reduce the quantity of that item? The craft list must be active for this to count.";

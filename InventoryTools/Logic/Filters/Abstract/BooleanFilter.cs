@@ -80,13 +80,13 @@ namespace InventoryTools.Logic.Filters.Abstract
                     ImGui.PopTextWrapPos();
             }
             ImGui.SetNextItemWidth(InputSize);
-            using (var combo = ImRaii.Combo("##"+Key+"Combo", currentValue))
+            using (var combo = ImRaii.Combo("##"+Key+"Combo", currentValue.Loc()))
             {
                 if (combo.Success)
                 {
                     foreach (var item in GetChoices())
                     {
-                        if (ImGui.Selectable(item, currentValue == item))
+                        if (ImGui.Selectable(item.Loc(), currentValue == item))
                         {
                             UpdateFilterConfiguration(configuration, ConvertSelection(item));
                         }
@@ -96,7 +96,7 @@ namespace InventoryTools.Logic.Filters.Abstract
             if (HasValueSet(configuration) && ShowReset)
             {
                 ImGui.SameLine();
-                if (ImGui.Button("Reset##" + Key + "Reset"))
+                if (ImGui.Button("Reset".Loc() + "##" + Key + "Reset"))
                 {
                     ResetFilter(configuration);
                 }

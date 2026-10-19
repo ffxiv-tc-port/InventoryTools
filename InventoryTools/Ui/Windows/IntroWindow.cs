@@ -52,25 +52,25 @@ namespace InventoryTools.Ui
                     {
                         if (textChild.Success)
                         {
-                            ImGui.TextWrapped("Welcome to Allagan Tools.");
+                            ImGui.TextWrapped("Welcome to Allagan Tools.".Loc());
                             ImGui.TextWrapped(
-                                "Allagan Tools is a plugin for Final Fantasy XIV that provides the following features:");
+                                "Allagan Tools is a plugin for Final Fantasy XIV that provides the following features:".Loc());
                             using (ImRaii.PushIndent())
                             {
                                 ImGui.Bullet();
-                                ImGui.Text("Track your inventories");
+                                ImGui.Text("Track your inventories".Loc());
                                 ImGui.Bullet();
-                                ImGui.Text("Plan your crafts");
+                                ImGui.Text("Plan your crafts".Loc());
                                 ImGui.Bullet();
-                                ImGui.Text("Provide information about items, monsters, duties and much more");
+                                ImGui.Text("Provide information about items, monsters, duties and much more".Loc());
                             }
 
                             ImGui.TextWrapped(
-                                "You can open various new windows using command shortcuts(the main filter  or from the main window.");
+                                "You can open various new windows using command shortcuts(the main filter  or from the main window.".Loc());
                             ImGui.TextWrapped(
-                                "If you're unsure, right-click on an item or a table row for more options!");
+                                "If you're unsure, right-click on an item or a table row for more options!".Loc());
                             ImGui.TextWrapped(
-                                "To learn about the different features, I recommend going to the settings section and reading the information provided by the ? icons.");
+                                "To learn about the different features, I recommend going to the settings section and reading the information provided by the ? icons.".Loc());
                         }
                     }
 
@@ -78,13 +78,13 @@ namespace InventoryTools.Ui
                     {
                         if (buttonsChild.Success)
                         {
-                            if (ImGui.Button("Close"))
+                            if (ImGui.Button("Close".Loc()))
                             {
                                 Close();
                             }
 
                             ImGui.SameLine(0, 4);
-                            if (ImGui.Button("Close & Open Main Window"))
+                            if (ImGui.Button("Close & Open Main Window".Loc()))
                             {
                                 Close();
                                 MediatorService.Publish(new OpenGenericWindowMessage(typeof(FiltersWindow)));

@@ -21,8 +21,8 @@ namespace InventoryTools.Logic.Filters
             _raceSheet = raceSheet;
         }
         public override string Key { get; set; } = "EquippableByRace";
-        public override string Name { get; set; } = "Equippable By Race";
-        public override string HelpText { get; set; } = "Which races can this equipment be equipped by?";
+        public override string Name { get; set; } = "Equippable By Race".Loc();
+        public override string HelpText { get; set; } = "Which races can this equipment be equipped by?".Loc();
         public override FilterCategory FilterCategory { get; set; } = FilterCategory.Basic;
 
         public override List<uint> DefaultValue { get; set; } = new List<uint>();

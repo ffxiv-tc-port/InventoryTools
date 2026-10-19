@@ -20,9 +20,9 @@ public class TooltipLocationDisplayModeSetting : ChoiceSetting<TooltipLocationDi
     }
 
     public override string Key { get; set; } = "TooltipLocationDisplayMode";
-    public override string Name { get; set; } = "Add Item Locations (Display Mode)";
+    public override string Name { get; set; } = "Add Item Locations (Display Mode)".Loc();
 
-    public override string WizardName { get; } = "Display Mode";
+    public override string WizardName { get; } = "Display Mode".Loc();
 
     public override string HelpText { get; set; } =
         "How the locations of items should be presented in the tooltip. This requires 'Add Item Locations?' to be on.";
@@ -36,12 +36,12 @@ public class TooltipLocationDisplayModeSetting : ChoiceSetting<TooltipLocationDi
         {
             return new Dictionary<TooltipLocationDisplayMode, string>()
             {
-                { TooltipLocationDisplayMode.CharacterQuantityQuality, "Character/Retainer - Quantity - Quality" },
-                { TooltipLocationDisplayMode.CharacterBagSlotQuality, "Character/Retainer - Bag - Slot - Quality" },
-                { TooltipLocationDisplayMode.CharacterBagSlotQuantity, "Character/Retainer - Bag - Slot - Quantity" },
+                { TooltipLocationDisplayMode.CharacterQuantityQuality, "Character/Retainer - Quantity - Quality".Loc() },
+                { TooltipLocationDisplayMode.CharacterBagSlotQuality, "Character/Retainer - Bag - Slot - Quality".Loc() },
+                { TooltipLocationDisplayMode.CharacterBagSlotQuantity, "Character/Retainer - Bag - Slot - Quantity".Loc() },
                 {
                     TooltipLocationDisplayMode.CharacterCategoryQuantityQuality,
-                    "Character/Retainer - Category - Quantity - Quality"
+                    "Character/Retainer - Category - Quantity - Quality".Loc()
                 },
             };
         }

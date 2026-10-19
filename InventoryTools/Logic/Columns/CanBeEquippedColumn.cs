@@ -17,7 +17,7 @@ public class CanBeEquippedColumn : CheckboxColumn
     {
         return searchResult.Item.Base.EquipSlotCategory.RowId != 0;
     }
-    public override string Name { get; set; } = "Can be Equipped?";
+    public override string Name { get; set; } = "Can be Equipped?".Loc();
     public override float Width { get; set; } = 100;
-    public override string HelpText { get; set; } = "Can this item be equipped?";
+    public override string HelpText { get; set; } = "Can this item be equipped?".Loc();
 }

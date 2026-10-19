@@ -11,7 +11,7 @@ namespace InventoryTools.Logic.Filters
     public class RetainerListColorFilter : ColorFilter
     {
         public override string Key { get; set; } = "RetainerColor";
-        public override string Name { get; set; } = "Retainer List Color";
+        public override string Name { get; set; } = "Retainer List Color".Loc();
 
         public override string HelpText { get; set; } =
             "The color to set the retainers in the retainer list to for this specific filter.";

@@ -27,10 +27,10 @@ namespace InventoryTools.Logic.Columns
             return "";
         }
         
-        public override string Name { get; set; } = "Gearset Number";
-        public override string RenderName => "Gearsets";
+        public override string Name { get; set; } = "Gearset Number".Loc();
+        public override string RenderName => "Gearsets".Loc();
         public override float Width { get; set; } = 100;
-        public override string HelpText { get; set; } = "Provides the gearsets that an item is part of.";
+        public override string HelpText { get; set; } = "Provides the gearsets that an item is part of.".Loc();
         public override bool HasFilter { get; set; } = true;
         public override ColumnFilterType FilterType { get; set; } = ColumnFilterType.Text;
     }

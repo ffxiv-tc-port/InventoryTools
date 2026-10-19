@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using System.Numerics;
 using CriticalCommonLib.MarketBoard;
 using CriticalCommonLib.Models;
@@ -97,14 +97,15 @@ namespace InventoryTools.Logic.Columns
                                 var selectedWorldId =
                                     MarketboardWorldSetting.SelectedWorldId(columnConfiguration, activeCharacter);
                                 var pricing = _marketCache.GetPricing(searchResult.Item.RowId, selectedWorldId, false);
-                                if (pricing is { recentHistory: null, listings: null })
+                                // 查不到資料時 pricing 會是 null,不能讓 tooltip 開出來卻是空的。
+                                if (!_marketCache.MarketDataAvailable || pricing is { recentHistory: null, listings: null })
                                 {
-                                    ImGui.Text("No data available");
+                                    ImGui.Text("No data available".Loc());
                                 }
 
                                 if (pricing is { listings: not null })
                                 {
-                                    ImGui.Text("Listings: ");
+                                    ImGui.Text("Listings: ".Loc());
                                     ImGui.Separator();
 
                                     foreach (var price in pricing.listings)
@@ -116,7 +117,7 @@ namespace InventoryTools.Logic.Columns
 
                                 if (pricing is { recentHistory: not null })
                                 {
-                                    ImGui.Text("History: ");
+                                    ImGui.Text("History: ".Loc());
                                     ImGui.Separator();
 
                                     foreach (var price in pricing.recentHistory)
@@ -145,6 +146,13 @@ namespace InventoryTools.Logic.Columns
                 return (Untradable, Untradable);
             }
 
+            // 試過的世界全部查不到 universalis 資料時:回 null 讓欄位畫成 EmptyText(N/A),
+            // 而不是永遠停在「loading...」,也不要畫成會誤導人的 0。
+            if (!_marketCache.MarketDataAvailable)
+            {
+                return null;
+            }
+
             var activeCharacter = _characterMonitor.ActiveCharacter;
             if (activeCharacter != null)
             {
@@ -161,10 +169,10 @@ namespace InventoryTools.Logic.Columns
             return (Loading, Loading);
         }
 
-        public override string Name { get; set; } = "Market Board Average Price NQ/HQ";
-        public override string RenderName => "MB Avg. Price NQ/HQ";
+        public override string Name { get; set; } = "Market Board Average Price NQ/HQ".Loc();
+        public override string RenderName => "MB Avg. Price NQ/HQ".Loc();
         public override string HelpText { get; set; } =
-            "Shows the average price of both the NQ and HQ form of the item. If no world is selected, your home world is used. This data is sourced from universalis.";
+            "Shows the average price of both the NQ and HQ form of the item. If no world is selected, your home world is used. 此資料來自 universalis 的社群上傳，涵蓋台服 8 個世界；沒有人上傳過的道具會顯示為無資料。";
         public override float Width { get; set; } = 200.0f;
         public override bool HasFilter { get; set; } = true;
         public override ColumnFilterType FilterType { get; set; } = ColumnFilterType.Text;

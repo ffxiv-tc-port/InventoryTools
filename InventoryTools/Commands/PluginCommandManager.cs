@@ -57,7 +57,7 @@ namespace InventoryTools.Commands
 
             var commandInfo = new CommandInfo(handlerDelegate)
             {
-                HelpMessage = helpMessage?.HelpMessage ?? string.Empty,
+                HelpMessage = helpMessage?.HelpMessage.Loc() ?? string.Empty,
                 ShowInHelp = doNotShowInHelp == null,
             };
 

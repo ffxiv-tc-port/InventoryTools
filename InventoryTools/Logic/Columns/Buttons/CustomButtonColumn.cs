@@ -26,7 +26,7 @@ public class CustomButtonColumn : ButtonColumn
         Settings.Add(_buttonText);
         Settings.Add(_actionSetting);
     }
-    public override string Name { get; set; } = "Custom Button";
+    public override string Name { get; set; } = "Custom Button".Loc();
     public override float Width { get; set; } = 50;
 
     public override bool HasFilter { get; set; } = false;

@@ -17,10 +17,10 @@ namespace InventoryTools.Logic.Columns
         {
             return searchResult.Item.HasUsesByType(ItemInfoType.CraftRecipe);
         }
-        public override string Name { get; set; } = "Is Craft Component?";
-        public override string RenderName => "Is Craft Item?";
+        public override string Name { get; set; } = "Is Craft Component?".Loc();
+        public override string RenderName => "Is Craft Item?".Loc();
         public override float Width { get; set; } = 100;
-        public override string HelpText { get; set; } = "Can this item be used to craft another item?";
+        public override string HelpText { get; set; } = "Can this item be used to craft another item?".Loc();
         public override bool HasFilter { get; set; } = true;
         public override ColumnFilterType FilterType { get; set; } = ColumnFilterType.Text;
         public override FilterType DefaultIn => Logic.FilterType.GameItemFilter;

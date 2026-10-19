@@ -64,8 +64,8 @@ public sealed class CharacterColumnSetting : ChoiceColumnSetting<ulong?>
     }
 
     public override string Key { get; set; } = "character";
-    public override string Name { get; set; } = "Character";
-    public override string HelpText { get; set; } = "The character to use";
+    public override string Name { get; set; } = "Character".Loc();
+    public override string HelpText { get; set; } = "The character to use".Loc();
     public override ulong? DefaultValue { get; set; } = null;
 
 }

@@ -1,4 +1,4 @@
-﻿using CriticalCommonLib.MarketBoard;
+using CriticalCommonLib.MarketBoard;
 using CriticalCommonLib.Services;
 
 using InventoryTools.Logic.Columns.Abstract;
@@ -21,7 +21,7 @@ namespace InventoryTools.Logic.Columns
         public override ColumnCategory ColumnCategory => ColumnCategory.Market;
 
         public override string HelpText { get; set; } =
-            "Shows the minimum price of both the NQ and HQ form of the item. If no world is selected, your home world is used. This data is sourced from universalis.";
+            "Shows the minimum price of both the NQ and HQ form of the item. If no world is selected, your home world is used. 此資料來自 universalis 的社群上傳，涵蓋台服 8 個世界；沒有人上傳過的道具會顯示為無資料。";
 
         public override (int, int)? CurrentValue(ColumnConfiguration columnConfiguration, SearchResult searchResult)
         {
@@ -47,7 +47,8 @@ namespace InventoryTools.Logic.Columns
                     }
                 }
 
-                return (Loading, Loading);
+                // 試過的世界全部查不到 universalis 資料時:畫成 EmptyText(N/A),不要永遠停在 loading...
+                return _marketCache.MarketDataAvailable ? (Loading, Loading) : null;
             }
             if (!searchResult.Item.CanBeTraded)
             {
@@ -66,10 +67,11 @@ namespace InventoryTools.Logic.Columns
                 }
             }
 
-            return (Loading, Loading);
+            // 試過的世界全部查不到 universalis 資料時:畫成 EmptyText(N/A),不要永遠停在 loading...
+            return _marketCache.MarketDataAvailable ? (Loading, Loading) : null;
         }
-        public override string Name { get; set; } = "Market Board Minimum Price NQ/HQ";
-        public override string RenderName => "MB Min. Price NQ/HQ";
+        public override string Name { get; set; } = "Market Board Minimum Price NQ/HQ".Loc();
+        public override string RenderName => "MB Min. Price NQ/HQ".Loc();
 
         public override FilterType DefaultIn => Logic.FilterType.CraftFilter;
     }

@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using CriticalCommonLib.Helpers;
 using CriticalCommonLib.Models;
 using CriticalCommonLib.Services;
 using CriticalCommonLib.Services.Mediator;
@@ -37,6 +38,7 @@ namespace InventoryTools.Lists
         private readonly FilterConfiguration.Factory _filterConfigFactory;
         private readonly Func<Type, IColumn> _columnTypeFactory;
         private ConcurrentDictionary<string, FilterConfiguration> _lists;
+        private readonly ReusableDictionaryEnumerator<string, FilterConfiguration> _updateEnumerator = new();
 
         public ListService(ILogger<ListService> logger, MediatorService mediatorService,
             ICharacterMonitor characterMonitor, IInventoryMonitor inventoryMonitor, HostedInventoryHistory history,
@@ -180,8 +182,10 @@ namespace InventoryTools.Lists
 
         private void OnUpdate(IFramework framework)
         {
-            foreach (var filter in _lists)
+            var lists = _updateEnumerator.Begin(_lists);
+            while (lists.MoveNext())
             {
+                var filter = lists.Current;
                 if (filter.Value.ConfigurationDirty)
                 {
                     filter.Value.ConfigurationDirty = false;
