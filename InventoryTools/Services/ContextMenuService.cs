@@ -68,11 +68,11 @@ public class ContextMenuService : DisposableMediatorSubscriberBase, IHostedServi
     private void MenuOpened(IMenuOpenedArgs args)
     {
         uint? itemId;
-        Logger.LogDebug($"{args.AddonName}");
-        Logger.LogDebug($"{(ulong)args.AgentPtr:X}");
+        Logger.LogTrace($"{args.AddonName}");
+        Logger.LogTrace($"{(ulong)args.AgentPtr:X}");
         itemId = GetGameObjectItemId(args);
         itemId %= 500000;
-        Logger.LogDebug($"{itemId}");
+        Logger.LogTrace($"{itemId}");
 
         if (itemId != null)
         {
