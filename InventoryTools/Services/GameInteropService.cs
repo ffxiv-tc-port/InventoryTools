@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Dalamud.Plugin.Services;
 using FFXIVClientStructs.FFXIV.Client.Game.UI;
+using FFXIVClientStructs.FFXIV.Client.UI;
 using Lumina.Excel;
 using Lumina.Excel.Sheets;
 
@@ -11,6 +12,9 @@ namespace InventoryTools.Services;
 public interface IGameInteropService
 {
     unsafe Dictionary<ClassJob, short>? GetClassJobLevels();
+
+    /// <summary>播放聊天音效 &lt;se.1&gt;～&lt;se.16&gt;；範圍外或未登入時不做事。</summary>
+    void PlayChatSoundEffect(uint soundEffectId);
 }
 
 public class GameInteropService : IGameInteropService
@@ -45,5 +49,15 @@ public class GameInteropService : IGameInteropService
         }
 
         return levels;
+    }
+
+    public void PlayChatSoundEffect(uint soundEffectId)
+    {
+        if (!_clientState.IsLoggedIn || soundEffectId is < 1 or > 16)
+        {
+            return;
+        }
+
+        UIGlobals.PlayChatSoundEffect(soundEffectId);
     }
 }

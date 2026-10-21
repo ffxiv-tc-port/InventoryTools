@@ -60,6 +60,7 @@ namespace InventoryTools
         private readonly IMarketCache _marketCache;
         private readonly IEnumerable<ISampleFilter> _sampleFilters;
         private readonly BagSpacePraiseService _bagSpacePraiseService;
+        private readonly CraftListNotificationService _craftListNotificationService;
         private Dictionary<uint, InventoryMonitor.ItemChangesItem> _recentlyAddedSeen = new();
 
         public bool WasRecentlySeen(uint itemId)
@@ -95,8 +96,10 @@ namespace InventoryTools
             CraftTrackerTrackShoppingFilter trackShoppingFilter, CraftTrackerTrackCombatDropFilter trackCombatDropFilter,
             CraftTrackerTrackOtherFilter trackOtherFilter, UseOldCraftTrackerSetting useOldCraftTrackerSetting,
             CraftTrackerTrackMarketBoardFilter trackMarketBoardFilter,
-            BagSpacePraiseService bagSpacePraiseService) : base(logger, mediatorService)
+            BagSpacePraiseService bagSpacePraiseService,
+            CraftListNotificationService craftListNotificationService) : base(logger, mediatorService)
         {
+            _craftListNotificationService = craftListNotificationService;
             _configurationManagerService = configurationManagerService;
             _chatUtilities = chatUtilities;
             _listService = listService;
@@ -147,6 +150,7 @@ namespace InventoryTools
             if (activeCraftList != null && activeCraftList.FilterType == FilterType.CraftFilter && activeCraftList.CraftList.CraftListMode == CraftListMode.Normal)
             {
                 _logger.LogTrace("Marking {Quantity} qty for item {ItemId} ({HqFlag}) as crafted.", quantity, itemid, flags == InventoryItem.ItemFlags.None ? "NQ" : "HQ");
+                _craftListNotificationService.Notify(activeCraftList, itemid, flags, quantity, AcquisitionReason.Crafting);
                 activeCraftList.CraftList.MarkCrafted(itemid, flags, quantity);
                 if (activeCraftList is { IsEphemeralCraftList: true, CraftList.IsCompleted: true })
                 {
@@ -380,7 +384,7 @@ namespace InventoryTools
             _logger.LogTrace("Item acquired through {Reason}, qty of {QtyIncrease}, item ID: {ItemId}", reason, qtyIncrease, itemId);
 
             var activeCraftList = _listService.GetActiveCraftList();
-            if (activeCraftList != null && activeCraftList.FilterType == FilterType.CraftFilter && activeCraftList.CraftList.CraftListMode == CraftListMode.Normal)
+            if (activeCraftList != null && activeCraftList.FilterType == FilterType.CraftFilter)
             {
                 if ((reason == AcquisitionReason.Crafting && _trackCraftsFilter.CurrentValue(activeCraftList) == false) ||
                     (reason == AcquisitionReason.Gathering && _trackGatheringFilter.CurrentValue(activeCraftList) == false) ||
@@ -391,6 +395,18 @@ namespace InventoryTools
                     )
                 {
                     _logger.LogTrace("Craft list configured to not track {Reason}, not altering required item counts.", reason);
+                    return;
+                }
+
+                if (qtyIncrease > 0)
+                {
+                    _craftListNotificationService.Notify(activeCraftList, itemId, itemFlags, (uint)qtyIncrease, reason);
+                }
+
+                // 存量模式不扣帳（移植前在外層就排除）；通知照上游在兩種模式都送。
+                if (activeCraftList.CraftList.CraftListMode != CraftListMode.Normal)
+                {
+                    _logger.LogTrace("Active craft list is in stock mode.");
                     return;
                 }
 

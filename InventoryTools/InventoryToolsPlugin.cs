@@ -256,6 +256,7 @@ namespace InventoryTools
             builder.RegisterSingletonSelfAndInterfaces<Font>();
             builder.RegisterSingletonSelfAndInterfaces<GameInterface>();
             builder.RegisterSingletonSelfAndInterfaces<GameInteropService>();
+            builder.RegisterSingletonSelfAndInterfaces<CraftListNotificationService>();
             builder.RegisterSingletonSelfAndInterfaces<GameUiManager>();
             builder.RegisterSingletonSelfAndInterfaces<HostedUniversalisConfiguration>();
             builder.RegisterSingletonSelfAndInterfaces<ImGuiMenuService>();

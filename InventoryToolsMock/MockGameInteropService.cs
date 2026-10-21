@@ -28,4 +28,8 @@ public class MockGameInteropService : IGameInteropService
             {_classJobSheet.GetRow(6),10},
         };
     }
+
+    public void PlayChatSoundEffect(uint soundEffectId)
+    {
+    }
 }
