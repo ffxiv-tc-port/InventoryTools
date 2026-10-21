@@ -10,8 +10,11 @@ namespace InventoryTools
     // inventories.csv 的節流存檔：變動只記髒，FrameworkOnUpdate 每幀問節流器該不該寫；登出／換角與卸載必寫。
     public partial class PluginLogic
     {
-        /// <summary>卸載時等「正在寫的那一份」加重試的上界；逾時就放棄最後一次寫入，正式檔仍是完整的舊內容。</summary>
-        private static readonly TimeSpan StopFlushMaxWait = TimeSpan.FromSeconds(5);
+        /// <summary>
+        /// 卸載時等「正在寫的那一份」加重試的上界；逾時就放棄最後一次寫入，正式檔仍是完整的舊內容。
+        /// 卸載在框架執行緒上同步跑，這段時間遊戲畫面是停住的 ⇒ 上界壓在 2 秒。
+        /// </summary>
+        private static readonly TimeSpan StopFlushMaxWait = TimeSpan.FromSeconds(2);
 
         private readonly ThrottledSnapshotSaver<List<CclInventoryItem>> _inventorySaver;
 
