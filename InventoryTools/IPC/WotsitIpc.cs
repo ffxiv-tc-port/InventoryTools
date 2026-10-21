@@ -31,6 +31,7 @@ namespace InventoryTools.IPC
         private Dictionary<string, string> _wotsitToggleFilterGuids = new();
         private Dictionary<string, string> _wotsitFilterNames = new();
         private bool _wotsItRegistered = false;
+        private volatile bool _stopped;
         private Timer? _delayTimer = null;
 
 
@@ -47,12 +48,37 @@ namespace InventoryTools.IPC
             _framework.RunOnTick(InitForWotsit);
         }
 
+        // 計時器回呼在執行緒池上：兩張註冊表只在框架執行緒改，這裡只排隊交回去；例外穿出執行緒池回呼＝整個遊戲結束。
         private void DelayTimerOnElapsed(object? sender, ElapsedEventArgs e)
         {
-            _delayTimer?.Stop();
-            if (!_wotsItRegistered)
+            try
             {
-                InitForWotsit();
+                _delayTimer?.Stop();
+                if (_stopped || _framework.IsFrameworkUnloading)
+                {
+                    return;
+                }
+
+                _framework.Run(RetryInitIfNotRegistered);
+            }
+            catch (Exception exception)
+            {
+                Logger.LogWarning(exception, "Could not schedule the delayed Wotsit registration.");
+            }
+        }
+
+        private void RetryInitIfNotRegistered()
+        {
+            try
+            {
+                if (!_wotsItRegistered)
+                {
+                    InitForWotsit();
+                }
+            }
+            catch (Exception exception)
+            {
+                Logger.LogWarning(exception, "Something went wrong while trying to register with wotsit's IPC.");
             }
         }
 
@@ -85,6 +111,12 @@ namespace InventoryTools.IPC
 
         public void InitForWotsit()
         {
+            // 停止後才輪到的排隊呼叫不可再註冊：FA.Invoke 的訂閱會留在 CallGate 上釘住舊版本。
+            if (_stopped)
+            {
+                return;
+            }
+
             if (_wotsitUnregister == null)
             {
                 _wotsitUnregister = _dalamudPluginInterface.GetIpcSubscriber<string, bool>("FA.UnregisterAll");
@@ -189,6 +221,7 @@ namespace InventoryTools.IPC
         public Task StopAsync(CancellationToken cancellationToken)
         {
             Logger.LogTrace("Stopping service {Type} ({This})", GetType().Name, this);
+            _stopped = true;
             // 先退訂再呼叫 UnregisterAll：沒裝 Wotsit 時後者擲 IpcNotReadyError，
             // 退訂若排在它後面就會被跳過，FA.Invoke 的訂閱留在 CallGate 上釘住整個舊版本。
             _wotsitAvailable?.Unsubscribe(FaAvailable);
