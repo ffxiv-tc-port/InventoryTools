@@ -10,11 +10,14 @@ using FFXIVClientStructs.FFXIV.Client.Game.Event;
 using FFXIVClientStructs.FFXIV.Client.Game.UI;
 using FFXIVClientStructs.FFXIV.Client.UI;
 using FFXIVClientStructs.FFXIV.Client.UI.Agent;
+using System.Threading;
+using Microsoft.Extensions.Logging;
 
 namespace InventoryTools.Services;
 
 /// <summary>
-/// 包在 AllaganLib.Monitors 的 <see cref="IShopMonitorService"/> 外面，只改 <see cref="GetCurrentShopType"/>：
+/// 包在 AllaganLib.Monitors 的 <see cref="IShopMonitorService"/> 外面，只改 <see cref="GetCurrentShopType"/>
+/// （兩個查詢入口另都先過 <see cref="InnerWouldReadNullEventObject"/>）：
 /// 沒有目標時直接回 null（原本比對的是目標的 BaseId，沒有目標一定回 null），
 /// 有目標時同一個目標 250 ms 內沿用上一次的結果；換目標、商店視窗開關都立刻重算。
 /// 目標的 BaseId 在 ENpcBase 查不到（怪物、玩家、物件）也直接回 null：內層只有在 ENpcBase
@@ -42,11 +45,52 @@ public sealed class CachedShopMonitorService : IShopMonitorService
     private long cachedAt;
     private (ENpcBaseRow Npc, List<IShop> Shops, IShop? ActiveShop)? cachedValue;
 
-    public CachedShopMonitorService(IShopMonitorService inner, ENpcBaseSheet enpcBaseSheet)
+    private static int nullEventObjectReported;
+    private readonly ILogger? logger;
+
+    public CachedShopMonitorService(IShopMonitorService inner, ENpcBaseSheet enpcBaseSheet, ILogger<CachedShopMonitorService>? logger)
     {
         this.inner = inner;
         this.enpcBaseSheet = enpcBaseSheet;
+        this.logger = logger;
         this.inner.OnShopChanged += this.Invalidate;
+    }
+
+    /// <summary>
+    /// 內層 GetCurrentShopTypeIds 對每個處理器的每個事件物件不判空就讀 BaseId（空指標＝存取違規、攔不到）。
+    /// 表裡有空位時呼叫端不呼叫內層、當作沒有商店；只在框架執行緒、呼叫內層的同一幀用。
+    /// </summary>
+    public static unsafe bool InnerWouldReadNullEventObject(ILogger? logger)
+    {
+        var framework = EventFramework.Instance();
+        if (framework == null)
+        {
+            return false;
+        }
+
+        foreach (var pair in framework->EventHandlerModule.EventHandlerMap)
+        {
+            var handler = pair.Item2.Value;
+            if (handler == null)
+            {
+                continue;
+            }
+
+            foreach (var eventObject in handler->EventObjects)
+            {
+                if (eventObject.Value == null)
+                {
+                    if (Interlocked.Exchange(ref nullEventObjectReported, 1) == 0)
+                    {
+                        logger?.LogInformation("[ShopGuard] Event handler {Handler} has an empty event object slot; shop lookup skipped while it is there (reported once per session).", pair.Item1);
+                    }
+
+                    return true;
+                }
+            }
+        }
+
+        return false;
     }
 
     public event IShopMonitorService.ShopChangedDelegate? OnShopChanged
@@ -91,6 +135,12 @@ public sealed class CachedShopMonitorService : IShopMonitorService
             return this.cachedValue;
         }
 
+        if (InnerWouldReadNullEventObject(this.logger))
+        {
+            this.Invalidate();
+            return null;
+        }
+
         var value = this.inner.GetCurrentShopType();
         this.scratchPrint = this.cachedPrint;
         this.cachedPrint = print;
@@ -103,7 +153,7 @@ public sealed class CachedShopMonitorService : IShopMonitorService
     public IShop? GetShopByIdAndType(uint shopId, ShopType type) => this.inner.GetShopByIdAndType(shopId, type);
 
     public (uint NpcId, List<(ShopType, uint)> Shops, (ShopType, uint)? ActiveShopId)? GetCurrentShopTypeIds() =>
-        this.inner.GetCurrentShopTypeIds();
+        InnerWouldReadNullEventObject(this.logger) ? null : this.inner.GetCurrentShopTypeIds();
 
     private void Invalidate()
     {

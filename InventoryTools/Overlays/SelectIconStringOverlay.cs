@@ -75,7 +75,7 @@ namespace InventoryTools.Overlays
                 if (filterResult != null)
                 {
                     Logger.LogTrace("Attempting to update state for SelectIconString");
-                    var currentShopTypes = _shopMonitorService.GetCurrentShopType();
+                    var currentShopTypes = CachedShopMonitorService.InnerWouldReadNullEventObject(Logger) ? null : _shopMonitorService.GetCurrentShopType();
                     if (currentShopTypes != null)
                     {
                         SelectItems = newState.GetSelectIconStringItems(currentShopTypes.Value.Shops);
