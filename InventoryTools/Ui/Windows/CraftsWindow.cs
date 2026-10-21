@@ -36,6 +36,7 @@ using InventoryTools.Logic.Columns;
 using InventoryTools.Logic.Filters;
 using InventoryTools.Mediator;
 using InventoryTools.Services;
+using InventoryTools.Services.GameCraftSources;
 using InventoryTools.Services.Interfaces;
 using Microsoft.Extensions.Logging;
 using ImGuiUtil = OtterGui.ImGuiUtil;
@@ -56,6 +57,7 @@ namespace InventoryTools.Ui
         private readonly ICharacterMonitor _characterMonitor;
         private readonly IFileDialogManager _fileDialogManager;
         private readonly IGameUiManager _gameUiManager;
+        private readonly GameCraftSourceService _gameCraftSourceService;
         private readonly IChatUtilities _chatUtilities;
         private readonly ListImportExportService _importExportService;
         private readonly CraftWindowLayoutSetting _layoutSetting;
@@ -102,8 +104,10 @@ namespace InventoryTools.Ui
             IKeyState keyState,
             ItemSheet itemSheet,
             IFramework framework,
-            VendorLookupService vendorLookupService) : base(logger, mediator, imGuiService, configuration, "Crafts Window".Loc())
+            VendorLookupService vendorLookupService,
+            GameCraftSourceService gameCraftSourceService) : base(logger, mediator, imGuiService, configuration, "Crafts Window".Loc())
         {
+            _gameCraftSourceService = gameCraftSourceService;
             _tableService = tableService;
             _configuration = configuration;
             _listService = listService;
@@ -1697,7 +1701,73 @@ namespace InventoryTools.Ui
                         this.MediatorService.Publish(new ToggleGenericWindowMessage(typeof(CraftOverlayWindow)));
                     }
 
+                    DrawAddFromGameMenu();
                 }
+            }
+        }
+
+        // 只有偵測到支援的遊戲視窗開著才出現；按下那一幀當場讀遊戲，加入清單排到框架執行緒。
+        private void DrawAddFromGameMenu()
+        {
+            var configuration = SelectedConfiguration;
+            if (configuration == null || configuration.FilterType != FilterType.CraftFilter)
+            {
+                return;
+            }
+
+            var categories = _gameCraftSourceService.GetAvailableCategories();
+            if (categories.Count == 0)
+            {
+                return;
+            }
+
+            bool menuOpen;
+            using (ImRaii.PushColor(ImGuiCol.Text, new Vector4(0.3f, 0.6f, 1f, 1f)))
+            {
+                menuOpen = ImGui.BeginMenu("Add From Game".Loc());
+            }
+
+            if (ImGui.IsItemHovered())
+            {
+                using (ImRaii.Tooltip())
+                {
+                    ImGui.TextUnformatted("This menu appears because Allagan Tools detected a supported game window open (such as the company workshop or your grand company supply list).".Loc());
+                    ImGui.TextUnformatted("Each option adds its items to the currently selected craft list.".Loc());
+                }
+            }
+
+            if (!menuOpen)
+            {
+                return;
+            }
+
+            try
+            {
+                foreach (var category in categories)
+                {
+                    if (ImGui.MenuItem(category.Name))
+                    {
+                        var items = category.GetItems();
+                        if (items.Count == 0)
+                        {
+                            continue;
+                        }
+
+                        _framework.RunOnFrameworkThread(() =>
+                        {
+                            foreach (var item in items)
+                            {
+                                configuration.CraftList.AddCraftItem(item.ItemId, item.Quantity, item.Flags);
+                            }
+
+                            configuration.NeedsRefresh = true;
+                        });
+                    }
+                }
+            }
+            finally
+            {
+                ImGui.EndMenu();
             }
         }
 

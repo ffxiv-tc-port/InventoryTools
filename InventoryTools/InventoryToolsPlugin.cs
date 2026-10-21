@@ -55,6 +55,7 @@ using InventoryTools.Logic.Settings.Abstract;
 using InventoryTools.Overlays;
 using InventoryTools.ServiceConfigurations;
 using InventoryTools.Services;
+using InventoryTools.Services.GameCraftSources;
 using InventoryTools.Tooltips;
 using InventoryTools.Ui;
 using InventoryTools.Ui.Pages;
@@ -164,6 +165,7 @@ namespace InventoryTools
             builder.RegisterSingletonsSelfAndInterfaces<ISampleFilter>(dataAccess);
             builder.RegisterSingletonsSelfAndInterfaces<IFeature>(dataAccess);
             builder.RegisterSingletonsSelfAndInterfaces<IItemInfoRenderer>(dataAccess);
+            builder.RegisterSingletonsSelfAndInterfaces<IGameCraftSource>(dataAccess);
             builder.RegisterSingletonsSelfAndInterfaces<IDebugPane>(typeof(ShopMonitorDebugPane).Assembly); //Register AllaganLib.Monitor debug panes
             builder.RegisterSingletonsSelfAndInterfaces<IDebugPane>(dataAccess); //Register InventoryTools debug panes
             builder.RegisterSingletonsSelfAndInterfaces<IFilter>(dataAccess).Where(c => c.GetInterface("IGenericFilter") == null); //Generic filters should not be registered as IFilters as we don't want them to show up anywhere we want to iterate over all available filters
@@ -257,6 +259,7 @@ namespace InventoryTools
             builder.RegisterSingletonSelfAndInterfaces<GameInterface>();
             builder.RegisterSingletonSelfAndInterfaces<GameInteropService>();
             builder.RegisterSingletonSelfAndInterfaces<CraftListNotificationService>();
+            builder.RegisterSingletonSelfAndInterfaces<GameCraftSourceService>();
             builder.RegisterSingletonSelfAndInterfaces<GameUiManager>();
             builder.RegisterSingletonSelfAndInterfaces<HostedUniversalisConfiguration>();
             builder.RegisterSingletonSelfAndInterfaces<ImGuiMenuService>();
