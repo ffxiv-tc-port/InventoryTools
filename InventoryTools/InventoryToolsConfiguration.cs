@@ -379,6 +379,7 @@ namespace InventoryTools
         private bool _tooltipDisplayAmountOwned = true;
         private bool _tooltipDisplayUnlock;
         private List<ulong>? _tooltipDisplayUnlockCharacters = new();
+        private List<string>? _tooltipCuratedLists = new();
         private bool _tooltipDisplayMarketAveragePrice;
         private bool _tooltipDisplayMarketLowestPrice = true;
         private bool _tooltipAddCharacterNameOwned;
@@ -495,6 +496,16 @@ namespace InventoryTools
             set
             {
                 _tooltipDisplayUnlockCharacters = value;
+                IsDirty = true;
+            }
+        }
+
+        public List<string>? TooltipCuratedLists
+        {
+            get => _tooltipCuratedLists;
+            set
+            {
+                _tooltipCuratedLists = value;
                 IsDirty = true;
             }
         }

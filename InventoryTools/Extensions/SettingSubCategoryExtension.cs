@@ -67,6 +67,8 @@ namespace InventoryTools.Extensions
                     return "Coffer Contents".Loc();
                 case SettingSubCategory.CraftingMaterialHighlight:
                     return "Crafting Material Highlight".Loc();
+                case SettingSubCategory.CuratedLists:
+                    return "Curated Lists".Loc();
             }
             return settingSubCategory.ToString().Loc();
         }
