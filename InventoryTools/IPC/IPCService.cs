@@ -7,9 +7,11 @@ using CriticalCommonLib.Enums;
 using CriticalCommonLib.Models;
 using CriticalCommonLib.Services;
 using Dalamud.Plugin;
+using Dalamud.Plugin.Services;
 using Dalamud.Plugin.Ipc;
 using InventoryTools.Lists;
 using InventoryTools.Logic;
+using InventoryTools.Logic.Editors;
 using InventoryTools.Services.Interfaces;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
@@ -24,6 +26,8 @@ public class IPCService : IHostedService
     private ICallGateProvider<uint, ulong, int, uint>? _itemCount;
     private ICallGateProvider<uint, ulong, int, uint>? _itemCountHQ;
     private ICallGateProvider<uint, bool, uint[], uint>? _itemCountOwned;
+    private ICallGateProvider<uint, bool, uint[], bool, uint>? _itemCountOwnedByCategory;
+    private ICallGateProvider<uint, bool, uint[], bool, Dictionary<ulong, uint>>? _getItemCountsByCharacter;
     private ICallGateProvider<string, bool>? _enableUiFilter;
     private ICallGateProvider<bool>? _disableUiFilter;
     private ICallGateProvider<string, bool>? _toggleUiFilter;
@@ -61,9 +65,14 @@ public class IPCService : IHostedService
     private ItemCountIndex? _countIndex;
     private readonly object _countIndexBuildLock = new();
     private readonly ItemCountIndex.Builder _countIndexBuilder = new();
+    private readonly IFramework _framework;
+    private readonly InventoryScopeCalculator _inventoryScopeCalculator;
+    private static readonly TimeSpan IpcFrameworkWait = TimeSpan.FromSeconds(5);
 
-    public IPCService(IDalamudPluginInterface pluginInterface, ILogger<IPCService> logger, ICharacterMonitor characterMonitor, IListService listService, IInventoryMonitor inventoryMonitor, ListFilterService listFilterService)
+    public IPCService(IDalamudPluginInterface pluginInterface, ILogger<IPCService> logger, ICharacterMonitor characterMonitor, IListService listService, IInventoryMonitor inventoryMonitor, ListFilterService listFilterService, IFramework framework, InventoryScopeCalculator inventoryScopeCalculator)
     {
+        _framework = framework;
+        _inventoryScopeCalculator = inventoryScopeCalculator;
         _pluginInterface = pluginInterface;
         _logger = logger;
         _characterMonitor = characterMonitor;
@@ -148,6 +157,93 @@ public class IPCService : IHostedService
             }
         }
         return (uint)total;
+    }
+
+    // 新端點的角色型別判斷要讀 CharacterMonitor 的一般 Dictionary（框架執行緒會寫），所以排到框架執行緒算；
+    // 呼叫端已在框架執行緒就直接算。等不到（卸載中或逾時）回 fallback，不擲例外。
+    private T OnFrameworkThread<T>(Func<T> compute, T fallback, string endpoint)
+    {
+        if (_framework.IsInFrameworkUpdateThread)
+        {
+            return compute();
+        }
+
+        if (_framework.IsFrameworkUnloading)
+        {
+            return fallback;
+        }
+
+        var task = _framework.RunOnFrameworkThread(compute);
+        if (Task.WhenAny(task, Task.Delay(IpcFrameworkWait)).GetAwaiter().GetResult() != task)
+        {
+            _logger.LogWarning("IPC {Endpoint} timed out waiting for the framework thread, returning an empty result.", endpoint);
+            return fallback;
+        }
+
+        return task.GetAwaiter().GetResult();
+    }
+
+    private static InventorySearchScope OwnedScope(bool currentCharacterOnly, uint[]? inventoryCategories, bool includeSharedStorage)
+    {
+        return new InventorySearchScope
+        {
+            ActiveCharacter = currentCharacterOnly ? true : null,
+            Categories = inventoryCategories is not { Length: > 0 }
+                ? null
+                : inventoryCategories.Select(c => (InventoryCategory)c).ToHashSet(),
+            CharacterTypes = includeSharedStorage ? null : [CharacterType.Character, CharacterType.Retainer],
+        };
+    }
+
+    private bool InOwnedScope(InventorySearchScope scope, in ItemCountIndex.ItemGroup group)
+    {
+        return _characterMonitor.Characters.ContainsKey(group.RetainerId)
+               && _inventoryScopeCalculator.Filter(scope, group.RetainerId, group.Category);
+    }
+
+    /// <summary>
+    /// 一個物品在角色、僱員（可選含公會箱與房屋）身上的總數，NQ 與 HQ 合計。
+    /// inventoryCategories 是 <see cref="InventoryCategory"/> 值，空陣列＝全部分類；includeSharedStorage=false 時一律排除公會與房屋。
+    /// </summary>
+    private uint ItemCountOwnedByCategory(uint itemId, bool currentCharacterOnly, uint[] inventoryCategories, bool includeSharedStorage)
+    {
+        return OnFrameworkThread(() => ItemCountOwnedByCategoryCore(itemId, currentCharacterOnly, inventoryCategories, includeSharedStorage),
+            0u, "ItemCountOwnedByCategory");
+    }
+
+    private uint ItemCountOwnedByCategoryCore(uint itemId, bool currentCharacterOnly, uint[]? inventoryCategories, bool includeSharedStorage)
+    {
+        var scope = OwnedScope(currentCharacterOnly, inventoryCategories, includeSharedStorage);
+        long total = 0;
+        foreach (ref readonly var g in CurrentCountIndex().ForItem(itemId))
+        {
+            if (InOwnedScope(scope, g)) total += g.Quantity;
+        }
+        return (uint)Math.Clamp(total, 0, uint.MaxValue);
+    }
+
+    /// <summary>同 ItemCountOwnedByCategory，但依持有者（角色／僱員／公會／房屋 id）分開列；沒有持有的不列。</summary>
+    private Dictionary<ulong, uint> GetItemCountsByCharacter(uint itemId, bool currentCharacterOnly, uint[] inventoryCategories, bool includeSharedStorage)
+    {
+        return OnFrameworkThread(() => GetItemCountsByCharacterCore(itemId, currentCharacterOnly, inventoryCategories, includeSharedStorage),
+            new Dictionary<ulong, uint>(), "GetItemCountsByCharacter");
+    }
+
+    private Dictionary<ulong, uint> GetItemCountsByCharacterCore(uint itemId, bool currentCharacterOnly, uint[]? inventoryCategories, bool includeSharedStorage)
+    {
+        var scope = OwnedScope(currentCharacterOnly, inventoryCategories, includeSharedStorage);
+        var totals = new Dictionary<ulong, long>();
+        foreach (ref readonly var g in CurrentCountIndex().ForItem(itemId))
+        {
+            if (InOwnedScope(scope, g)) totals[g.RetainerId] = totals.GetValueOrDefault(g.RetainerId) + g.Quantity;
+        }
+
+        var itemCounts = new Dictionary<ulong, uint>(totals.Count);
+        foreach (var (owner, total) in totals)
+        {
+            if (total > 0) itemCounts[owner] = (uint)Math.Min(total, uint.MaxValue);
+        }
+        return itemCounts;
     }
 
     private bool IsInitialized()
@@ -250,8 +346,12 @@ public class IPCService : IHostedService
 
     private HashSet<ulong[]> GetCharacterItems(ulong characterId)
     {
-        var items = _inventoryMonitor.Inventories
-            .First(pair => pair.Key == characterId).Value
+        if (!_inventoryMonitor.Inventories.TryGetValue(characterId, out var characterInventories))
+        {
+            return [];
+        }
+
+        var items = characterInventories
             .GetAllInventories().SelectMany(item => item)
             .Where(item => item != null);
 
@@ -262,8 +362,10 @@ public class IPCService : IHostedService
 
     private HashSet<ulong[]> GetCharacterItemsByType(ulong characterId, uint inventoryType)
     {
-        var characterInventories = _inventoryMonitor.Inventories
-            .First(pair => pair.Key == characterId).Value;
+        if (!_inventoryMonitor.Inventories.TryGetValue(characterId, out var characterInventories))
+        {
+            return [];
+        }
         
         var items = (characterInventories
                 .GetInventoryByType((InventoryType)inventoryType) ?? Array.Empty<CriticalCommonLib.Models.InventoryItem?>())
@@ -514,6 +616,12 @@ public class IPCService : IHostedService
         _itemCountOwned = _pluginInterface.GetIpcProvider<uint, bool, uint[], uint>("AllaganTools.ItemCountOwned");
         _itemCountOwned.RegisterFunc(ItemCountOwned);
 
+        _itemCountOwnedByCategory = _pluginInterface.GetIpcProvider<uint, bool, uint[], bool, uint>("AllaganTools.ItemCountOwnedByCategory");
+        _itemCountOwnedByCategory.RegisterFunc(ItemCountOwnedByCategory);
+
+        _getItemCountsByCharacter = _pluginInterface.GetIpcProvider<uint, bool, uint[], bool, Dictionary<ulong, uint>>("AllaganTools.GetItemCountsByCharacter");
+        _getItemCountsByCharacter.RegisterFunc(GetItemCountsByCharacter);
+
         _enableUiFilter = _pluginInterface.GetIpcProvider<string, bool>("AllaganTools.EnableUiFilter");
         _enableUiFilter.RegisterFunc(EnableUiFilter);
 
@@ -607,6 +715,8 @@ public class IPCService : IHostedService
         _itemCount?.UnregisterFunc();
         _itemCountHQ?.UnregisterFunc();
         _itemCountOwned?.UnregisterFunc();
+        _itemCountOwnedByCategory?.UnregisterFunc();
+        _getItemCountsByCharacter?.UnregisterFunc();
         _enableUiFilter?.UnregisterFunc();
         _disableUiFilter?.UnregisterFunc();
         _toggleUiFilter?.UnregisterFunc();

@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
 using CriticalCommonLib.Enums;
+using InventoryCategory = CriticalCommonLib.Models.InventoryCategory;
 using ItemFlags = FFXIVClientStructs.FFXIV.Client.Game.InventoryItem.ItemFlags;
 using ModelItem = CriticalCommonLib.Models.InventoryItem;
 
@@ -14,10 +15,11 @@ namespace InventoryTools.IPC;
 /// </summary>
 internal sealed class ItemCountIndex
 {
-    public readonly struct ItemGroup(ulong retainerId, InventoryType container, ItemFlags flags, long quantity)
+    public readonly struct ItemGroup(ulong retainerId, InventoryType container, InventoryCategory category, ItemFlags flags, long quantity)
     {
         public readonly ulong RetainerId = retainerId;
         public readonly InventoryType Container = container;
+        public readonly InventoryCategory Category = category;
         public readonly ItemFlags Flags = flags;
         public readonly long Quantity = quantity;
     }
@@ -48,7 +50,7 @@ internal sealed class ItemCountIndex
         _containers = containers;
     }
 
-    /// <summary>這個物品在各（角色或僱員、容器、旗標）的數量；沒有就是空的。</summary>
+    /// <summary>這個物品在各（角色或僱員、容器、分類、旗標）的數量；沒有就是空的。</summary>
     public ReadOnlySpan<ItemGroup> ForItem(uint itemId) =>
         _itemRanges.TryGetValue(itemId, out var r) ? _itemGroups.AsSpan(r.Start, r.Count) : default;
 
@@ -62,7 +64,7 @@ internal sealed class ItemCountIndex
     /// <summary>暫存字典重複使用；同一個 Builder 不可同時被兩條執行緒呼叫。</summary>
     public sealed class Builder
     {
-        private readonly Dictionary<(uint ItemId, ulong RetainerId, InventoryType Container, ItemFlags Flags), long> _itemTotals = new();
+        private readonly Dictionary<(uint ItemId, ulong RetainerId, InventoryType Container, InventoryCategory Category, ItemFlags Flags), long> _itemTotals = new();
         private readonly Dictionary<(uint Container, ulong RetainerId), long> _containerTotals = new();
         private uint[] _sortKeys = [];
 
@@ -91,7 +93,7 @@ internal sealed class ItemCountIndex
 
         private void Add(ModelItem item)
         {
-            CollectionsMarshal.GetValueRefOrAddDefault(_itemTotals, (item.ItemId, item.RetainerId, item.SortedContainer, item.Flags), out _) += item.Quantity;
+            CollectionsMarshal.GetValueRefOrAddDefault(_itemTotals, (item.ItemId, item.RetainerId, item.SortedContainer, item.SortedCategory, item.Flags), out _) += item.Quantity;
             CollectionsMarshal.GetValueRefOrAddDefault(_containerTotals, ((uint)item.SortedContainer, item.RetainerId), out _) += item.Quantity;
         }
 
@@ -108,7 +110,7 @@ internal sealed class ItemCountIndex
             foreach (var kv in _itemTotals)
             {
                 keys[i] = kv.Key.ItemId;
-                groups[i] = new ItemGroup(kv.Key.RetainerId, kv.Key.Container, kv.Key.Flags, kv.Value);
+                groups[i] = new ItemGroup(kv.Key.RetainerId, kv.Key.Container, kv.Key.Category, kv.Key.Flags, kv.Value);
                 i++;
             }
 
