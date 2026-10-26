@@ -51,3 +51,4 @@ jobs:
         run: dotnet restore InventoryTools
       - name: Build
         run: dotnet build -c ${{ env.CONFIGURATION }} --no-restore ${{ env.INTERNAL_NAME }} -p:DalamudLibPath="$env:RUNNER_TEMP\dalamud-pinned\"
+# workflow re-registration trigger 2026-10-26T18:07:26Z
