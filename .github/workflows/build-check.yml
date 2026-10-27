@@ -12,40 +12,20 @@ permissions:
   contents: read
 jobs:
   build:
-    runs-on: [self-hosted, Windows, X64]
+    runs-on: windows-latest
     steps:
-      - name: 取 App token（runner 本機私鑰，private 子模組 checkout 用）
-        id: app
-        shell: pwsh
-        run: |
-          $keyPath = 'D:\ffxiv-tc-port\tctoolbox-app.pem'
-          if (-not (Test-Path -LiteralPath $keyPath)) { throw "App private key not found on this runner: $keyPath" }
-          function B64Url([byte[]]$b) { [Convert]::ToBase64String($b).TrimEnd('=').Replace('+', '-').Replace('/', '_') }
-          $now = [DateTimeOffset]::UtcNow.ToUnixTimeSeconds()
-          $hdr = B64Url ([Text.Encoding]::UTF8.GetBytes('{"alg":"RS256","typ":"JWT"}'))
-          $pl = B64Url ([Text.Encoding]::UTF8.GetBytes('{"iat":' + ($now - 60) + ',"exp":' + ($now + 540) + ',"iss":"4448133"}'))
-          $rsa = [System.Security.Cryptography.RSA]::Create()
-          $rsa.ImportFromPem((Get-Content -LiteralPath $keyPath -Raw))
-          $sig = $rsa.SignData([Text.Encoding]::UTF8.GetBytes("$hdr.$pl"), [System.Security.Cryptography.HashAlgorithmName]::SHA256, [System.Security.Cryptography.RSASignaturePadding]::Pkcs1)
-          $h = @{ Authorization = "Bearer $hdr.$pl.$(B64Url $sig)"; Accept = 'application/vnd.github+json'; 'X-GitHub-Api-Version' = '2022-11-28' }
-          $inst = @(Invoke-RestMethod -Headers $h -Uri 'https://api.github.com/app/installations') | Where-Object { $_.account.login -eq 'ffxiv-tc-port' }
-          if (-not $inst) { throw 'App 4448133 has no installation on org ffxiv-tc-port' }
-          $tok = (Invoke-RestMethod -Method Post -Headers $h -Uri "https://api.github.com/app/installations/$($inst[0].id)/access_tokens").token
-          if (-not $tok) { throw 'installation access token is empty' }
-          Write-Host "::add-mask::$tok"
-          "token=$tok" >> $env:GITHUB_OUTPUT
       - name: Checkout
         uses: actions/checkout@v4
         with:
           submodules: recursive
-          token: ${{ steps.app.outputs.token }}
       - name: Setup MSBuild
         uses: microsoft/setup-msbuild@v1.1.3
       - name: Download Dalamud
         run: |
-          $pin = 'D:\ffxiv-tc-port\dalamud-pins\dalamud-pin-v13.0.0.17\dalamud-api13-net9.zip'
-          if (-not (Test-Path -LiteralPath $pin)) { throw "pinned Dalamud not found on this runner: $pin" }
-          Copy-Item -LiteralPath $pin -Destination latest.zip
+          $pinUrl = 'https://github.com/ffxiv-tc-port/Dalamud/releases/download/dalamud-pin-v13.0.0.17/dalamud-api13-net9.zip'
+          Invoke-WebRequest -Uri $pinUrl -OutFile latest.zip
+          $sha = (Get-FileHash -Algorithm SHA256 -LiteralPath latest.zip).Hash
+          if ($sha -ne '1481704F4DACBE96070F7B306FF1CE4BD77DB69C19CD74969FE296643E49EB5B') { throw "pinned Dalamud SHA256 mismatch: $sha" }
           Expand-Archive -Force latest.zip "$env:RUNNER_TEMP\dalamud-pinned\"
       - name: Restore
         run: dotnet restore InventoryTools

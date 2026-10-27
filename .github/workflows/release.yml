@@ -13,40 +13,20 @@ env:
 
 jobs:
   release:
-    runs-on: [self-hosted, Windows, X64]
+    runs-on: windows-latest
     steps:
-      - name: 取 App token（runner 本機私鑰，private 子模組 checkout 用）
-        id: app
-        shell: pwsh
-        run: |
-          $keyPath = 'D:\ffxiv-tc-port\tctoolbox-app.pem'
-          if (-not (Test-Path -LiteralPath $keyPath)) { throw "App private key not found on this runner: $keyPath" }
-          function B64Url([byte[]]$b) { [Convert]::ToBase64String($b).TrimEnd('=').Replace('+', '-').Replace('/', '_') }
-          $now = [DateTimeOffset]::UtcNow.ToUnixTimeSeconds()
-          $hdr = B64Url ([Text.Encoding]::UTF8.GetBytes('{"alg":"RS256","typ":"JWT"}'))
-          $pl = B64Url ([Text.Encoding]::UTF8.GetBytes('{"iat":' + ($now - 60) + ',"exp":' + ($now + 540) + ',"iss":"4448133"}'))
-          $rsa = [System.Security.Cryptography.RSA]::Create()
-          $rsa.ImportFromPem((Get-Content -LiteralPath $keyPath -Raw))
-          $sig = $rsa.SignData([Text.Encoding]::UTF8.GetBytes("$hdr.$pl"), [System.Security.Cryptography.HashAlgorithmName]::SHA256, [System.Security.Cryptography.RSASignaturePadding]::Pkcs1)
-          $h = @{ Authorization = "Bearer $hdr.$pl.$(B64Url $sig)"; Accept = 'application/vnd.github+json'; 'X-GitHub-Api-Version' = '2022-11-28' }
-          $inst = @(Invoke-RestMethod -Headers $h -Uri 'https://api.github.com/app/installations') | Where-Object { $_.account.login -eq 'ffxiv-tc-port' }
-          if (-not $inst) { throw 'App 4448133 has no installation on org ffxiv-tc-port' }
-          $tok = (Invoke-RestMethod -Method Post -Headers $h -Uri "https://api.github.com/app/installations/$($inst[0].id)/access_tokens").token
-          if (-not $tok) { throw 'installation access token is empty' }
-          Write-Host "::add-mask::$tok"
-          "token=$tok" >> $env:GITHUB_OUTPUT
       - name: Checkout
         uses: actions/checkout@v4
         with:
           submodules: recursive
-          token: ${{ steps.app.outputs.token }}
       - name: Setup MSBuild
         uses: microsoft/setup-msbuild@v1.1.3
       - name: Download Dalamud
         run: |
-          $pin = 'D:\ffxiv-tc-port\dalamud-pins\dalamud-pin-v13.0.0.17\dalamud-api13-net9.zip'
-          if (-not (Test-Path -LiteralPath $pin)) { throw "pinned Dalamud not found on this runner: $pin" }
-          Copy-Item -LiteralPath $pin -Destination latest.zip
+          $pinUrl = 'https://github.com/ffxiv-tc-port/Dalamud/releases/download/dalamud-pin-v13.0.0.17/dalamud-api13-net9.zip'
+          Invoke-WebRequest -Uri $pinUrl -OutFile latest.zip
+          $sha = (Get-FileHash -Algorithm SHA256 -LiteralPath latest.zip).Hash
+          if ($sha -ne '1481704F4DACBE96070F7B306FF1CE4BD77DB69C19CD74969FE296643E49EB5B') { throw "pinned Dalamud SHA256 mismatch: $sha" }
           Expand-Archive -Force latest.zip "$env:RUNNER_TEMP\dalamud-pinned\"
       - name: Get version
         id: version
@@ -92,6 +72,64 @@ jobs:
       - name: Zip artifact
         shell: pwsh
         run: Compress-Archive -Path "InventoryTools\bin\${{ env.CONFIGURATION }}\*" -DestinationPath "${{ env.INTERNAL_NAME }}.zip"
+      - name: 帳號痕跡閘門（上傳前；needle 由 secret 提供，讀不到就不放行）
+        shell: pwsh
+        env:
+          LEAK_GUARD_NEEDLE: ${{ secrets.LEAK_GUARD_NEEDLE }}
+        run: |
+          $ErrorActionPreference = 'Stop'
+          Add-Type -AssemblyName System.IO.Compression
+          $n = "$env:LEAK_GUARD_NEEDLE".Trim().ToLowerInvariant()
+          if ($n.Length -lt 4 -or $n -cnotmatch '^[a-z0-9_.-]+$') { throw "secret LEAK_GUARD_NEEDLE is empty or malformed (length $($n.Length)); refusing to upload" }
+          $L = [Text.Encoding]::Latin1
+          $cases = [Collections.Generic.HashSet[string]]::new([StringComparer]::Ordinal)
+          [void]$cases.Add($n); [void]$cases.Add($n.Substring(0, 1).ToUpperInvariant() + $n.Substring(1)); [void]$cases.Add($n.ToUpperInvariant())
+          $pats = @(foreach ($c in $cases) { ,@($c, 1); ,@((-join ($c.ToCharArray() | ForEach-Object { [string]$_ + [char]0 })), 2) })
+          $full = [int][Math]::Floor($n.Length / 3) * 3
+          $b64 = @(foreach ($c in $cases) { [Convert]::ToBase64String($L.GetBytes($c.Substring(0, $full))) })
+          function Get-Hits([byte[]]$raw, [int]$depth) {
+            $s = $L.GetString($raw); $h = 0
+            foreach ($p in $pats) {
+              $i = $s.IndexOf($p[0], [StringComparison]::Ordinal)
+              while ($i -ge 0) {
+                if ($i -lt $p[1] -or $s[$i - $p[1]] -notmatch '[A-Za-z0-9_]') { $h++ }
+                $i = $s.IndexOf($p[0], $i + 1, [StringComparison]::Ordinal)
+              }
+            }
+            foreach ($b in $b64) { $i = $s.IndexOf($b, [StringComparison]::Ordinal); while ($i -ge 0) { $h++; $i = $s.IndexOf($b, $i + 1, [StringComparison]::Ordinal) } }
+            if ($depth -lt 2 -and $raw.Length -ge 4 -and $raw[0] -eq 0x50 -and $raw[1] -eq 0x4B -and $raw[2] -eq 3 -and $raw[3] -eq 4) {
+              $za = [IO.Compression.ZipArchive]::new([IO.MemoryStream]::new($raw), [IO.Compression.ZipArchiveMode]::Read)
+              try {
+                foreach ($e in $za.Entries) {
+                  if ($e.Length -le 0 -or $e.Length -gt 300MB) { continue }
+                  $ms = [IO.MemoryStream]::new(); $es = $e.Open()
+                  try { $es.CopyTo($ms) } finally { $es.Dispose() }
+                  $h += Get-Hits $ms.ToArray() ($depth + 1)
+                }
+              } finally { $za.Dispose() }
+            } elseif ($depth -lt 2 -and $raw.Length -ge 2 -and $raw[0] -eq 0x1F -and $raw[1] -eq 0x8B) {
+              $ms = [IO.MemoryStream]::new()
+              $gz = [IO.Compression.GZipStream]::new([IO.MemoryStream]::new($raw), [IO.Compression.CompressionMode]::Decompress)
+              try { $gz.CopyTo($ms) } finally { $gz.Dispose() }
+              $h += Get-Hits $ms.ToArray() ($depth + 1)
+            }
+            return $h
+          }
+          $globs = @('${{ env.INTERNAL_NAME }}.zip', 'InventoryTools\bin\${{ env.CONFIGURATION }}\${{ env.INTERNAL_NAME }}.json')
+          $root = (Get-Location).Path
+          $rxs = @(foreach ($g in $globs) { '^' + [Regex]::Escape($g.Replace('\', '/')).Replace('\*\*/', '(?:.*/)?').Replace('\*\*', '.*').Replace('\*', '[^/]*').Replace('\?', '[^/]') + '$' })
+          $files = @(Get-ChildItem -LiteralPath $root -Recurse -File -Force | ForEach-Object {
+            $rel = $_.FullName.Substring($root.Length).TrimStart([char[]]'\/').Replace('\', '/')
+            if ($rel -notmatch '(^|/)\.git/' -and @($rxs | Where-Object { $rel -match $_ }).Count -gt 0) { $_.FullName }
+          })
+          if ($files.Count -eq 0) { throw 'leak guard matched no release files; refusing to upload' }
+          $bad = 0
+          foreach ($f in $files) {
+            $c = Get-Hits ([IO.File]::ReadAllBytes($f)) 0
+            if ($c -gt 0) { $bad++; Write-Host "::error::leak guard hit: $([IO.Path]::GetFileName($f)) real=$c" }
+          }
+          if ($bad -gt 0) { throw "leak guard blocked $bad file(s)" }
+          Write-Host "leak guard clean: $($files.Count) file(s)"
       - name: Create release
         uses: softprops/action-gh-release@v2
         with:
