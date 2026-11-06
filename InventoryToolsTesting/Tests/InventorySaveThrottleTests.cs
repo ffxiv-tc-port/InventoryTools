@@ -110,7 +110,8 @@ namespace InventoryToolsTesting.Tests
             var throttle = NewThrottle();
             var writes = new List<double>();
             var start = _now;
-            for (var tick = 0; tick < 1000; tick++)
+            var cap = InventorySaveThrottle.MaxDirtySeconds;
+            for (var tick = 0; tick < (int)((cap * 3 + 5) * 10); tick++)
             {
                 if (tick % 10 == 0)
                 {
@@ -127,9 +128,9 @@ namespace InventoryToolsTesting.Tests
             }
 
             Assert.That(writes.Count, Is.EqualTo(3));
-            Assert.That(writes[0], Is.EqualTo(30).Within(0.11));
-            Assert.That(writes[1], Is.EqualTo(61).Within(0.11));
-            Assert.That(writes[2], Is.EqualTo(92).Within(0.11));
+            Assert.That(writes[0], Is.EqualTo(cap).Within(0.11));
+            Assert.That(writes[1], Is.EqualTo(cap * 2 + 1).Within(0.11));
+            Assert.That(writes[2], Is.EqualTo(cap * 3 + 2).Within(0.11));
         }
 
         [Test]
@@ -150,7 +151,7 @@ namespace InventoryToolsTesting.Tests
         {
             var throttle = NewThrottle();
             throttle.MarkDirty();
-            Advance(3);
+            Advance(InventorySaveThrottle.QuietSeconds);
             Assert.That(throttle.TryBeginWrite(), Is.True);
             throttle.MarkDirty();
             throttle.RequestFlush();
@@ -166,7 +167,7 @@ namespace InventoryToolsTesting.Tests
         {
             var throttle = NewThrottle();
             throttle.MarkDirty();
-            Advance(3);
+            Advance(InventorySaveThrottle.QuietSeconds);
             var attempts = new List<double>();
             var start = _now;
             for (var frame = 0; frame < 60 * 21; frame++)
@@ -210,7 +211,7 @@ namespace InventoryToolsTesting.Tests
 
             var aged = NewThrottle();
             aged.MarkDirty();
-            Advance(29);
+            Advance(InventorySaveThrottle.MaxDirtySeconds - 1);
             aged.MarkDirty();
             Advance(1);
             Assert.That(aged.TryBeginWrite(), Is.True);
@@ -239,7 +240,7 @@ namespace InventoryToolsTesting.Tests
             Advance(20);
             throttle.MarkDirty();
             Assert.That(throttle.TryBeginWrite(), Is.False);
-            Advance(3);
+            Advance(InventorySaveThrottle.QuietSeconds);
             Assert.That(throttle.TryBeginWrite(), Is.True);
             throttle.EndWrite(InventorySaveThrottle.WriteResult.Failed);
             Assert.That(throttle.TryBeginWrite(), Is.False);
@@ -253,11 +254,13 @@ namespace InventoryToolsTesting.Tests
             throttle.EndWrite(InventorySaveThrottle.WriteResult.Superseded);
             throttle.RecordStopWrite(true);
 
-            Advance(InventorySaveThrottle.ReportSeconds - 34.5 - 0.4);
+            Advance(InventorySaveThrottle.ReportSeconds - (31.5 + InventorySaveThrottle.QuietSeconds) - 0.4);
             Assert.That(throttle.TryTakeReport(false, out _), Is.False);
             Advance(0.6);
             Assert.That(throttle.TryTakeReport(false, out var line), Is.True);
-            Assert.That(line, Is.EqualTo("[InvSaveDiag] window=3600s events=6 gap<0.75s=1 gap<2s=1 gap<10s=2 gap>=10s=1 writes=2 (quiet=1 cap=0 flush=0 stop=1) failed=1 deferred=1"));
+            // 第六個事件距前一個 QuietSeconds + 5 秒，落哪一桶跟著安靜期走。
+            var lastGapShort = InventorySaveThrottle.QuietSeconds + 5 < 10;
+            Assert.That(line, Is.EqualTo($"[InvSaveDiag] window=3600s events=6 gap<0.75s=1 gap<2s=1 gap<10s={(lastGapShort ? 2 : 1)} gap>=10s={(lastGapShort ? 1 : 2)} writes=2 (quiet=1 cap=0 flush=0 stop=1) failed=1 deferred=1"));
             Assert.That(throttle.TryTakeReport(true, out _), Is.False);
 
             throttle.MarkDirty();
@@ -287,7 +290,7 @@ namespace InventoryToolsTesting.Tests
             saver.MarkDirty();
             Assert.That(saver.Tick(), Is.False);
             value = "v2";
-            Advance(3);
+            Advance(InventorySaveThrottle.QuietSeconds);
             Assert.That(saver.Tick(), Is.True);
             Assert.That(saver.Tick(), Is.False);
             Assert.That(done.Wait(5000), Is.True);
@@ -322,7 +325,7 @@ namespace InventoryToolsTesting.Tests
             });
 
             saver.MarkDirty();
-            Advance(3);
+            Advance(InventorySaveThrottle.QuietSeconds);
             Assert.That(saver.Tick(), Is.True);
             Assert.That(entered.Wait(5000), Is.True);
             value = "new";
@@ -364,7 +367,7 @@ namespace InventoryToolsTesting.Tests
             }, (e, _) => failures.Add(e));
 
             saver.MarkDirty();
-            Advance(3);
+            Advance(InventorySaveThrottle.QuietSeconds);
             Assert.That(saver.Tick(), Is.True);
             Assert.That(entered.Wait(5000), Is.True);
 
@@ -413,7 +416,7 @@ namespace InventoryToolsTesting.Tests
             using (var reader = new FileStream(target, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
             {
                 saver.MarkDirty();
-                Advance(3);
+                Advance(InventorySaveThrottle.QuietSeconds);
                 Assert.That(saver.Tick(), Is.True);
                 SpinWait.SpinUntil(() => failures.Count == 1, 5000);
                 Assert.That(failures.TryPeek(out var failure), Is.True);

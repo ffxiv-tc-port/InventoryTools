@@ -12,10 +12,14 @@ namespace InventoryTools.Services;
 public sealed class InventorySaveThrottle
 {
     /// <summary>最後一次變動後安靜這麼多秒才寫。</summary>
-    public const double QuietSeconds = 3;
+    /// <remarks>
+    /// 變動間隔約九成不到 10 秒，安靜期太短會一小段就寫一次；取 10 秒剛好落在統計行的分桶邊界，
+    /// 所以 <c>gap&gt;=10s</c> 的數目就是安靜寫入次數的估計值。登入／登出／換角／卸載照舊立刻寫，不受這個值影響。
+    /// </remarks>
+    public const double QuietSeconds = 10;
 
-    /// <summary>連續變動時，從第一次變髒起最多這麼多秒一定寫一次。</summary>
-    public const double MaxDirtySeconds = 30;
+    /// <summary>連續變動時，從第一次變髒起最多這麼多秒一定寫一次（遊戲當掉時最多丟這麼久的變動）。</summary>
+    public const double MaxDirtySeconds = 120;
 
     /// <summary>寫失敗後至少隔這麼多秒才重試。</summary>
     public const double MinRetrySeconds = 5;
