@@ -140,7 +140,7 @@ namespace InventoryTools.Services
             if (inventoryToolsConfiguration == null)
             {
                 // Newtonsoft 對空白／全 NUL 回 null 不擲例外；之後的存檔會覆寫原檔，先留備份。
-                BackupUnreadable(file ?? ConfigurationFile);
+                BackupUnreadable(file ?? ConfigurationFile, "內容是空的或無法辨識", "這次全部設定使用預設值，之後存檔會用目前的值整份覆寫原檔");
                 Config = new InventoryToolsConfiguration();
                 Config.MarkReloaded();
                 _configurationLoaded = true;
@@ -283,11 +283,26 @@ namespace InventoryTools.Services
             }, token));
         }
 
+        private const string InventoryOverwriteConsequence = "之後存檔會用目前讀到的資料整份覆寫原檔，沒讀到的角色、僱員與公會儲物櫃庫存要等再次登入或打開過才會回來";
+
+        // 空清單存出來是 0 位元組（合法）；有位元組卻讀不出任何一列＝內容壞了。
+        private static bool HasContent(string path)
+        {
+            try
+            {
+                return new FileInfo(path).Length > 0;
+            }
+            catch (Exception)
+            {
+                return false;
+            }
+        }
+
         // 讀壞時的原檔備份 <檔名>.bad-<時間>：同內容只留一份、既有備份不覆寫（CreateNew）。永不擲例外。
-        private void BackupUnreadable(string path)
+        // problem／consequence 原樣嵌進 Information 行：出了什麼事、之後存檔會發生什麼。
+        private void BackupUnreadable(string path, string problem, string consequence)
         {
             var name = Path.GetFileName(path);
-            const string consequence = "這次全部設定使用預設值，之後存檔會用目前的值整份覆寫原檔";
             try
             {
                 var original = File.ReadAllBytes(path);
@@ -296,7 +311,7 @@ namespace InventoryTools.Services
                 {
                     if (old.Length == original.Length && File.ReadAllBytes(old.FullName).AsSpan().SequenceEqual(original))
                     {
-                        Logger.LogInformation($"[設定] {name}：內容是空的或無法辨識；相同內容已備份過（{old.Name}），這次不再另存。{consequence}。");
+                        Logger.LogInformation($"[設定] {name}：{problem}；相同內容已備份過（{old.Name}），這次不再另存。{consequence}。");
                         return;
                     }
                 }
@@ -307,11 +322,11 @@ namespace InventoryTools.Services
                     fs.Write(original);
                 }
 
-                Logger.LogInformation($"[設定] {name}：內容是空的或無法辨識；原檔已備份為 {Path.GetFileName(backup)}。{consequence}。");
+                Logger.LogInformation($"[設定] {name}：{problem}；原檔已備份為 {Path.GetFileName(backup)}。{consequence}。");
             }
             catch (Exception e)
             {
-                Logger.LogInformation($"[設定] {name}：內容是空的或無法辨識；備份原檔失敗（{e.GetType().Name}: {e.Message}）。{consequence}。");
+                Logger.LogInformation($"[設定] {name}：{problem}；備份原檔失敗（{e.GetType().Name}: {e.Message}）。{consequence}。");
             }
         }
 
@@ -383,18 +398,33 @@ namespace InventoryTools.Services
             var inventoryCsv = csvPath ?? InventoryCsv;
             if (Path.Exists(inventoryCsv))
             {
+                // 這裡讀到的就是之後整份覆寫的內容（換角／卸載存檔）⇒ 讀不完整時先留原檔備份。
+                List<InventoryItem> items;
+                List<string> failedLines;
                 try
                 {
-                    var items = _containerAwareCsvLoader.LoadInventoryItemsCsv(inventoryCsv,  out _, out _);
-                    success = true;
-                    return items;
+                    items = _containerAwareCsvLoader.LoadInventoryItemsCsv(inventoryCsv, out failedLines, out _);
                 }
                 catch (Exception e)
                 {
                     success = false;
                     Logger.LogError("Failed to load inventories from CSV");
                     Logger.LogError(e.Message);
+                    BackupUnreadable(inventoryCsv, $"整檔讀取失敗（{e.GetType().Name}），這次一筆都沒讀到", InventoryOverwriteConsequence);
+                    return new List<InventoryItem>();
                 }
+
+                success = true;
+                if (failedLines.Count > 0)
+                {
+                    BackupUnreadable(inventoryCsv, $"有 {failedLines.Count} 列無法解析、已略過（讀到 {items.Count} 列）", InventoryOverwriteConsequence);
+                }
+                else if (items.Count == 0 && HasContent(inventoryCsv))
+                {
+                    BackupUnreadable(inventoryCsv, "檔案有內容卻讀不出任何一列", InventoryOverwriteConsequence);
+                }
+
+                return items;
             }
             else
             {
