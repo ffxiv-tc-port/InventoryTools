@@ -433,10 +433,19 @@ namespace InventoryTools.Services
             return new List<InventoryChange>();
         }
 
-        /// <summary>整份重寫 history.csv：直接覆寫、任何例外回 false（與 <see cref="ContainerAwareCsvLoader.ToCsvRaw{T}"/> 相同）。</summary>
+        /// <summary>
+        /// 整份重寫 history.csv（暫存檔＋落盤＋取代）：永不擲例外，失敗回 false、記 Warning，正式檔保持上一份完整內容。
+        /// 歷史紀錄無法重建，所以不可直接覆寫（卸載中途被結束＝檔案只剩前半截，其餘紀錄永久消失）。
+        /// </summary>
         public bool SaveHistory(List<InventoryChange> changes)
         {
-            return CsvRowWriter.ToCsvRaw(changes, Path.Join(_pluginInterfaceService.ConfigDirectory.FullName, "history.csv"));
+            var error = CsvRowWriter.ToCsvRawAtomic(changes, HistoryCsv);
+            if (error != null)
+            {
+                Logger.LogWarning($"Failed to save history.csv due to {error.GetType().Name}: {error.Message}; the existing file was left unchanged.");
+            }
+
+            return error == null;
         }
 
 
