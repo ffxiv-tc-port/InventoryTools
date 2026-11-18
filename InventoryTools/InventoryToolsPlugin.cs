@@ -18,6 +18,7 @@ using AllaganLib.Shared.Windows;
 using Autofac;
 using CharacterTools.Logic.Editors;
 using CriticalCommonLib.Crafting;
+using CriticalCommonLib.Helpers;
 using CriticalCommonLib.Ipc;
 using CriticalCommonLib.MarketBoard;
 using CriticalCommonLib.Models;
@@ -86,6 +87,7 @@ namespace InventoryTools
             toastGui, contextMenu, titleScreenMenu,
             gameInventory)
         {
+            var loadTimer = LoadTimer.Start();
             Stopwatch loadConfigStopwatch = new Stopwatch();
             loadConfigStopwatch.Start();
             pluginLog.Verbose("Starting Allagan Tools.");
@@ -100,10 +102,13 @@ namespace InventoryTools
             }
             _pluginLog = pluginLog;
             _framework = framework;
+            var loadFrameMeter = new LoadFrameMeter(framework, pluginLog);
             PluginInterface = pluginInterface;
             this.Host = CreateHost();
             Start();
             this.Host.Services.GetRequiredService<MediatorService>().Publish(new PluginLoadedMessage());
+            loadFrameMeter.Arm();
+            pluginLog.Information($"[LoadDiag] 建構子執行緒合計 {loadTimer}；其中 {LoadDiag.Take()}");
             loadConfigStopwatch.Stop();
             pluginLog.Verbose("Took " + loadConfigStopwatch.Elapsed.TotalSeconds + " to start Allagan Tools.");
         }
@@ -122,6 +127,7 @@ namespace InventoryTools
         {
             var dataAccess = Assembly.GetExecutingAssembly();
             var cclAssembly = typeof(CriticalCommonLib.Services.ICharacterMonitor).Assembly;
+            builder.ComponentRegistryBuilder.Registered += (_, e) => LoadTimingMiddleware.Attach(e.ComponentRegistration);
 
             // universalis 的批次查價回應很大(台服世界一次 50 筆是 223 KB 未壓縮 / 約 28 KB gzip),
             // 所以這個 HttpClient 要自動解壓:裸 HttpClient 不帶 Accept-Encoding,每一批都整包未壓縮下載。

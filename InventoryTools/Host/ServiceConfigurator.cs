@@ -1,5 +1,6 @@
 using System.Threading;
 using System.Threading.Tasks;
+using CriticalCommonLib.Helpers;
 using CriticalCommonLib.MarketBoard;
 using CriticalCommonLib.Services;
 using InventoryTools.Misc;
@@ -44,7 +45,12 @@ public class ServiceConfigurator : IHostedService
     public void ConfigureServices()
     {
         _characterMonitor.LoadExistingRetainers(_configuration.GetSavedRetainers());
-        _inventoryMonitor.LoadExistingData(_configurationManagerService.LoadInventory());
+        var loadTimer = LoadTimer.Start();
+        var inventories = _configurationManagerService.LoadInventory();
+        LoadDiag.Record("讀背包紀錄檔", loadTimer);
+        loadTimer = LoadTimer.Start();
+        _inventoryMonitor.LoadExistingData(inventories);
+        LoadDiag.Record("還原背包", loadTimer);
         // Set the cap before loading so an existing over-sized history.csv (from before this limit existed,
         // or from a lower limit configured previously) gets trimmed immediately rather than only on the
         // next inventory change.
