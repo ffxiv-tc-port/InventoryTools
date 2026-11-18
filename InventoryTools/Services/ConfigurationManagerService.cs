@@ -513,6 +513,7 @@ namespace InventoryTools.Services
         public override async Task StopAsync(CancellationToken stoppingToken)
         {
             Logger.LogTrace("Stopping service {Type} ({This})", GetType().Name, this);
+            // 卸載時主設定唯一的一次存檔：註冊在 PluginLogic、WindowService 之前＝比它們晚停，它們停止時改的值都在這裡寫出。
             Save();
             await base.StopAsync(stoppingToken);
             Logger.LogTrace("Stopped service {Type} ({This})", GetType().Name, this);

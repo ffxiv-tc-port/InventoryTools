@@ -442,7 +442,7 @@ namespace InventoryTools
             _craftMonitor.CraftFailed -= CraftMonitorOnCraftFailed ;
             _craftMonitor.CraftCompleted -= CraftMonitorOnCraftCompleted ;
             _configurationManagerService.ConfigurationChanged -= ConfigOnConfigurationChanged;
-            _configurationManagerService.Save();
+            // 刻意不在這裡存主設定：ConfigurationManagerService 註冊在前、停止在後（反向順序），它的 StopAsync 會把上面的 SavedCharacters 一起寫出。
             FlushInventoriesOnStop();
             _configurationManagerService.SaveHistory(_hostedInventoryHistory.GetHistory());
             if (_configuration.TrackMobSpawns)
