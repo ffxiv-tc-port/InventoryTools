@@ -576,10 +576,13 @@ public class IPCService : IHostedService
     private uint InventoryCountByTypes(uint[] inventoryTypes, ulong? characterId)
     {
         var index = CurrentCountIndex();
+        ReadOnlySpan<uint> types = inventoryTypes;
         long total = 0;
-        foreach (var container in index.Containers)
+        for (var i = 0; i < types.Length; i++)
         {
-            if (!inventoryTypes.Contains(container)) continue;
+            // 同一個容器列兩次只算一次。
+            var container = types[i];
+            if (types[..i].Contains(container)) continue;
             foreach (ref readonly var g in index.ForContainer(container))
             {
                 if (characterId == null || g.RetainerId == characterId) total += g.Quantity;
