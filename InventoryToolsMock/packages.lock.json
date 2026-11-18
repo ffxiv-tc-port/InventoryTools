@@ -181,18 +181,6 @@
           "CSVFile": "3.2.0"
         }
       },
-      "AllaganLib.GameSheets": {
-        "type": "Transitive",
-        "resolved": "1.3.12",
-        "contentHash": "oeyRQDoMaeedehSENoDmU4l8Wb2dkrV8VAhitj7AIkgwZnF6MTfR7BG/TCmUFZcuunLEGFn4WG/bFvxjSY4Vhw==",
-        "dependencies": {
-          "AllaganLib.Shared": "1.3.12",
-          "Autofac": "8.4.0",
-          "Autofac.Extensions.DependencyInjection": "10.0.0",
-          "CSVFile": "3.2.0",
-          "LuminaSupplemental.Excel": "3.0.7"
-        }
-      },
       "AllaganLib.Interface": {
         "type": "Transitive",
         "resolved": "1.3.7",
@@ -211,17 +199,6 @@
         "contentHash": "q7GGmpCuCnjIBlnOwDduIPkH8zK/UebVT4RPEVLnAzO7slLnvN+ukdRX/GP9kMojh/s4l+AKsVQ+DlRZk0Sl+Q==",
         "dependencies": {
           "AllaganLib.GameSheets": "1.3.12"
-        }
-      },
-      "AllaganLib.Shared": {
-        "type": "Transitive",
-        "resolved": "1.3.12",
-        "contentHash": "iuWXu/YaN6It+DEW+6ASlwZunA2pE0I5W3qyIZpcfBrGvHVoOTsyPyosJBQExMWnvyrSIW+7myhzVxtLjOWRew==",
-        "dependencies": {
-          "Autofac": "8.4.0",
-          "Microsoft.Extensions.Hosting": "9.0.8",
-          "Microsoft.Extensions.Hosting.Abstractions": "9.0.8",
-          "Microsoft.Extensions.Logging.Abstractions": "9.0.8"
         }
       },
       "Autofac": {
@@ -745,6 +722,25 @@
         "type": "Transitive",
         "resolved": "1.4.25",
         "contentHash": "V2yJMl/QKceXEjYEnf2EWcNkUJI5/zE04cNUnawHbdR0wjMHv1dVTLf0IUJk0D0w29FrCWdQQK/n4L4vx0HeQA=="
+      },
+      "allaganlib.gamesheets": {
+        "type": "Project",
+        "dependencies": {
+          "AllaganLib.Shared": "[1.3.12, )",
+          "Autofac": "[8.4.0, )",
+          "Autofac.Extensions.DependencyInjection": "[10.0.0, )",
+          "CSVFile": "[3.2.0, )",
+          "LuminaSupplemental.Excel": "[3.0.7, )"
+        }
+      },
+      "allaganlib.shared": {
+        "type": "Project",
+        "dependencies": {
+          "Autofac": "[8.4.0, )",
+          "Microsoft.Extensions.Hosting": "[9.0.8, )",
+          "Microsoft.Extensions.Hosting.Abstractions": "[9.0.8, )",
+          "Microsoft.Extensions.Logging.Abstractions": "[9.0.8, )"
+        }
       },
       "criticalcommonlib": {
         "type": "Project",

@@ -11,6 +11,10 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OtterGui", "OtterGui\OtterG
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "InventoryToolsMock", "InventoryToolsMock\InventoryToolsMock.csproj", "{71F3D03A-C28B-4A92-830D-1591AABBCCD6}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AllaganLib.GameSheets", "CriticalCommonLib\AllaganLib\AllaganLib.GameSheets\AllaganLib.GameSheets.csproj", "{6F17F8C7-976B-44C8-A0CD-D602D7712720}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AllaganLib.Shared", "CriticalCommonLib\AllaganLib\AllaganLib.Shared\AllaganLib.Shared.csproj", "{69EB9100-4D97-4022-885D-01F85A3D38C1}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -36,6 +40,14 @@ Global
 		{6DC452B0-91AA-4589-90A8-BEBA315AB42C}.Debug|Any CPU.Build.0 = Debug|x64
 		{6DC452B0-91AA-4589-90A8-BEBA315AB42C}.Release|Any CPU.ActiveCfg = Release|x64
 		{6DC452B0-91AA-4589-90A8-BEBA315AB42C}.Release|Any CPU.Build.0 = Release|x64
+		{6F17F8C7-976B-44C8-A0CD-D602D7712720}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6F17F8C7-976B-44C8-A0CD-D602D7712720}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6F17F8C7-976B-44C8-A0CD-D602D7712720}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6F17F8C7-976B-44C8-A0CD-D602D7712720}.Release|Any CPU.Build.0 = Release|Any CPU
+		{69EB9100-4D97-4022-885D-01F85A3D38C1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{69EB9100-4D97-4022-885D-01F85A3D38C1}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{69EB9100-4D97-4022-885D-01F85A3D38C1}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{69EB9100-4D97-4022-885D-01F85A3D38C1}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 	EndGlobalSection
