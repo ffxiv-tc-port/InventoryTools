@@ -12,6 +12,7 @@ using CriticalCommonLib.Interfaces;
 using CriticalCommonLib.Models;
 using CriticalCommonLib.Resolvers;
 using Dalamud.Plugin.Services;
+using Dalamud.Utility;
 using InventoryTools.Converters;
 using LuminaSupplemental.Excel.Model;
 using LuminaSupplemental.Excel.Services;
@@ -138,6 +139,8 @@ namespace InventoryTools.Services
             });
             if (inventoryToolsConfiguration == null)
             {
+                // Newtonsoft 對空白／全 NUL 回 null 不擲例外；之後的存檔會覆寫原檔，先留備份。
+                BackupUnreadable(file ?? ConfigurationFile);
                 Config = new InventoryToolsConfiguration();
                 Config.MarkReloaded();
                 _configurationLoaded = true;
@@ -233,33 +236,83 @@ namespace InventoryTools.Services
             return inventories;
         }
 
+        /// <summary>
+        /// 原子寫入設定檔，永不擲例外：失敗只記 Warning，原檔維持上一次的完整內容。
+        /// 背景佇列與卸載都會呼叫，以 <see cref="_saveLock"/> 序列化（.tmp 名稱固定、獨占開啟，並行＝後到者失敗）。
+        /// </summary>
         public void Save()
         {
-            Stopwatch loadConfigStopwatch = new Stopwatch();
-            loadConfigStopwatch.Start();
-            Logger.LogTrace("Saving allagan tools configuration");
             try
             {
-                File.WriteAllText(ConfigurationFile, JsonConvert.SerializeObject(Config, Formatting.None, new JsonSerializerSettings()
+                // 序列化也在鎖內：後拿到鎖的那次讀的是最新的 Config，最後寫入的一定是最新狀態。
+                lock (_saveLock)
                 {
-                    TypeNameAssemblyFormatHandling = TypeNameAssemblyFormatHandling.Simple,
-                    TypeNameHandling = TypeNameHandling.None,
-                    ReferenceLoopHandling = ReferenceLoopHandling.Ignore,
-                    DefaultValueHandling = DefaultValueHandling.IgnoreAndPopulate,
-                    ContractResolver = _minifyResolver
-                }));
-                loadConfigStopwatch.Stop();
-                Logger.LogTrace("Took " + loadConfigStopwatch.Elapsed.TotalSeconds + " to save configuration.");
+                    Stopwatch loadConfigStopwatch = new Stopwatch();
+                    loadConfigStopwatch.Start();
+                    Logger.LogTrace("Saving allagan tools configuration");
+                    FilesystemUtil.WriteAllTextSafe(ConfigurationFile, JsonConvert.SerializeObject(Config, Formatting.None, new JsonSerializerSettings()
+                    {
+                        TypeNameAssemblyFormatHandling = TypeNameAssemblyFormatHandling.Simple,
+                        TypeNameHandling = TypeNameHandling.None,
+                        ReferenceLoopHandling = ReferenceLoopHandling.Ignore,
+                        DefaultValueHandling = DefaultValueHandling.IgnoreAndPopulate,
+                        ContractResolver = _minifyResolver
+                    }));
+                    loadConfigStopwatch.Stop();
+                    Logger.LogTrace("Took " + loadConfigStopwatch.Elapsed.TotalSeconds + " to save configuration.");
+                }
             }
             catch (Exception e)
             {
-                Logger.LogWarning($"Failed to save allagan tools configuration due to {e.Message}");
+                Logger.LogWarning($"Failed to save allagan tools configuration due to {e.GetType().Name}: {e.Message}; the existing file was left unchanged.");
             }
         }
 
+        // 合流：佇列裡已有一筆還沒開始的存檔就不再排；旗標在序列化之前清掉，之後的變動會再排一筆。
         private void SaveAsync()
         {
-            _saveQueue.QueueBackgroundWorkItemAsync(token => Task.Run(Save, token));
+            if (Interlocked.Exchange(ref _saveQueued, 1) == 1)
+            {
+                return;
+            }
+
+            _saveQueue.QueueBackgroundWorkItemAsync(token => Task.Run(() =>
+            {
+                Interlocked.Exchange(ref _saveQueued, 0);
+                Save();
+            }, token));
+        }
+
+        // 讀壞時的原檔備份 <檔名>.bad-<時間>：同內容只留一份、既有備份不覆寫（CreateNew）。永不擲例外。
+        private void BackupUnreadable(string path)
+        {
+            var name = Path.GetFileName(path);
+            const string consequence = "這次全部設定使用預設值，之後存檔會用目前的值整份覆寫原檔";
+            try
+            {
+                var original = File.ReadAllBytes(path);
+                var dir = Path.GetDirectoryName(Path.GetFullPath(path))!;
+                foreach (var old in new DirectoryInfo(dir).EnumerateFiles(name + ".bad-*"))
+                {
+                    if (old.Length == original.Length && File.ReadAllBytes(old.FullName).AsSpan().SequenceEqual(original))
+                    {
+                        Logger.LogInformation($"[設定] {name}：內容是空的或無法辨識；相同內容已備份過（{old.Name}），這次不再另存。{consequence}。");
+                        return;
+                    }
+                }
+
+                var backup = Path.Combine(dir, $"{name}.bad-{DateTime.Now:yyyyMMdd-HHmmss-fff}");
+                using (var fs = new FileStream(backup, FileMode.CreateNew, FileAccess.Write, FileShare.None))
+                {
+                    fs.Write(original);
+                }
+
+                Logger.LogInformation($"[設定] {name}：內容是空的或無法辨識；原檔已備份為 {Path.GetFileName(backup)}。{consequence}。");
+            }
+            catch (Exception e)
+            {
+                Logger.LogInformation($"[設定] {name}：內容是空的或無法辨識；備份原檔失敗（{e.GetType().Name}: {e.Message}）。{consequence}。");
+            }
         }
 
 
@@ -293,6 +346,8 @@ namespace InventoryTools.Services
         private readonly ContainerAwareCsvLoader _containerAwareCsvLoader;
         private readonly IDalamudPluginInterface _pluginInterfaceService;
         private readonly BackgroundTaskQueue _saveQueue;
+        private readonly object _saveLock = new();
+        private int _saveQueued;
 
         [Obsolete]
         public void SaveInventoriesToJson(
