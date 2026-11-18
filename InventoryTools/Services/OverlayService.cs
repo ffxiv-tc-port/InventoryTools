@@ -1,5 +1,7 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using CriticalCommonLib.Services.Mediator;
@@ -57,30 +59,30 @@ namespace InventoryTools.Services
 
         private void PostRequestedUpdate(AddonEvent type, AddonArgs args)
         {
-            if (_windowsToTrack.Contains(args.AddonName))
+            if (TryGetTrackedWindow(args, out var addonName))
             {
-                DrawOverlays(args.AddonName);
+                DrawOverlays(addonName);
             }
         }
 
         private void PreFinalize(AddonEvent type, AddonArgs args)
         {
             //Window destroyed
-            if (_windowsToTrack.Contains(args.AddonName))
+            if (TryGetTrackedWindow(args, out var addonName))
             {
-                _windowVisible[args.AddonName] = false;
-                DrawOverlays(args.AddonName);
+                _windowVisible[addonName] = false;
+                DrawOverlays(addonName);
             }
         }
 
         private void PostSetup(AddonEvent type, AddonArgs args)
         {
             //Window loaded
-            if (_windowsToTrack.Contains(args.AddonName))
+            if (TryGetTrackedWindow(args, out var addonName))
             {
-                _windowVisible[args.AddonName] = true;
+                _windowVisible[addonName] = true;
                 UpdateState(_lastState);
-                DrawOverlays(args.AddonName);
+                DrawOverlays(addonName);
             }
         }
 
@@ -88,18 +90,48 @@ namespace InventoryTools.Services
         {
             //Window shown/hidden/needs redraw
             var addon = (AtkUnitBase*)args.Addon.Address;
-            if (_windowsToTrack.Contains(args.AddonName))
+            if (TryGetTrackedWindow(args, out var addonName))
             {
                 var newState = addon->IsVisible;
-                var oldState = _windowVisible.ContainsKey(args.AddonName) && _windowVisible[args.AddonName];
+                var oldState = _windowVisible.ContainsKey(addonName) && _windowVisible[addonName];
                 if (oldState != newState)
                 {
-                    _windowVisible[args.AddonName] = newState;
+                    _windowVisible[addonName] = newState;
                     UpdateState(_lastState);
                 }
 
-                DrawOverlays(args.AddonName);
+                DrawOverlays(addonName);
             }
+        }
+
+        // 契約：等同 _windowsToTrack.Contains(args.AddonName)，命中時回傳集合裡那個相等的字串。
+        // 不讀 AddonName：這四個是全域監聽、每個 addon 每次事件都進來，AddonName 第一次讀就建立字串
+        // （同一事件所有監聽者共用，誰先讀誰付）。名稱規則照 Dalamud：空指標或首位元組 0＝InvalidAddon、讀到 NUL、上限 32 位元組。
+        private unsafe bool TryGetTrackedWindow(AddonArgs args, [NotNullWhen(true)] out string? addonName)
+        {
+            var addon = (AtkUnitBase*)args.Addon.Address;
+            if (addon == null || addon->Name[0] == 0)
+            {
+                return _windowsToTrack.TryGetValue(AddonArgs.InvalidAddon, out addonName);
+            }
+
+            ReadOnlySpan<byte> buffer = addon->Name;
+            var terminator = buffer.IndexOf((byte)0);
+            var bytes = terminator < 0 ? buffer : buffer[..terminator];
+            if (!Ascii.IsValid(bytes))
+            {
+                return _windowsToTrack.TryGetValue(Encoding.UTF8.GetString(bytes), out addonName);
+            }
+
+            foreach (var tracked in _windowsToTrack)
+            {
+                if (!Ascii.Equals(bytes, tracked)) continue;
+                addonName = tracked;
+                return true;
+            }
+
+            addonName = null;
+            return false;
         }
 
         private void DrawOverlays(string addonName)
