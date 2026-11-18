@@ -81,7 +81,10 @@ public class ContainerAwareCsvLoader
         exceptions = new List< Exception >();
         var items = new List< T >();
 
-        using CsvDataReader dr = CsvDataReader.Create(filePath, new CsvDataReaderOptions(){HasHeaders = false});
+        // 不用 Create(路徑)：它自己開的檔案在建構擲例外時不關、要等終結器，期間存檔會被拒。開法與編碼照抄它。
+        var options = new CsvDataReaderOptions(){HasHeaders = false};
+        using var textReader = new StreamReader(new FileStream(filePath, FileMode.Open, FileAccess.Read, FileShare.Read, options.BufferSize, FileOptions.SequentialScan), Encoding.Default);
+        using CsvDataReader dr = CsvDataReader.Create(textReader, options);
         while (dr.Read())
         {
             string[] fields = new string[dr.FieldCount];
