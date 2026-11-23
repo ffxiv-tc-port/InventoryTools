@@ -6,6 +6,7 @@ using System.Numerics;
 using System.Threading;
 using System.Threading.Tasks;
 using AllaganLib.GameSheets.Caches;
+using AllaganLib.GameSheets.Sheets.Helpers;
 using Autofac;
 using CriticalCommonLib.Crafting;
 using CriticalCommonLib.MarketBoard;
@@ -470,6 +471,82 @@ public class MigrationManagerService : IHostedService
             }
 
             config.InternalVersion++;
+        }
+
+        if (!config.FccShopPreferenceCostMigrated)
+        {
+            MigrateFccShopPreferenceCosts(config);
+        }
+    }
+
+    /// <summary>
+    /// 舊版把公會商店來源的成本記成獲得數量（固定 1）；已存的手動偏好改成快取的商店標價。
+    /// 只改 Item 類型、成本道具是公會點數、數量正好是 1 的偏好；快取沒有唯一標價就保留原值。
+    /// 失敗不設旗標，下次載入重試；已改過的數量不再是 1，重跑不會再動。
+    /// </summary>
+    private void MigrateFccShopPreferenceCosts(InventoryToolsConfiguration config)
+    {
+        try
+        {
+            CraftingCache? craftingCache = null;
+            var changed = 0;
+            var kept = 0;
+            foreach (var filterConfig in config.FilterConfigurations)
+            {
+                if (filterConfig.FilterType != FilterType.CraftFilter)
+                {
+                    continue;
+                }
+
+                var craftList = filterConfig.CraftList;
+                var candidates = craftList.IngredientPreferences
+                    .Where(c => c.Value.Type == IngredientPreferenceType.Item
+                                && c.Value.LinkedItemId == HardcodedItems.FreeCompanyCreditItemId
+                                && c.Value.LinkedItemQuantity == 1)
+                    .ToList();
+                foreach (var (itemId, stored) in candidates)
+                {
+                    craftingCache ??= _componentContext.Resolve<CraftingCache>();
+                    var prices = craftingCache.GetIngredientPreferences(stored.ItemId)
+                        .Where(c => c.Type == IngredientPreferenceType.Item
+                                    && c.LinkedItemId == HardcodedItems.FreeCompanyCreditItemId
+                                    && c.LinkedItemQuantity != null)
+                        .Select(c => c.LinkedItemQuantity!.Value)
+                        .Distinct()
+                        .ToList();
+                    if (prices.Count != 1 || prices[0] == stored.LinkedItemQuantity)
+                    {
+                        kept++;
+                        continue;
+                    }
+
+                    var replacement = new IngredientPreference(stored.ItemId, stored.Type, stored.LinkedItemId,
+                        prices[0], stored.RecipeCraftTypeId);
+                    if (stored.LinkedItem2Id != null && stored.LinkedItem2Quantity != null)
+                    {
+                        replacement.SetSecondItem(stored.LinkedItem2Id.Value, stored.LinkedItem2Quantity.Value);
+                    }
+                    if (stored.LinkedItem3Id != null && stored.LinkedItem3Quantity != null)
+                    {
+                        replacement.SetThirdItem(stored.LinkedItem3Id.Value, stored.LinkedItem3Quantity.Value);
+                    }
+                    if (stored.Yield != null)
+                    {
+                        replacement.SetYield(stored.Yield.Value);
+                    }
+                    craftList.UpdateIngredientPreference(itemId, replacement);
+                    filterConfig.NeedsRefresh = true;
+                    changed++;
+                }
+            }
+
+            config.FccShopPreferenceCostMigrated = true;
+            config.IsDirty = true;
+            _logger.LogInformation("製作清單公會商店偏好成本遷移：改成商店標價 {Changed} 筆，保留原值 {Kept} 筆（快取沒有唯一標價或標價本來就是 1）", changed, kept);
+        }
+        catch (Exception e)
+        {
+            _logger.LogError(e, "製作清單公會商店偏好成本遷移失敗，已改的保留，其餘下次載入再試");
         }
     }
 

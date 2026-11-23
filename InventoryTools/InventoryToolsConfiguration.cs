@@ -926,6 +926,8 @@ namespace InventoryTools
         [DefaultValue(10)]
         public int AutoSaveMinutes { get; set; } = 10;
         public int InternalVersion { get; set; } = 0;
+        /// <summary>已把製作清單裡公會商店偏好的舊成本（每個 1 點）改成商店標價；與 InternalVersion 分開，避免和上游的版本號相撞。</summary>
+        public bool FccShopPreferenceCostMigrated { get; set; }
         public int Version { get; set; }
 
         public uint? TooltipColor
