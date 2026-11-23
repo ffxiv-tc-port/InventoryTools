@@ -129,6 +129,15 @@ public class CurrencyExchangeWindow : GenericWindow, IMenuWindow
     public override Vector2? MinSize { get; } = new(500, 300);
     public override FilterConfiguration? SelectedConfiguration => null;
 
+    public override void PreDraw()
+    {
+        base.PreDraw();
+        // 基底建構子設的是未依字級換算的值；Window 在 PreDraw 之後才套用，所以每幀在這裡換算。
+        var factor = UiScale.WindowSizeFactor();
+        SizeConstraints = new WindowSizeConstraints { MinimumSize = MinSize!.Value * factor, MaximumSize = MaxSize!.Value };
+        Size = DefaultSize!.Value * factor;
+    }
+
     public override void Invalidate()
     {
         _dirty = true;
@@ -163,7 +172,7 @@ public class CurrencyExchangeWindow : GenericWindow, IMenuWindow
             RecomputeRows(now);
         }
 
-        using (var left = ImRaii.Child("currencyList", new Vector2(230 * ImGui.GetIO().FontGlobalScale, 0), true))
+        using (var left = ImRaii.Child("currencyList", new Vector2(UiScale.Px(230), 0), true))
         {
             if (left.Success)
             {
@@ -207,7 +216,7 @@ public class CurrencyExchangeWindow : GenericWindow, IMenuWindow
 
             _holdings.TryGetValue(currencyId, out var holding);
             var fill = holding?.MaxFill;
-            ImGui.Image(ImGuiService.GetIconTexture(item.Icon).Handle, new Vector2(18, 18) * ImGui.GetIO().FontGlobalScale);
+            ImGui.Image(ImGuiService.GetIconTexture(item.Icon).Handle, UiScale.Px(18, 18));
             ImGui.SameLine();
             using (var color = ImRaii.PushColor(ImGuiCol.Text, ImGuiColors.DalamudOrange, fill >= 0.9))
             {
@@ -286,7 +295,7 @@ public class CurrencyExchangeWindow : GenericWindow, IMenuWindow
             : "Nothing to check: every item here is already priced and fresh, cannot be sold on the market, or your home world has no universalis data.".Loc());
 
         ImGui.SameLine();
-        ImGui.SetNextItemWidth(180 * ImGui.GetIO().FontGlobalScale);
+        ImGui.SetNextItemWidth(UiScale.Px(180));
         if (ImGui.InputTextWithHint("##currencySearch", "Search items".Loc(), ref _search, 100))
         {
             _dirty = true;
@@ -343,15 +352,15 @@ public class CurrencyExchangeWindow : GenericWindow, IMenuWindow
         }
 
         ImGui.TableSetupScrollFreeze(1, 1);
-        ImGui.TableSetupColumn("Item".Loc(), ImGuiTableColumnFlags.WidthFixed, 240);
-        ImGui.TableSetupColumn("Cost".Loc(), ImGuiTableColumnFlags.WidthFixed, 60);
-        ImGui.TableSetupColumn("Also pay".Loc(), ImGuiTableColumnFlags.WidthFixed, 140);
-        ImGui.TableSetupColumn("Gil per 1".Loc(), ImGuiTableColumnFlags.WidthFixed | ImGuiTableColumnFlags.DefaultSort | ImGuiTableColumnFlags.PreferSortDescending, 90);
-        ImGui.TableSetupColumn("Robust per 1".Loc(), ImGuiTableColumnFlags.WidthFixed | ImGuiTableColumnFlags.PreferSortDescending, 90);
-        ImGui.TableSetupColumn("Market price".Loc(), ImGuiTableColumnFlags.WidthFixed, 90);
-        ImGui.TableSetupColumn("Sales/day".Loc(), ImGuiTableColumnFlags.WidthFixed, 70);
-        ImGui.TableSetupColumn("Data age".Loc(), ImGuiTableColumnFlags.WidthFixed, 80);
-        ImGui.TableSetupColumn("Shop".Loc(), ImGuiTableColumnFlags.WidthFixed, 200);
+        ImGui.TableSetupColumn("Item".Loc(), ImGuiTableColumnFlags.WidthFixed, UiScale.Px(240));
+        ImGui.TableSetupColumn("Cost".Loc(), ImGuiTableColumnFlags.WidthFixed, UiScale.Px(60));
+        ImGui.TableSetupColumn("Also pay".Loc(), ImGuiTableColumnFlags.WidthFixed, UiScale.Px(140));
+        ImGui.TableSetupColumn("Gil per 1".Loc(), ImGuiTableColumnFlags.WidthFixed | ImGuiTableColumnFlags.DefaultSort | ImGuiTableColumnFlags.PreferSortDescending, UiScale.Px(90));
+        ImGui.TableSetupColumn("Robust per 1".Loc(), ImGuiTableColumnFlags.WidthFixed | ImGuiTableColumnFlags.PreferSortDescending, UiScale.Px(90));
+        ImGui.TableSetupColumn("Market price".Loc(), ImGuiTableColumnFlags.WidthFixed, UiScale.Px(90));
+        ImGui.TableSetupColumn("Sales/day".Loc(), ImGuiTableColumnFlags.WidthFixed, UiScale.Px(70));
+        ImGui.TableSetupColumn("Data age".Loc(), ImGuiTableColumnFlags.WidthFixed, UiScale.Px(80));
+        ImGui.TableSetupColumn("Shop".Loc(), ImGuiTableColumnFlags.WidthFixed, UiScale.Px(200));
         ImGui.TableHeadersRow();
 
         if (_pendingSortColumn is { } pending)
@@ -403,7 +412,7 @@ public class CurrencyExchangeWindow : GenericWindow, IMenuWindow
 
         ImGui.TableNextColumn();
         var reward = row.Offer.FirstReward;
-        ImGui.Image(ImGuiService.GetIconTexture(reward.Icon).Handle, new Vector2(18, 18) * ImGui.GetIO().FontGlobalScale);
+        ImGui.Image(ImGuiService.GetIconTexture(reward.Icon).Handle, UiScale.Px(18, 18));
         ImGui.SameLine();
         ImGui.TextUnformatted(row.Offer.RewardText);
         if (ImGui.IsItemHovered(ImGuiHoveredFlags.None) && ImGui.IsMouseReleased(ImGuiMouseButton.Left))
