@@ -178,6 +178,62 @@ public static class CurrencyExchangeMath
         return descending ? -cmp : cmp;
     }
 
+    /// <summary>手上這批能換幾次（無條件捨去）；用量 0 回 0。</summary>
+    public static long ExchangeTimes(long held, uint currencyCount)
+    {
+        return currencyCount == 0 ? 0 : Math.Max(0, held) / currencyCount;
+    }
+
+    /// <summary>可換數量＝能換幾次 × 每次拿到的件數；一次都換不起時按一次算（只看單次的流動性）。</summary>
+    public static double ExchangeableUnits(long held, uint currencyCount, uint unitsPerExchange)
+    {
+        return Math.Max(1, ExchangeTimes(held, currencyCount)) * (double)Math.Max(1u, unitsPerExchange);
+    }
+
+    /// <summary>
+    /// 穩健值＝每單位價值 × min(1, 日銷 ÷ 可換數量)。價值或日銷不知道回 null（不參與穩健值排序）；
+    /// 價值 ≤ 0 原值回傳，不打折（打折會讓虧損看起來變小）。
+    /// </summary>
+    public static double? RobustValue(double? valuePerCurrency, double? dailySales, double exchangeableUnits)
+    {
+        if (valuePerCurrency is not { } v || dailySales is not { } s)
+        {
+            return null;
+        }
+
+        if (v <= 0)
+        {
+            return v;
+        }
+
+        return v * Math.Min(1.0, Math.Max(0, s) / Math.Max(1.0, exchangeableUnits));
+    }
+
+    /// <summary>
+    /// 「賣得完優先」的比較：有穩健值的在前；有價值但日銷不知道的其次（之間依價值）；不可估的最後（依確定度）。
+    /// 三組的先後不隨升降冪改變。
+    /// </summary>
+    public static int CompareByRobust(ExchangeValuation a, double? robustA, ExchangeValuation b, double? robustB, bool descending)
+    {
+        var ga = RobustGroup(a, robustA);
+        var gb = RobustGroup(b, robustB);
+        if (ga != gb)
+        {
+            return ga.CompareTo(gb);
+        }
+
+        if (ga == 2)
+        {
+            return a.State.CompareTo(b.State);
+        }
+
+        var cmp = ga == 0 ? robustA!.Value.CompareTo(robustB!.Value) : a.ValuePerCurrency!.Value.CompareTo(b.ValuePerCurrency!.Value);
+        return descending ? -cmp : cmp;
+    }
+
+    private static int RobustGroup(ExchangeValuation v, double? robust) =>
+        robust.HasValue ? 0 : v.ValuePerCurrency.HasValue ? 1 : 2;
+
     /// <summary>可估的排前面、null 一律排最後；用在日銷量、資料時間這類可能不知道的欄。</summary>
     public static int CompareNullableLast(double? a, double? b, bool descending)
     {

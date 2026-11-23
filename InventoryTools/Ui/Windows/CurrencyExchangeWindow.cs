@@ -65,16 +65,23 @@ public class CurrencyExchangeWindow : GenericWindow, IMenuWindow
     private DateTime _lastRecompute = DateTime.MinValue;
     private DateTime _lastHoldings = DateTime.MinValue;
     private uint _rowsWorldId;
+    private long _rowsHeld = -1;
     private int _uncheckedCount;
+    private int? _pendingSortColumn;
+    private string _summaryText = "";
+    private string _summaryTooltip = "";
+    private bool _summaryMuted = true;
 
     private const int ColItem = 0;
     private const int ColCost = 1;
     private const int ColOther = 2;
     private const int ColValue = 3;
-    private const int ColPrice = 4;
-    private const int ColSales = 5;
-    private const int ColTime = 6;
-    private const int ColShop = 7;
+    private const int ColRobust = 4;
+    private const int ColPrice = 5;
+    private const int ColSales = 6;
+    private const int ColTime = 7;
+    private const int ColShop = 8;
+    private const int ColumnCount = 9;
 
     public CurrencyExchangeWindow(
         ILogger<CurrencyExchangeWindow> logger,
@@ -141,6 +148,11 @@ public class CurrencyExchangeWindow : GenericWindow, IMenuWindow
         if (worldId != _rowsWorldId)
         {
             _rowsWorldId = worldId;
+            _dirty = true;
+        }
+
+        if (HeldFor(_selectedCurrency).Amount != _rowsHeld)
+        {
             _dirty = true;
         }
 
@@ -289,6 +301,28 @@ public class CurrencyExchangeWindow : GenericWindow, IMenuWindow
         }
 
         HoverText("Hides rows whose reward cannot be sold on the market or that also cost something unbuyable. Rows that are only waiting for prices stay.".Loc());
+
+        // 模式就是「依哪一欄排序」：點表頭換排序時，選項跟著反映。
+        if (ImGui.RadioButton("Net value first".Loc(), _sortColumn == ColValue))
+        {
+            _pendingSortColumn = ColValue;
+        }
+
+        ImGui.SameLine();
+        if (ImGui.RadioButton("Sells out first".Loc(), _sortColumn == ColRobust))
+        {
+            _pendingSortColumn = ColRobust;
+        }
+
+        ImGui.SameLine();
+        ImGui.TextColored(ImGuiColors.DalamudGrey, "(?)");
+        HoverText("Net value first: rank by Gil per 1.\nSells out first: rank by robust value = Gil per 1 x min(1, sales/day / units you can exchange). Units you can exchange = how many times your holding covers the cost x items per exchange (counted as one exchange if you cannot afford any).\nRows whose sales/day is unknown are not ranked by robust value; they go after the rows that are and show \"Sales ?\".\nNegative values are not discounted.".Loc());
+
+        ImGui.TextColored(_summaryMuted ? ImGuiColors.DalamudGrey : ImGuiColors.DalamudWhite, _summaryText);
+        if (_summaryTooltip.Length != 0)
+        {
+            HoverText(_summaryTooltip);
+        }
     }
 
     private void DrawTable(DateTime now)
@@ -301,7 +335,8 @@ public class CurrencyExchangeWindow : GenericWindow, IMenuWindow
         const ImGuiTableFlags flags = ImGuiTableFlags.RowBg | ImGuiTableFlags.Borders | ImGuiTableFlags.Resizable |
                                       ImGuiTableFlags.Sortable | ImGuiTableFlags.ScrollX | ImGuiTableFlags.ScrollY |
                                       ImGuiTableFlags.Hideable | ImGuiTableFlags.SizingFixedFit;
-        using var table = ImRaii.Table("currencyExchangeTable", 8, flags);
+        // 表格 ID 隨欄數改：ImGui 依欄位索引套用存下的欄寬／隱藏，插入新欄後沿用舊 ID 會套錯欄。
+        using var table = ImRaii.Table("currencyExchangeTable9", ColumnCount, flags);
         if (!table.Success)
         {
             return;
@@ -312,11 +347,18 @@ public class CurrencyExchangeWindow : GenericWindow, IMenuWindow
         ImGui.TableSetupColumn("Cost".Loc(), ImGuiTableColumnFlags.WidthFixed, 60);
         ImGui.TableSetupColumn("Also pay".Loc(), ImGuiTableColumnFlags.WidthFixed, 140);
         ImGui.TableSetupColumn("Gil per 1".Loc(), ImGuiTableColumnFlags.WidthFixed | ImGuiTableColumnFlags.DefaultSort | ImGuiTableColumnFlags.PreferSortDescending, 90);
+        ImGui.TableSetupColumn("Robust per 1".Loc(), ImGuiTableColumnFlags.WidthFixed | ImGuiTableColumnFlags.PreferSortDescending, 90);
         ImGui.TableSetupColumn("Market price".Loc(), ImGuiTableColumnFlags.WidthFixed, 90);
         ImGui.TableSetupColumn("Sales/day".Loc(), ImGuiTableColumnFlags.WidthFixed, 70);
         ImGui.TableSetupColumn("Data age".Loc(), ImGuiTableColumnFlags.WidthFixed, 80);
         ImGui.TableSetupColumn("Shop".Loc(), ImGuiTableColumnFlags.WidthFixed, 200);
         ImGui.TableHeadersRow();
+
+        if (_pendingSortColumn is { } pending)
+        {
+            _pendingSortColumn = null;
+            ImGuiP.TableSetColumnSortDirection(pending, ImGuiSortDirection.Descending, false);
+        }
 
         var specs = ImGui.TableGetSortSpecs();
         if (specs.SpecsDirty)
@@ -410,6 +452,27 @@ public class CurrencyExchangeWindow : GenericWindow, IMenuWindow
         }
 
         ImGui.TableNextColumn();
+        if (row.Robust is { } robust)
+        {
+            var color = robust < 0 ? ImGuiColors.DalamudRed : stale ? ImGuiColors.DalamudGrey : ImGuiColors.DalamudWhite;
+            ImGui.TextColored(color, FormatGil(robust));
+            if (ImGui.IsItemHovered())
+            {
+                HoverText(RobustTooltip(row));
+            }
+        }
+        else if (row.Valuation.ValuePerCurrency.HasValue)
+        {
+            ImGui.TextColored(ImGuiColors.DalamudGrey, "Sales ?".Loc());
+            HoverText("Sales/day unknown, so this row is not ranked by robust value and goes after the rows that are.".Loc());
+        }
+        else
+        {
+            ImGui.TextColored(ImGuiColors.DalamudGrey, StateLabel(row.Valuation.State));
+            HoverText(row.ValueTooltip);
+        }
+
+        ImGui.TableNextColumn();
         if (row.RewardUnitPrice is { } price)
         {
             ImGui.TextColored(stale ? ImGuiColors.DalamudGrey : ImGuiColors.DalamudWhite, FormatGil(price));
@@ -456,9 +519,12 @@ public class CurrencyExchangeWindow : GenericWindow, IMenuWindow
     {
         RebuildCurrencyList();
         _uncheckedCount = 0;
+        var held = HeldFor(_selectedCurrency).Amount;
+        _rowsHeld = held;
         if (_offersByCurrency == null || !_offersByCurrency.TryGetValue(_selectedCurrency, out var offers))
         {
             _rows = new List<Row>();
+            BuildSummary();
             return;
         }
 
@@ -492,7 +558,10 @@ public class CurrencyExchangeWindow : GenericWindow, IMenuWindow
 
             var firstQuote = Quote(offer.Rewards[0], worldId, historyDays, now);
             var otherCost = string.Join("、", offer.Costs.Where(c => c.ItemId != _selectedCurrency).Select(PartText));
-            rows.Add(new Row(offer, valuation, firstQuote.State == QuoteState.Ok ? firstQuote.UnitPrice : null, otherCost, BuildValueTooltip(valuation, otherCost)));
+            var unitsPerExchange = offer.Rewards.Max(r => r.Count);
+            var units = CurrencyExchangeMath.ExchangeableUnits(held, valuation.CurrencyCount, unitsPerExchange);
+            var robust = CurrencyExchangeMath.RobustValue(valuation.ValuePerCurrency, valuation.DailySales, units);
+            rows.Add(new Row(offer, valuation, firstQuote.State == QuoteState.Ok ? firstQuote.UnitPrice : null, otherCost, BuildValueTooltip(valuation, otherCost), robust, units, unitsPerExchange));
         }
 
         _uncheckedCount = toCheck.Count;
@@ -508,6 +577,7 @@ public class CurrencyExchangeWindow : GenericWindow, IMenuWindow
             ColItem => (a, b) => Dir(string.Compare(a.Offer.RewardText, b.Offer.RewardText, StringComparison.CurrentCulture), desc),
             ColCost => (a, b) => Dir(a.Valuation.CurrencyCount.CompareTo(b.Valuation.CurrencyCount), desc),
             ColOther => (a, b) => Dir(string.Compare(a.OtherCostText, b.OtherCostText, StringComparison.CurrentCulture), desc),
+            ColRobust => (a, b) => CurrencyExchangeMath.CompareByRobust(a.Valuation, a.Robust, b.Valuation, b.Robust, desc),
             ColPrice => (a, b) => CurrencyExchangeMath.CompareNullableLast(a.RewardUnitPrice, b.RewardUnitPrice, desc),
             ColSales => (a, b) => CurrencyExchangeMath.CompareNullableLast(a.Valuation.DailySales, b.Valuation.DailySales, desc),
             ColTime => (a, b) => CurrencyExchangeMath.CompareNullableLast(Ticks(a), Ticks(b), desc),
@@ -523,6 +593,7 @@ public class CurrencyExchangeWindow : GenericWindow, IMenuWindow
             return c != 0 ? c : x.i.CompareTo(y.i);
         });
         _rows = indexed.Select(x => x.r).ToList();
+        BuildSummary();
 
         static int Dir(int c, bool d) => d ? -c : c;
         static double? Ticks(Row r) => r.Valuation.OldestUpdate?.Ticks;
@@ -629,6 +700,10 @@ public class CurrencyExchangeWindow : GenericWindow, IMenuWindow
 
                 var cap = CapFor(item.ItemId, characterId == activeId);
                 holding.PerCharacter.Add((character.Name, item.Quantity, cap));
+                if (characterId == activeId)
+                {
+                    holding.ActiveIndex = holding.PerCharacter.Count - 1;
+                }
                 var fill = CurrencyExchangeMath.FillRatio(item.Quantity, cap);
                 if (fill is { } f && (holding.MaxFill == null || f > holding.MaxFill))
                 {
@@ -863,13 +938,142 @@ public class CurrencyExchangeWindow : GenericWindow, IMenuWindow
         }
     }
 
+    /// <summary>
+    /// 摘要與穩健值用的「手上這批」：目前登入角色有紀錄就用它，否則取已記錄角色裡最多的那位（數量是上次登入時的）。
+    /// 沒有任何角色持有回 (0, null)。
+    /// </summary>
+    private (long Amount, string? Name) HeldFor(uint currencyId)
+    {
+        if (!_holdings.TryGetValue(currencyId, out var holding) || holding.PerCharacter.Count == 0)
+        {
+            return (0, null);
+        }
+
+        if (holding.ActiveIndex is { } active)
+        {
+            var a = holding.PerCharacter[active];
+            return (a.Amount, a.Name);
+        }
+
+        var best = holding.PerCharacter[0];
+        foreach (var entry in holding.PerCharacter)
+        {
+            if (entry.Amount > best.Amount)
+            {
+                best = entry;
+            }
+        }
+
+        return (best.Amount, best.Name);
+    }
+
+    private void BuildSummary()
+    {
+        _summaryMuted = true;
+        _summaryTooltip = "";
+        var (held, holder) = HeldFor(_selectedCurrency);
+        if (holder == null)
+        {
+            _summaryText = "None of your recorded characters holds this.".Loc();
+            return;
+        }
+
+        var robustMode = _sortColumn == ColRobust;
+        Row? top = null;
+        if (robustMode)
+        {
+            foreach (var r in _rows)
+            {
+                if (r.Robust is { } v && (top == null || v > top.Robust!.Value))
+                {
+                    top = r;
+                }
+            }
+        }
+
+        var fellBack = robustMode && top == null;
+        if (top == null)
+        {
+            foreach (var r in _rows)
+            {
+                if (r.Valuation.ValuePerCurrency is { } v && (top == null || v > top.Valuation.ValuePerCurrency!.Value))
+                {
+                    top = r;
+                }
+            }
+        }
+
+        if (top == null)
+        {
+            _summaryText = "No row can be valued yet; press Check prices.".Loc();
+            return;
+        }
+
+        var heldText = held.ToString("N0", CultureInfo.InvariantCulture);
+        var v0 = top.Valuation;
+        var times = CurrencyExchangeMath.ExchangeTimes(held, v0.CurrencyCount);
+        if (times == 0)
+        {
+            _summaryText = "Holding ?? (??): not enough for one #1 ?? (needs ??)".Loc(heldText, holder, top.Offer.RewardText,
+                v0.CurrencyCount.ToString("N0", CultureInfo.InvariantCulture));
+        }
+        else
+        {
+            var total = times * ((v0.RewardValue ?? 0) - (v0.OtherCost ?? 0));
+            _summaryText = "Holding ?? (??): all into #1 ?? = ?? exchanges, about ?? Gil".Loc(heldText, holder, top.Offer.RewardText,
+                times.ToString("N0", CultureInfo.InvariantCulture), FormatGil(total));
+            _summaryMuted = false;
+        }
+
+        var lines = new List<string>
+        {
+            "Ranked by: ??".Loc(robustMode ? "Sells out first".Loc() : "Net value first".Loc()),
+        };
+        if (fellBack)
+        {
+            lines.Add("Sells out first has no row with known sales yet, so #1 is by net value.".Loc());
+        }
+
+        var items = Math.Max(1, times) * (double)top.UnitsPerExchange;
+        if (v0.DailySales is { } sales && sales > 0)
+        {
+            lines.Add("At ?? sales/day, selling ?? items takes about ?? days.".Loc(
+                sales.ToString(sales < 10 ? "0.0" : "N0", CultureInfo.InvariantCulture),
+                items.ToString("N0", CultureInfo.InvariantCulture),
+                Math.Ceiling(items / sales).ToString("N0", CultureInfo.InvariantCulture)));
+        }
+        else
+        {
+            lines.Add("Sales/day unknown or zero: cannot tell how long it takes to sell.".Loc());
+        }
+
+        lines.Add("Before market tax; other things you also pay are already subtracted. Other characters' amounts are from their last login.".Loc());
+        _summaryTooltip = string.Join("\n", lines);
+    }
+
+    private static string RobustTooltip(Row row)
+    {
+        var v = row.Valuation.ValuePerCurrency ?? 0;
+        if (v < 0)
+        {
+            return "Negative value is not discounted.".Loc();
+        }
+
+        var sales = row.Valuation.DailySales ?? 0;
+        return "Gil per 1 ?? x min(1, sales/day ?? / ?? units) = ??".Loc(FormatGil(v),
+            sales.ToString(sales < 10 ? "0.0" : "N0", CultureInfo.InvariantCulture),
+            row.Units.ToString("N0", CultureInfo.InvariantCulture), FormatGil(row.Robust ?? 0));
+    }
+
     private sealed class Holding
     {
         public readonly List<(string Name, long Amount, long? Cap)> PerCharacter = new();
         public double? MaxFill;
+        public int? ActiveIndex;
     }
 
-    private sealed record Row(Offer Offer, ExchangeValuation Valuation, double? RewardUnitPrice, string OtherCostText, string ValueTooltip);
+    private sealed record Row(Offer Offer, ExchangeValuation Valuation, double? RewardUnitPrice, string OtherCostText, string ValueTooltip,
+        double? Robust, double Units, uint UnitsPerExchange);
 
     private sealed class Offer
     {
