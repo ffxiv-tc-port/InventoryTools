@@ -1,0 +1,904 @@
+using System;
+using System.Collections.Generic;
+using System.Globalization;
+using System.Linq;
+using System.Numerics;
+using AllaganLib.GameSheets.Caches;
+using AllaganLib.GameSheets.ItemSources;
+using AllaganLib.GameSheets.Model;
+using AllaganLib.GameSheets.Sheets;
+using AllaganLib.GameSheets.Sheets.Rows;
+using Autofac;
+using CriticalCommonLib.Enums;
+using CriticalCommonLib.MarketBoard;
+using CriticalCommonLib.Services;
+using CriticalCommonLib.Services.Mediator;
+using DalaMock.Host.Mediator;
+using Dalamud.Bindings.ImGui;
+using Dalamud.Interface.Colors;
+using Dalamud.Interface.Utility.Raii;
+using Dalamud.Plugin.Services;
+using InventoryTools.Logic;
+using InventoryTools.Logic.CurrencyExchange;
+using InventoryTools.Mediator;
+using InventoryTools.Services;
+using Lumina.Excel;
+using Lumina.Excel.Sheets;
+using Microsoft.Extensions.Logging;
+
+namespace InventoryTools.Ui;
+
+// 本檔假設與契約：
+// - 兌換資料來自 ItemInfoCache 的特殊商店／危命商店／軍票商店來源；貨幣解碼由 AllaganLib 負責。
+// - 只讀市價快取；只有按「查價」才經 IMarketCache.RequestCheck 排進既有的節流佇列（只送物品 ID 與世界）。
+// - 全部在框架執行緒的 Draw 內執行；不跨幀保存任何原生指標。
+public class CurrencyExchangeWindow : GenericWindow, IMenuWindow
+{
+    private const double RecomputeSeconds = 0.5;
+    private const double HoldingsRefreshSeconds = 2.0;
+    private static readonly TimeSpan PendingTimeout = TimeSpan.FromMinutes(3);
+
+    private readonly ItemInfoCache _itemInfoCache;
+    private readonly ItemSheet _itemSheet;
+    private readonly IMarketCache _marketCache;
+    private readonly UniversalisAvailability _universalisAvailability;
+    private readonly ICharacterMonitor _characterMonitor;
+    private readonly IInventoryMonitor _inventoryMonitor;
+    private readonly IComponentContext _context;
+    private readonly ExcelSheet<GrandCompany> _grandCompanySheet;
+    private readonly ExcelSheet<GrandCompanyRank> _grandCompanyRankSheet;
+    private readonly ExcelSheet<World> _worldSheet;
+
+    private Dictionary<uint, List<Offer>>? _offersByCurrency;
+    private readonly Dictionary<uint, Holding> _holdings = new();
+    private readonly Dictionary<(uint ItemId, uint WorldId), DateTime> _requestedAt = new();
+    private List<uint> _currencyList = new();
+    private readonly Dictionary<uint, string> _currencyLabels = new();
+    private List<Row> _rows = new();
+    private uint _selectedCurrency;
+    private bool _showAllCurrencies;
+    private bool _hideUnknown;
+    private string _search = "";
+    private int _sortColumn = ColValue;
+    private bool _sortDescending = true;
+    private volatile bool _dirty = true;
+    private DateTime _lastRecompute = DateTime.MinValue;
+    private DateTime _lastHoldings = DateTime.MinValue;
+    private uint _rowsWorldId;
+    private int _uncheckedCount;
+
+    private const int ColItem = 0;
+    private const int ColCost = 1;
+    private const int ColOther = 2;
+    private const int ColValue = 3;
+    private const int ColPrice = 4;
+    private const int ColSales = 5;
+    private const int ColTime = 6;
+    private const int ColShop = 7;
+
+    public CurrencyExchangeWindow(
+        ILogger<CurrencyExchangeWindow> logger,
+        MediatorService mediator,
+        ImGuiService imGuiService,
+        InventoryToolsConfiguration configuration,
+        ItemInfoCache itemInfoCache,
+        ItemSheet itemSheet,
+        IMarketCache marketCache,
+        UniversalisAvailability universalisAvailability,
+        ICharacterMonitor characterMonitor,
+        IInventoryMonitor inventoryMonitor,
+        IComponentContext context,
+        ExcelSheet<GrandCompany> grandCompanySheet,
+        ExcelSheet<GrandCompanyRank> grandCompanyRankSheet,
+        ExcelSheet<World> worldSheet,
+        string name = "Currency Exchange Value")
+        : base(logger, mediator, imGuiService, configuration, name)
+    {
+        _itemInfoCache = itemInfoCache;
+        _itemSheet = itemSheet;
+        _marketCache = marketCache;
+        _universalisAvailability = universalisAvailability;
+        _characterMonitor = characterMonitor;
+        _inventoryMonitor = inventoryMonitor;
+        _context = context;
+        _grandCompanySheet = grandCompanySheet;
+        _grandCompanyRankSheet = grandCompanyRankSheet;
+        _worldSheet = worldSheet;
+    }
+
+    public override void Initialize()
+    {
+        WindowName = "Currency Exchange Value".Loc() + "##currencyExchange";
+        Key = GenericKey;
+        MediatorService.Subscribe<MarketCacheUpdatedMessage>(this, _ => _dirty = true);
+    }
+
+    public override string GenericKey => "currencyexchange";
+    public override string GenericName => "Currency Exchange Value".Loc();
+    public override bool DestroyOnClose => false;
+    public override bool SaveState => true;
+    public override Vector2? DefaultSize { get; } = new(1000, 600);
+    public override Vector2? MaxSize { get; } = new(3000, 3000);
+    public override Vector2? MinSize { get; } = new(500, 300);
+    public override FilterConfiguration? SelectedConfiguration => null;
+
+    public override void Invalidate()
+    {
+        _dirty = true;
+    }
+
+    public override void Draw()
+    {
+        _offersByCurrency ??= BuildOffers();
+        var now = DateTime.Now;
+        if ((now - _lastHoldings).TotalSeconds >= HoldingsRefreshSeconds)
+        {
+            _lastHoldings = now;
+            RefreshHoldings();
+        }
+
+        var worldId = _characterMonitor.ActiveCharacter?.WorldId ?? 0;
+        if (worldId != _rowsWorldId)
+        {
+            _rowsWorldId = worldId;
+            _dirty = true;
+        }
+
+        if (_dirty && (now - _lastRecompute).TotalSeconds >= RecomputeSeconds)
+        {
+            _dirty = false;
+            _lastRecompute = now;
+            RecomputeRows(now);
+        }
+
+        using (var left = ImRaii.Child("currencyList", new Vector2(230 * ImGui.GetIO().FontGlobalScale, 0), true))
+        {
+            if (left.Success)
+            {
+                DrawCurrencyList();
+            }
+        }
+
+        ImGui.SameLine();
+        using (var right = ImRaii.Child("exchangeTable", new Vector2(0, 0), false))
+        {
+            if (right.Success)
+            {
+                DrawHeader(worldId);
+                DrawTable(now);
+            }
+        }
+    }
+
+    private void DrawCurrencyList()
+    {
+        if (ImGui.Checkbox("Show all currencies".Loc(), ref _showAllCurrencies))
+        {
+            RebuildCurrencyList();
+        }
+
+        HoverText("Off: only currencies one of your characters is holding, fullest first.".Loc());
+        ImGui.Separator();
+
+        if (_currencyList.Count == 0)
+        {
+            ImGui.TextColored(ImGuiColors.DalamudGrey, "No currency held (log in once to record holdings).".Loc());
+        }
+
+        foreach (var currencyId in _currencyList)
+        {
+            var item = _itemSheet.GetRowOrDefault(currencyId);
+            if (item == null)
+            {
+                continue;
+            }
+
+            _holdings.TryGetValue(currencyId, out var holding);
+            var fill = holding?.MaxFill;
+            ImGui.Image(ImGuiService.GetIconTexture(item.Icon).Handle, new Vector2(18, 18) * ImGui.GetIO().FontGlobalScale);
+            ImGui.SameLine();
+            using (var color = ImRaii.PushColor(ImGuiCol.Text, ImGuiColors.DalamudOrange, fill >= 0.9))
+            {
+                if (ImGui.Selectable(_currencyLabels.GetValueOrDefault(currencyId, "?"), _selectedCurrency == currencyId))
+                {
+                    _selectedCurrency = currencyId;
+                    _dirty = true;
+                    _lastRecompute = DateTime.MinValue;
+                }
+            }
+
+            if (ImGui.IsItemHovered())
+            {
+                DrawHoldingTooltip(item, holding);
+            }
+        }
+    }
+
+    private static void DrawHoldingTooltip(ItemRow item, Holding? holding)
+    {
+        using var tooltip = ImRaii.Tooltip();
+        if (!tooltip.Success)
+        {
+            return;
+        }
+
+        ImGui.TextUnformatted(item.NameString);
+        if (holding == null || holding.PerCharacter.Count == 0)
+        {
+            ImGui.TextColored(ImGuiColors.DalamudGrey, "None of your recorded characters holds this.".Loc());
+            return;
+        }
+
+        foreach (var (name, amount, cap) in holding.PerCharacter)
+        {
+            var capText = cap is { } c ? c.ToString("N0", CultureInfo.InvariantCulture) : "?";
+            ImGui.TextUnformatted($"{name}: {amount.ToString("N0", CultureInfo.InvariantCulture)} / {capText}");
+        }
+
+        ImGui.Separator();
+        ImGui.TextColored(ImGuiColors.DalamudGrey, "Other characters show the amount from their last login.".Loc());
+        if (IsGrandCompanySeal(item.RowId))
+        {
+            ImGui.TextColored(ImGuiColors.DalamudGrey, "Seal caps depend on rank; only the logged-in character's cap is known.".Loc());
+        }
+    }
+
+    private void DrawHeader(uint worldId)
+    {
+        var currency = _itemSheet.GetRowOrDefault(_selectedCurrency);
+        if (currency == null)
+        {
+            ImGui.TextUnformatted("Pick a currency on the left.".Loc());
+            return;
+        }
+
+        ImGui.TextUnformatted(currency.NameString);
+        ImGui.SameLine();
+        var worldName = _worldSheet.GetRowOrDefault(worldId)?.Name.ExtractText() ?? "?";
+        ImGui.TextColored(ImGuiColors.DalamudGrey, "Prices: ??".Loc(worldName));
+        ImGui.SameLine();
+        ImGui.TextColored(ImGuiColors.DalamudGrey, "(?)");
+        HoverText("Value per 1 currency = (market price of what you get x quantity - other things you also pay) / currency spent.\nMarket price is the lower of the recent average and the current cheapest listing on your home world, before market tax.\nSales/day counts sale transactions over the market history window in settings.\nGrey rows are older than the market refresh time in settings.\n\"Cannot value\" means the reward cannot be sold on the market, or something else you must also pay cannot be bought there.".Loc());
+
+        var canQuery = _universalisAvailability.IsWorldSupported(worldId) && _uncheckedCount > 0;
+        using (ImRaii.Disabled(!canQuery))
+        {
+            if (ImGui.Button("Check prices (?? items)".Loc(_uncheckedCount)))
+            {
+                RequestPrices(worldId);
+            }
+        }
+
+        HoverText(canQuery
+            ? "Asks universalis for the listed items through the normal market price queue. Only item IDs and your home world are sent.".Loc()
+            : "Nothing to check: every item here is already priced and fresh, cannot be sold on the market, or your home world has no universalis data.".Loc());
+
+        ImGui.SameLine();
+        ImGui.SetNextItemWidth(180 * ImGui.GetIO().FontGlobalScale);
+        if (ImGui.InputTextWithHint("##currencySearch", "Search items".Loc(), ref _search, 100))
+        {
+            _dirty = true;
+            _lastRecompute = DateTime.MinValue;
+        }
+
+        ImGui.SameLine();
+        if (ImGui.Checkbox("Hide cannot value".Loc(), ref _hideUnknown))
+        {
+            _dirty = true;
+            _lastRecompute = DateTime.MinValue;
+        }
+
+        HoverText("Hides rows whose reward cannot be sold on the market or that also cost something unbuyable. Rows that are only waiting for prices stay.".Loc());
+    }
+
+    private void DrawTable(DateTime now)
+    {
+        if (_selectedCurrency == 0)
+        {
+            return;
+        }
+
+        const ImGuiTableFlags flags = ImGuiTableFlags.RowBg | ImGuiTableFlags.Borders | ImGuiTableFlags.Resizable |
+                                      ImGuiTableFlags.Sortable | ImGuiTableFlags.ScrollX | ImGuiTableFlags.ScrollY |
+                                      ImGuiTableFlags.Hideable | ImGuiTableFlags.SizingFixedFit;
+        using var table = ImRaii.Table("currencyExchangeTable", 8, flags);
+        if (!table.Success)
+        {
+            return;
+        }
+
+        ImGui.TableSetupScrollFreeze(1, 1);
+        ImGui.TableSetupColumn("Item".Loc(), ImGuiTableColumnFlags.WidthFixed, 240);
+        ImGui.TableSetupColumn("Cost".Loc(), ImGuiTableColumnFlags.WidthFixed, 60);
+        ImGui.TableSetupColumn("Also pay".Loc(), ImGuiTableColumnFlags.WidthFixed, 140);
+        ImGui.TableSetupColumn("Gil per 1".Loc(), ImGuiTableColumnFlags.WidthFixed | ImGuiTableColumnFlags.DefaultSort | ImGuiTableColumnFlags.PreferSortDescending, 90);
+        ImGui.TableSetupColumn("Market price".Loc(), ImGuiTableColumnFlags.WidthFixed, 90);
+        ImGui.TableSetupColumn("Sales/day".Loc(), ImGuiTableColumnFlags.WidthFixed, 70);
+        ImGui.TableSetupColumn("Data age".Loc(), ImGuiTableColumnFlags.WidthFixed, 80);
+        ImGui.TableSetupColumn("Shop".Loc(), ImGuiTableColumnFlags.WidthFixed, 200);
+        ImGui.TableHeadersRow();
+
+        var specs = ImGui.TableGetSortSpecs();
+        if (specs.SpecsDirty)
+        {
+            _sortColumn = specs.Specs.ColumnIndex;
+            _sortDescending = specs.Specs.SortDirection == ImGuiSortDirection.Descending;
+            specs.SpecsDirty = false;
+            SortRows();
+        }
+
+        var rows = _rows;
+        var staleHours = Configuration.MarketRefreshTimeHours;
+        var clipper = ImGui.ImGuiListClipper();
+        try
+        {
+            clipper.Begin(rows.Count);
+            while (clipper.Step())
+            {
+                for (var i = clipper.DisplayStart; i < clipper.DisplayEnd; i++)
+                {
+                    if (i < 0 || i >= rows.Count)
+                    {
+                        continue;
+                    }
+
+                    DrawRow(rows[i], i, now, staleHours);
+                }
+            }
+        }
+        finally
+        {
+            clipper.End();
+            clipper.Destroy();
+        }
+    }
+
+    private void DrawRow(Row row, int index, DateTime now, int staleHours)
+    {
+        using var id = ImRaii.PushId(index);
+        ImGui.TableNextRow();
+        var stale = row.Valuation.OldestUpdate != null && CurrencyExchangeMath.IsStale(row.Valuation.OldestUpdate, now, staleHours);
+
+        ImGui.TableNextColumn();
+        var reward = row.Offer.FirstReward;
+        ImGui.Image(ImGuiService.GetIconTexture(reward.Icon).Handle, new Vector2(18, 18) * ImGui.GetIO().FontGlobalScale);
+        ImGui.SameLine();
+        ImGui.TextUnformatted(row.Offer.RewardText);
+        if (ImGui.IsItemHovered(ImGuiHoveredFlags.None) && ImGui.IsMouseReleased(ImGuiMouseButton.Left))
+        {
+            MediatorService.Publish(new OpenUintWindowMessage(typeof(ItemWindow), reward.RowId));
+        }
+
+        if (ImGui.IsItemHovered(ImGuiHoveredFlags.None) && ImGui.IsMouseReleased(ImGuiMouseButton.Right))
+        {
+            ImGui.OpenPopup("rc");
+        }
+
+        using (var popup = ImRaii.Popup("rc"))
+        {
+            if (popup.Success)
+            {
+                MediatorService.Publish(ImGuiService.ImGuiMenuService.DrawRightClickPopup(reward));
+            }
+        }
+
+        ImGui.TableNextColumn();
+        ImGui.TextUnformatted(row.Valuation.CurrencyCount.ToString("N0", CultureInfo.InvariantCulture));
+
+        ImGui.TableNextColumn();
+        if (row.OtherCostText.Length == 0)
+        {
+            ImGui.TextColored(ImGuiColors.DalamudGrey, "-");
+        }
+        else
+        {
+            ImGui.TextUnformatted(row.OtherCostText);
+            HoverText(row.OtherCostText);
+        }
+
+        ImGui.TableNextColumn();
+        if (row.Valuation.ValuePerCurrency is { } value)
+        {
+            var color = value < 0 ? ImGuiColors.DalamudRed : stale ? ImGuiColors.DalamudGrey : ImGuiColors.DalamudWhite;
+            ImGui.TextColored(color, FormatGil(value));
+            HoverText(row.ValueTooltip);
+        }
+        else
+        {
+            ImGui.TextColored(ImGuiColors.DalamudGrey, StateLabel(row.Valuation.State));
+            HoverText(row.ValueTooltip);
+        }
+
+        ImGui.TableNextColumn();
+        if (row.RewardUnitPrice is { } price)
+        {
+            ImGui.TextColored(stale ? ImGuiColors.DalamudGrey : ImGuiColors.DalamudWhite, FormatGil(price));
+        }
+        else
+        {
+            ImGui.TextColored(ImGuiColors.DalamudGrey, "?");
+        }
+
+        ImGui.TableNextColumn();
+        if (row.Valuation.DailySales is { } sales)
+        {
+            ImGui.TextColored(stale ? ImGuiColors.DalamudGrey : ImGuiColors.DalamudWhite, sales.ToString(sales < 10 ? "0.0" : "N0", CultureInfo.InvariantCulture));
+        }
+        else
+        {
+            ImGui.TextColored(ImGuiColors.DalamudGrey, "?");
+            HoverText("No sale history recorded for this item, or it has not been fetched.".Loc());
+        }
+
+        ImGui.TableNextColumn();
+        if (row.Valuation.OldestUpdate is { } updated)
+        {
+            ImGui.TextColored(stale ? ImGuiColors.DalamudGrey : ImGuiColors.DalamudWhite, FormatAge(now - updated));
+            if (stale)
+            {
+                HoverText("Older than the market refresh time in settings; press Check prices to refresh.".Loc());
+            }
+        }
+        else
+        {
+            ImGui.TextColored(ImGuiColors.DalamudGrey, "?");
+        }
+
+        ImGui.TableNextColumn();
+        ImGui.TextUnformatted(row.Offer.ShopText);
+        if (row.Offer.ShopNames.Count > 1)
+        {
+            HoverText(string.Join("\n", row.Offer.ShopNames));
+        }
+    }
+
+    private void RecomputeRows(DateTime now)
+    {
+        RebuildCurrencyList();
+        _uncheckedCount = 0;
+        if (_offersByCurrency == null || !_offersByCurrency.TryGetValue(_selectedCurrency, out var offers))
+        {
+            _rows = new List<Row>();
+            return;
+        }
+
+        var worldId = _rowsWorldId;
+        var historyDays = Configuration.MarketSaleHistoryLimit;
+        var staleHours = Configuration.MarketRefreshTimeHours;
+        var toCheck = new HashSet<uint>();
+        var rows = new List<Row>(offers.Count);
+        foreach (var offer in offers)
+        {
+            if (_search.Length != 0 && !offer.RewardText.Contains(_search, StringComparison.OrdinalIgnoreCase))
+            {
+                continue;
+            }
+
+            var valuation = CurrencyExchangeMath.Evaluate(offer.Costs, offer.Rewards, _selectedCurrency, part =>
+            {
+                var q = Quote(part, worldId, historyDays, now);
+                if (q.State == QuoteState.NotChecked || (q.State == QuoteState.Ok && CurrencyExchangeMath.IsStale(q.UpdatedAt, now, staleHours)))
+                {
+                    toCheck.Add(part.ItemId);
+                }
+
+                return q;
+            });
+
+            if (_hideUnknown && valuation.State is ExchangeValueState.Untradable or ExchangeValueState.CostUntradable)
+            {
+                continue;
+            }
+
+            var firstQuote = Quote(offer.Rewards[0], worldId, historyDays, now);
+            var otherCost = string.Join("、", offer.Costs.Where(c => c.ItemId != _selectedCurrency).Select(PartText));
+            rows.Add(new Row(offer, valuation, firstQuote.State == QuoteState.Ok ? firstQuote.UnitPrice : null, otherCost, BuildValueTooltip(valuation, otherCost)));
+        }
+
+        _uncheckedCount = toCheck.Count;
+        _rows = rows;
+        SortRows();
+    }
+
+    private void SortRows()
+    {
+        var desc = _sortDescending;
+        Comparison<Row> cmp = _sortColumn switch
+        {
+            ColItem => (a, b) => Dir(string.Compare(a.Offer.RewardText, b.Offer.RewardText, StringComparison.CurrentCulture), desc),
+            ColCost => (a, b) => Dir(a.Valuation.CurrencyCount.CompareTo(b.Valuation.CurrencyCount), desc),
+            ColOther => (a, b) => Dir(string.Compare(a.OtherCostText, b.OtherCostText, StringComparison.CurrentCulture), desc),
+            ColPrice => (a, b) => CurrencyExchangeMath.CompareNullableLast(a.RewardUnitPrice, b.RewardUnitPrice, desc),
+            ColSales => (a, b) => CurrencyExchangeMath.CompareNullableLast(a.Valuation.DailySales, b.Valuation.DailySales, desc),
+            ColTime => (a, b) => CurrencyExchangeMath.CompareNullableLast(Ticks(a), Ticks(b), desc),
+            ColShop => (a, b) => Dir(string.Compare(a.Offer.ShopText, b.Offer.ShopText, StringComparison.CurrentCulture), desc),
+            _ => (a, b) => CurrencyExchangeMath.CompareByValue(a.Valuation, b.Valuation, desc),
+        };
+
+        // List.Sort 不穩定；用原始順序當最後一層比較，避免同值列每次重算都跳動。
+        var indexed = _rows.Select((r, i) => (r, i)).ToList();
+        indexed.Sort((x, y) =>
+        {
+            var c = cmp(x.r, y.r);
+            return c != 0 ? c : x.i.CompareTo(y.i);
+        });
+        _rows = indexed.Select(x => x.r).ToList();
+
+        static int Dir(int c, bool d) => d ? -c : c;
+        static double? Ticks(Row r) => r.Valuation.OldestUpdate?.Ticks;
+    }
+
+    private MarketQuote Quote(ExchangePart part, uint worldId, int historyDays, DateTime now)
+    {
+        var item = _itemSheet.GetRowOrDefault(part.ItemId);
+        if (item == null || !item.CanBeTraded || !item.CanBePlacedOnMarket)
+        {
+            return new MarketQuote(QuoteState.NotMarketable, 0, null, null);
+        }
+
+        if (!_marketCache.CachedPricing.TryGetValue((part.ItemId, worldId), out var pricing))
+        {
+            if (_requestedAt.TryGetValue((part.ItemId, worldId), out var at))
+            {
+                return now - at < PendingTimeout
+                    ? new MarketQuote(QuoteState.Pending, 0, null, null)
+                    : new MarketQuote(QuoteState.NoData, 0, null, null);
+            }
+
+            return new MarketQuote(QuoteState.NotChecked, 0, null, null);
+        }
+
+        var unit = part.IsHq
+            ? CurrencyExchangeMath.ConservativeUnitPrice(pricing.AveragePriceHq, pricing.MinPriceHq)
+            : CurrencyExchangeMath.ConservativeUnitPrice(pricing.AveragePriceNq, pricing.MinPriceNq);
+        var daily = CurrencyExchangeMath.DailySales(pricing.SevenDaySellCount, pricing.LastSellDate, historyDays);
+        if (unit == null)
+        {
+            return new MarketQuote(QuoteState.NoData, 0, daily, pricing.LastUpdate);
+        }
+
+        return new MarketQuote(QuoteState.Ok, unit.Value, daily, pricing.LastUpdate);
+    }
+
+    private void RequestPrices(uint worldId)
+    {
+        if (_offersByCurrency == null || !_offersByCurrency.TryGetValue(_selectedCurrency, out var offers))
+        {
+            return;
+        }
+
+        var now = DateTime.Now;
+        var staleHours = Configuration.MarketRefreshTimeHours;
+        var sent = new HashSet<uint>();
+        var queued = 0;
+        foreach (var offer in offers)
+        {
+            foreach (var part in offer.Rewards.Concat(offer.Costs))
+            {
+                if (part.ItemId == _selectedCurrency || part.ItemId == CurrencyExchangeMath.GilItemId || !sent.Add(part.ItemId))
+                {
+                    continue;
+                }
+
+                var item = _itemSheet.GetRowOrDefault(part.ItemId);
+                if (item == null || !item.CanBeTraded || !item.CanBePlacedOnMarket)
+                {
+                    continue;
+                }
+
+                var cached = _marketCache.CachedPricing.TryGetValue((part.ItemId, worldId), out var pricing);
+                var stale = cached && CurrencyExchangeMath.IsStale(pricing!.LastUpdate, now, staleHours);
+                if (cached && !stale)
+                {
+                    continue;
+                }
+
+                if (_marketCache.RequestCheck(part.ItemId, worldId, stale))
+                {
+                    queued++;
+                    if (!cached)
+                    {
+                        _requestedAt[(part.ItemId, worldId)] = now;
+                    }
+                }
+            }
+        }
+
+        Logger.LogInformation("貨幣兌換價值排行：貨幣 {Currency} 排入查價 {Count} 件（世界 {WorldId}）。", _selectedCurrency, queued, worldId);
+        _dirty = true;
+    }
+
+    private void RefreshHoldings()
+    {
+        _holdings.Clear();
+        var activeId = _characterMonitor.ActiveCharacterId;
+        foreach (var (characterId, character) in _characterMonitor.GetPlayerCharacters())
+        {
+            foreach (var item in _inventoryMonitor.GetSpecificInventory(characterId, InventoryType.Currency))
+            {
+                if (item.Quantity == 0 || item.ItemId == CurrencyExchangeMath.GilItemId)
+                {
+                    continue;
+                }
+
+                if (!_holdings.TryGetValue(item.ItemId, out var holding))
+                {
+                    holding = new Holding();
+                    _holdings[item.ItemId] = holding;
+                }
+
+                var cap = CapFor(item.ItemId, characterId == activeId);
+                holding.PerCharacter.Add((character.Name, item.Quantity, cap));
+                var fill = CurrencyExchangeMath.FillRatio(item.Quantity, cap);
+                if (fill is { } f && (holding.MaxFill == null || f > holding.MaxFill))
+                {
+                    holding.MaxFill = f;
+                }
+            }
+        }
+
+        RebuildCurrencyList();
+    }
+
+    private long? CapFor(uint itemId, bool isActiveCharacter)
+    {
+        if (!IsGrandCompanySeal(itemId))
+        {
+            var stack = _itemSheet.GetRowOrDefault(itemId)?.Base.StackSize ?? 0;
+            return stack > 0 ? stack : null;
+        }
+
+        // 軍票上限看軍階，而軍階只讀得到目前登入的角色。
+        if (!isActiveCharacter || !_context.TryResolve<IPlayerState>(out var playerState) || !playerState.IsLoaded)
+        {
+            return null;
+        }
+
+        var grandCompany = _grandCompanySheet.GetRowOrDefault(itemId - 19);
+        if (grandCompany == null)
+        {
+            return null;
+        }
+
+        var rank = playerState.GetGrandCompanyRank(grandCompany.Value);
+        var maxSeals = rank == 0 ? 0u : _grandCompanyRankSheet.GetRowOrDefault(rank)?.MaxSeals ?? 0u;
+        return maxSeals > 0 ? maxSeals : null;
+    }
+
+    private void RebuildCurrencyList()
+    {
+        if (_offersByCurrency == null)
+        {
+            return;
+        }
+
+        IEnumerable<uint> ids = _showAllCurrencies
+            ? _offersByCurrency.Keys
+            : _offersByCurrency.Keys.Where(c => _holdings.ContainsKey(c));
+        _currencyList = ids
+            .OrderByDescending(c => _holdings.TryGetValue(c, out var h) ? h.MaxFill ?? -0.5 : -1)
+            .ThenBy(c => _itemSheet.GetRowOrDefault(c)?.NameString ?? "", StringComparer.CurrentCulture)
+            .ToList();
+        _currencyLabels.Clear();
+        foreach (var c in _currencyList)
+        {
+            var fill = _holdings.TryGetValue(c, out var h) ? h.MaxFill : null;
+            var fillText = fill is { } f ? (f * 100).ToString("0", CultureInfo.InvariantCulture) + "%" : "?";
+            _currencyLabels[c] = (_itemSheet.GetRowOrDefault(c)?.NameString ?? "?") + "  " + fillText + "##cur" + c;
+        }
+
+        if (_selectedCurrency == 0 && _currencyList.Count > 0)
+        {
+            _selectedCurrency = _currencyList[0];
+            _dirty = true;
+        }
+    }
+
+    private Dictionary<uint, List<Offer>> BuildOffers()
+    {
+        var seen = new HashSet<object>(ReferenceEqualityComparer.Instance);
+        var bySignature = new Dictionary<string, Offer>();
+        void Add(object listingKey, IReadOnlyList<ExchangePart> costs, IReadOnlyList<ExchangePart> rewards, string shopName)
+        {
+            if (!seen.Add(listingKey) || costs.Count == 0 || rewards.Count == 0)
+            {
+                return;
+            }
+
+            if (shopName == "Unknown Vendor")
+            {
+                shopName = "Unknown".Loc();
+            }
+
+            var signature = string.Join(",", costs.Select(c => $"{c.ItemId}x{c.Count}{(c.IsHq ? "h" : "")}")) + ">" +
+                            string.Join(",", rewards.Select(r => $"{r.ItemId}x{r.Count}{(r.IsHq ? "h" : "")}"));
+            if (bySignature.TryGetValue(signature, out var existing))
+            {
+                if (!existing.ShopNames.Contains(shopName))
+                {
+                    existing.ShopNames.Add(shopName);
+                }
+
+                return;
+            }
+
+            var first = _itemSheet.GetRowOrDefault(rewards[0].ItemId);
+            if (first == null || first.Icon == 0)
+            {
+                return;
+            }
+
+            bySignature[signature] = new Offer(costs, rewards, first, new List<string> { shopName }, this);
+        }
+
+        foreach (var source in _itemInfoCache.GetItemSourcesByType(ItemInfoType.SpecialShop).OfType<ItemSpecialShopSource>())
+        {
+            Add(source.ShopListing, Parts(source.ShopListing.Costs), Parts(source.ShopListing.Rewards), source.Shop.Name);
+        }
+
+        foreach (var source in _itemInfoCache.GetItemSourcesByType(ItemInfoType.FateShop).OfType<ItemFateShopSource>())
+        {
+            Add(source.ShopListing, Parts(source.ShopListing.Costs), Parts(source.ShopListing.Rewards), source.Shop.Name);
+        }
+
+        // 軍票商店一次只給 1 個；GCScripShopItemRow.Count 回的是軍票價，不是數量。
+        foreach (var source in _itemInfoCache.GetItemSourcesByType(ItemInfoType.GCShop).OfType<ItemGCShopSource>())
+        {
+            if (source.CostItem == null)
+            {
+                continue;
+            }
+
+            var costs = new[] { new ExchangePart(source.CostItem.RowId, source.GCScripShopItem.Base.CostGCSeals, false) };
+            var rewards = new[] { new ExchangePart(source.Item.RowId, 1, false) };
+            Add(source.GCScripShopItem, costs, rewards, source.Shop.Name);
+        }
+
+        var result = new Dictionary<uint, List<Offer>>();
+        foreach (var offer in bySignature.Values)
+        {
+            foreach (var cost in offer.Costs.Select(c => c.ItemId).Distinct())
+            {
+                var costItem = _itemSheet.GetRowOrDefault(cost);
+                if (costItem == null || !IsCurrencyItem(costItem))
+                {
+                    continue;
+                }
+
+                if (!result.TryGetValue(cost, out var list))
+                {
+                    list = new List<Offer>();
+                    result[cost] = list;
+                }
+
+                list.Add(offer);
+            }
+        }
+
+        foreach (var offer in bySignature.Values)
+        {
+            offer.ShopNames.Sort(StringComparer.CurrentCulture);
+        }
+
+        Logger.LogInformation("貨幣兌換價值排行：整理出 {Offers} 筆兌換、{Currencies} 種貨幣。", bySignature.Count, result.Count);
+        return result;
+
+        static ExchangePart[] Parts(IEnumerable<IShopListingItem> items) =>
+            items.Where(i => i.Item.RowId != 0).Select(i => new ExchangePart(i.Item.RowId, Math.Max(1u, i.Count), i.IsHq == true)).ToArray();
+    }
+
+    private static bool IsCurrencyItem(ItemRow item)
+    {
+        if (item.RowId == CurrencyExchangeMath.GilItemId)
+        {
+            return false;
+        }
+
+        return item.RowId is >= 20 and <= 60 && item.Base.FilterGroup == 16 || item.Base.ItemUICategory.RowId == 100;
+    }
+
+    private static bool IsGrandCompanySeal(uint itemId) => itemId is 20 or 21 or 22;
+
+    private string BuildValueTooltip(ExchangeValuation v, string otherCost)
+    {
+        var currencyName = _itemSheet.GetRowOrDefault(_selectedCurrency)?.NameString ?? "?";
+        return v.State switch
+        {
+            ExchangeValueState.Ok => "Rewards ?? - also pay ?? = ?? Gil for ?? ??".Loc(
+                FormatGil(v.RewardValue ?? 0), FormatGil(v.OtherCost ?? 0),
+                FormatGil((v.RewardValue ?? 0) - (v.OtherCost ?? 0)), v.CurrencyCount, currencyName),
+            ExchangeValueState.Untradable => "Cannot value: the reward cannot be sold on the market.".Loc(),
+            ExchangeValueState.CostUntradable => "Cannot value: you also have to pay something that cannot be bought on the market (??).".Loc(otherCost),
+            ExchangeValueState.NotChecked => "No price yet. Press Check prices.".Loc(),
+            ExchangeValueState.Pending => "Waiting for universalis.".Loc(),
+            ExchangeValueState.NoData => "universalis has no listing or sale for this item on your home world.".Loc(),
+            _ => "?",
+        };
+    }
+
+    private static string StateLabel(ExchangeValueState state) => state switch
+    {
+        ExchangeValueState.Untradable or ExchangeValueState.CostUntradable => "Cannot value".Loc(),
+        ExchangeValueState.NotChecked => "Not checked".Loc(),
+        ExchangeValueState.Pending => "Checking...".Loc(),
+        ExchangeValueState.NoData => "No data".Loc(),
+        _ => "?",
+    };
+
+    private static string FormatGil(double value)
+    {
+        return Math.Abs(value) < 100
+            ? value.ToString("0.0", CultureInfo.InvariantCulture)
+            : value.ToString("N0", CultureInfo.InvariantCulture);
+    }
+
+    private static string FormatAge(TimeSpan age)
+    {
+        if (age.TotalMinutes < 1)
+        {
+            return "just now".Loc();
+        }
+
+        if (age.TotalHours < 1)
+        {
+            return "?? min ago".Loc((int)age.TotalMinutes);
+        }
+
+        return age.TotalDays < 1 ? "?? h ago".Loc((int)age.TotalHours) : "?? d ago".Loc((int)age.TotalDays);
+    }
+
+    private static void HoverText(string text)
+    {
+        if (!ImGui.IsItemHovered(ImGuiHoveredFlags.AllowWhenDisabled))
+        {
+            return;
+        }
+
+        using var tooltip = ImRaii.Tooltip();
+        if (tooltip.Success)
+        {
+            ImGui.PushTextWrapPos(ImGui.GetFontSize() * 30);
+            ImGui.TextUnformatted(text);
+            ImGui.PopTextWrapPos();
+        }
+    }
+
+    private sealed class Holding
+    {
+        public readonly List<(string Name, long Amount, long? Cap)> PerCharacter = new();
+        public double? MaxFill;
+    }
+
+    private sealed record Row(Offer Offer, ExchangeValuation Valuation, double? RewardUnitPrice, string OtherCostText, string ValueTooltip);
+
+    private sealed class Offer
+    {
+        public Offer(IReadOnlyList<ExchangePart> costs, IReadOnlyList<ExchangePart> rewards, ItemRow firstReward, List<string> shopNames, CurrencyExchangeWindow window)
+        {
+            Costs = costs;
+            Rewards = rewards;
+            FirstReward = firstReward;
+            ShopNames = shopNames;
+            RewardText = string.Join(" + ", rewards.Select(r => window.PartText(r)));
+        }
+
+        private string? _shopText;
+        public IReadOnlyList<ExchangePart> Costs { get; }
+        public IReadOnlyList<ExchangePart> Rewards { get; }
+        public ItemRow FirstReward { get; }
+        public List<string> ShopNames { get; }
+        public string RewardText { get; }
+
+        // 店名清單在 BuildOffers 收完才定，所以第一次取用時才組字串。
+        public string ShopText => _shopText ??= ShopNames.Count <= 1
+            ? ShopNames.FirstOrDefault() ?? ""
+            : "?? (+?? more)".Loc(ShopNames[0], ShopNames.Count - 1);
+    }
+
+    private string PartText(ExchangePart part)
+    {
+        var name = _itemSheet.GetRowOrDefault(part.ItemId)?.NameString ?? "?";
+        var hq = part.IsHq ? " (HQ)" : "";
+        return part.Count > 1 ? $"{name}{hq} x{part.Count.ToString("N0", CultureInfo.InvariantCulture)}" : name + hq;
+    }
+}

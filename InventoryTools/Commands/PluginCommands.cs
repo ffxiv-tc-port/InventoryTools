@@ -130,6 +130,13 @@ namespace InventoryTools.Commands
             _mediatorService.Publish(new ToggleGenericWindowMessage(typeof(RetainerTasksWindow)));
         }
 
+        [Command("/atcurrency")]
+        [HelpMessage("Opens the allagan tools currency exchange value window")]
+        public void ToggleCurrencyExchangeWindow(string command, string args)
+        {
+            _mediatorService.Publish(new ToggleGenericWindowMessage(typeof(CurrencyExchangeWindow)));
+        }
+
         [Command("/atconfig")]
         [HelpMessage("Opens the allagan tools configuration window")]
         public  void OpenConfigurationWindow(string command, string args)
