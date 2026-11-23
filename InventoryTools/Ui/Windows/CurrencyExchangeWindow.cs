@@ -741,7 +741,7 @@ public class CurrencyExchangeWindow : GenericWindow, IMenuWindow
             Add(source.ShopListing, Parts(source.ShopListing.Costs), Parts(source.ShopListing.Rewards), source.Shop.Name);
         }
 
-        // 軍票商店一次只給 1 個；GCScripShopItemRow.Count 回的是軍票價，不是數量。
+        // 軍票商店一次只給 1 個，成本直接取軍票價。
         foreach (var source in _itemInfoCache.GetItemSourcesByType(ItemInfoType.GCShop).OfType<ItemGCShopSource>())
         {
             if (source.CostItem == null)
