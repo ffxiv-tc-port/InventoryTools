@@ -341,6 +341,25 @@ namespace InventoryTools
             // 「背包剛剛動過」。這個事件是 InventoryMonitor 用 RunOnFrameworkThread 送出來的,
             // 所以這裡確定在主執行緒上 —— IPC 的實作是跑在呼叫端的執行緒上的,這一點不能破。
             _bagSpacePraiseService.Evaluate();
+            MarkCurrencyScanned();
+        }
+
+        // 這位角色的貨幣是用現行追蹤清單掃過的 ⇒ 貨幣兌換排行可以把「沒有紀錄」當成 0，不再顯示「?」。
+        private void MarkCurrencyScanned()
+        {
+            var characterId = _characterMonitor.LocalContentId;
+            if (characterId == 0 || !_inventoryScanner.InMemory.Contains(FFXIVClientStructs.FFXIV.Client.Game.InventoryType.Currency))
+            {
+                return;
+            }
+
+            var map = _configuration.CurrencyScanVersionByCharacter;
+            if (map.TryGetValue(characterId, out var version) && version >= TrackedCurrencies.ExtraSetVersion)
+            {
+                return;
+            }
+
+            _configuration.CurrencyScanVersionByCharacter = new Dictionary<ulong, int>(map) { [characterId] = TrackedCurrencies.ExtraSetVersion };
         }
 
 

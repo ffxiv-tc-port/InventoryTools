@@ -30,6 +30,7 @@ namespace InventoryTools.Ui;
 
 // 本檔假設與契約：
 // - 兌換資料來自 ItemInfoCache 的特殊商店／危命商店／軍票商店來源；貨幣解碼由 AllaganLib 負責。
+// - 哪些算貨幣以 TrackedCurrencies 為準（與 Currency 容器的掃描同一份）；持有量只算角色篩選選到的角色。
 // - 只讀市價快取；只有按「查價」才經 IMarketCache.RequestCheck 排進既有的節流佇列（只送物品 ID 與世界）。
 // - 全部在框架執行緒的 Draw 內執行；不跨幀保存任何原生指標。
 public class CurrencyExchangeWindow : GenericWindow, IMenuWindow
@@ -69,8 +70,10 @@ public class CurrencyExchangeWindow : GenericWindow, IMenuWindow
     private int _uncheckedCount;
     private int? _pendingSortColumn;
     private string _summaryText = "";
+    private string _summaryText2 = "";
     private string _summaryTooltip = "";
     private bool _summaryMuted = true;
+    private KeyValuePair<ulong, CriticalCommonLib.Models.Character>[] _playerCharacters = [];
 
     private const int ColItem = 0;
     private const int ColCost = 1;
@@ -193,6 +196,7 @@ public class CurrencyExchangeWindow : GenericWindow, IMenuWindow
 
     private void DrawCurrencyList()
     {
+        DrawCharacterFilter();
         if (ImGui.Checkbox("Show all currencies".Loc(), ref _showAllCurrencies))
         {
             RebuildCurrencyList();
@@ -216,9 +220,10 @@ public class CurrencyExchangeWindow : GenericWindow, IMenuWindow
 
             _holdings.TryGetValue(currencyId, out var holding);
             var fill = holding?.MaxFill;
+            var noOffers = !HasOffers(currencyId);
             ImGui.Image(ImGuiService.GetIconTexture(item.Icon).Handle, UiScale.Px(18, 18));
             ImGui.SameLine();
-            using (var color = ImRaii.PushColor(ImGuiCol.Text, ImGuiColors.DalamudOrange, fill >= 0.9))
+            using (var color = ImRaii.PushColor(ImGuiCol.Text, noOffers ? ImGuiColors.DalamudGrey : ImGuiColors.DalamudOrange, noOffers || fill >= 0.9))
             {
                 if (ImGui.Selectable(_currencyLabels.GetValueOrDefault(currencyId, "?"), _selectedCurrency == currencyId))
                 {
@@ -230,12 +235,12 @@ public class CurrencyExchangeWindow : GenericWindow, IMenuWindow
 
             if (ImGui.IsItemHovered())
             {
-                DrawHoldingTooltip(item, holding);
+                DrawHoldingTooltip(item, holding, noOffers);
             }
         }
     }
 
-    private static void DrawHoldingTooltip(ItemRow item, Holding? holding)
+    private static void DrawHoldingTooltip(ItemRow item, Holding? holding, bool noOffers)
     {
         using var tooltip = ImRaii.Tooltip();
         if (!tooltip.Success)
@@ -244,9 +249,14 @@ public class CurrencyExchangeWindow : GenericWindow, IMenuWindow
         }
 
         ImGui.TextUnformatted(item.NameString);
-        if (holding == null || holding.PerCharacter.Count == 0)
+        if (noOffers)
         {
-            ImGui.TextColored(ImGuiColors.DalamudGrey, "None of your recorded characters holds this.".Loc());
+            ImGui.TextColored(ImGuiColors.DalamudGrey, "No shop exchanges this currency, so there is nothing to rank.".Loc());
+        }
+
+        if (holding == null || holding.PerCharacter.Count + holding.Unknown.Count == 0)
+        {
+            ImGui.TextColored(ImGuiColors.DalamudGrey, "None of the selected characters holds this.".Loc());
             return;
         }
 
@@ -254,6 +264,16 @@ public class CurrencyExchangeWindow : GenericWindow, IMenuWindow
         {
             var capText = cap is { } c ? c.ToString("N0", CultureInfo.InvariantCulture) : "?";
             ImGui.TextUnformatted($"{name}: {amount.ToString("N0", CultureInfo.InvariantCulture)} / {capText}");
+        }
+
+        foreach (var name in holding.Unknown)
+        {
+            ImGui.TextColored(ImGuiColors.DalamudGrey, $"{name}: ?");
+        }
+
+        if (holding.Unknown.Count > 0)
+        {
+            ImGui.TextColored(ImGuiColors.DalamudGrey, "?: this currency started being tracked after the character's last login; log in once to record it.".Loc());
         }
 
         ImGui.Separator();
@@ -332,6 +352,90 @@ public class CurrencyExchangeWindow : GenericWindow, IMenuWindow
         {
             HoverText(_summaryTooltip);
         }
+
+        if (_summaryText2.Length != 0)
+        {
+            ImGui.TextColored(_summaryMuted ? ImGuiColors.DalamudGrey : ImGuiColors.DalamudWhite, _summaryText2);
+            if (_summaryTooltip.Length != 0)
+            {
+                HoverText(_summaryTooltip);
+            }
+        }
+    }
+
+    private void DrawCharacterFilter()
+    {
+        var excluded = Configuration.CurrencyExchangeExcludedCharacters;
+        var all = _playerCharacters;
+        var selected = all.Count(c => CurrencyExchangeMath.IsCharacterSelected(c.Key, excluded));
+        if (ImGui.Button("Characters: ??/??".Loc(selected, all.Length) + "##currencyCharacters", new Vector2(-1, 0)))
+        {
+            ImGui.OpenPopup("currencyCharactersPopup");
+        }
+
+        HoverText("Only the checked characters count toward holdings, fill level and the \"all into #1\" totals. Saved; new characters are included automatically.".Loc());
+
+        using var popup = ImRaii.Popup("currencyCharactersPopup");
+        if (!popup.Success)
+        {
+            return;
+        }
+
+        if (ImGui.Button("Select all".Loc()))
+        {
+            SetExcludedCharacters(new HashSet<ulong>());
+        }
+
+        ImGui.SameLine();
+        var activeId = _characterMonitor.ActiveCharacterId;
+        var activeKnown = activeId != 0 && all.Any(c => c.Key == activeId);
+        using (ImRaii.Disabled(!activeKnown))
+        {
+            if (ImGui.Button("Only current character".Loc()))
+            {
+                SetExcludedCharacters(CurrencyExchangeMath.ExcludeAllBut(all.Select(c => c.Key), activeId));
+            }
+        }
+
+        if (!activeKnown)
+        {
+            HoverText("Not logged in.".Loc());
+        }
+
+        ImGui.Separator();
+        using var list = ImRaii.Child("currencyCharactersList", new Vector2(UiScale.Px(260), UiScale.Px(Math.Min(all.Length, 12) * 24 + 8)), false);
+        if (!list.Success)
+        {
+            return;
+        }
+
+        foreach (var (id, character) in all.OrderBy(c => c.Value.Name, StringComparer.CurrentCulture))
+        {
+            var on = CurrencyExchangeMath.IsCharacterSelected(id, excluded);
+            var world = _worldSheet.GetRowOrDefault(character.WorldId)?.Name.ExtractText() ?? "?";
+            if (ImGui.Checkbox($"{character.Name} ({world})##cc{id}", ref on))
+            {
+                var next = new HashSet<ulong>(excluded);
+                if (on)
+                {
+                    next.Remove(id);
+                }
+                else
+                {
+                    next.Add(id);
+                }
+
+                SetExcludedCharacters(next);
+            }
+        }
+    }
+
+    private void SetExcludedCharacters(HashSet<ulong> excluded)
+    {
+        Configuration.CurrencyExchangeExcludedCharacters = excluded;
+        RefreshHoldings();
+        _dirty = true;
+        _lastRecompute = DateTime.MinValue;
     }
 
     private void DrawTable(DateTime now)
@@ -692,8 +796,28 @@ public class CurrencyExchangeWindow : GenericWindow, IMenuWindow
     {
         _holdings.Clear();
         var activeId = _characterMonitor.ActiveCharacterId;
-        foreach (var (characterId, character) in _characterMonitor.GetPlayerCharacters())
+        _playerCharacters = _characterMonitor.GetPlayerCharacters();
+        PruneDeletedCharacters();
+        var excluded = Configuration.CurrencyExchangeExcludedCharacters;
+        var scanVersions = Configuration.CurrencyScanVersionByCharacter;
+        foreach (var (characterId, character) in _playerCharacters)
         {
+            if (!CurrencyExchangeMath.IsCharacterSelected(characterId, excluded))
+            {
+                continue;
+            }
+
+            if (!CurrencyExchangeMath.IsAmountKnown(true, scanVersions.TryGetValue(characterId, out var v) ? v : null, TrackedCurrencies.ExtraSetVersion))
+            {
+                foreach (var extraId in TrackedCurrencies.ExtraItemIds)
+                {
+                    if (_itemSheet.GetRowOrDefault(extraId) != null)
+                    {
+                        GetOrAddHolding(extraId).Unknown.Add(character.Name);
+                    }
+                }
+            }
+
             foreach (var item in _inventoryMonitor.GetSpecificInventory(characterId, InventoryType.Currency))
             {
                 if (item.Quantity == 0 || item.ItemId == CurrencyExchangeMath.GilItemId)
@@ -701,14 +825,10 @@ public class CurrencyExchangeWindow : GenericWindow, IMenuWindow
                     continue;
                 }
 
-                if (!_holdings.TryGetValue(item.ItemId, out var holding))
-                {
-                    holding = new Holding();
-                    _holdings[item.ItemId] = holding;
-                }
-
+                var holding = GetOrAddHolding(item.ItemId);
                 var cap = CapFor(item.ItemId, characterId == activeId);
                 holding.PerCharacter.Add((character.Name, item.Quantity, cap));
+                holding.Unknown.Remove(character.Name);
                 if (characterId == activeId)
                 {
                     holding.ActiveIndex = holding.PerCharacter.Count - 1;
@@ -723,6 +843,34 @@ public class CurrencyExchangeWindow : GenericWindow, IMenuWindow
 
         RebuildCurrencyList();
     }
+
+    private Holding GetOrAddHolding(uint itemId)
+    {
+        if (!_holdings.TryGetValue(itemId, out var holding))
+        {
+            holding = new Holding();
+            _holdings[itemId] = holding;
+        }
+
+        return holding;
+    }
+
+    // 刪掉的角色不留在設定裡，兩份清單才不會一直長大；角色清單是空的（還沒載入）時不動。
+    private void PruneDeletedCharacters()
+    {
+        var existing = _playerCharacters.Select(c => c.Key).ToHashSet();
+        if (CurrencyExchangeMath.PruneCharacters(Configuration.CurrencyExchangeExcludedCharacters, existing) is { } excluded)
+        {
+            Configuration.CurrencyExchangeExcludedCharacters = excluded;
+        }
+
+        if (CurrencyExchangeMath.PruneCharacters(Configuration.CurrencyScanVersionByCharacter, existing) is { } versions)
+        {
+            Configuration.CurrencyScanVersionByCharacter = versions;
+        }
+    }
+
+    private bool HasOffers(uint currencyId) => _offersByCurrency != null && _offersByCurrency.ContainsKey(currencyId);
 
     private long? CapFor(uint itemId, bool isActiveCharacter)
     {
@@ -756,11 +904,14 @@ public class CurrencyExchangeWindow : GenericWindow, IMenuWindow
             return;
         }
 
+        // 沒有商店兌換的貨幣（抽獎、升級用）也列出來看持有量，灰字排在最後。
         IEnumerable<uint> ids = _showAllCurrencies
-            ? _offersByCurrency.Keys
-            : _offersByCurrency.Keys.Where(c => _holdings.ContainsKey(c));
+            ? _offersByCurrency.Keys.Concat(_holdings.Keys).Concat(TrackedCurrencies.ExtraItemIds.Where(c => _itemSheet.GetRowOrDefault(c) != null))
+            : _offersByCurrency.Keys.Where(c => _holdings.ContainsKey(c)).Concat(_holdings.Keys);
         _currencyList = ids
-            .OrderByDescending(c => _holdings.TryGetValue(c, out var h) ? h.MaxFill ?? -0.5 : -1)
+            .Distinct()
+            .OrderBy(c => HasOffers(c) ? 0 : 1)
+            .ThenByDescending(c => _holdings.TryGetValue(c, out var h) ? h.MaxFill ?? -0.5 : -1)
             .ThenBy(c => _itemSheet.GetRowOrDefault(c)?.NameString ?? "", StringComparer.CurrentCulture)
             .ToList();
         _currencyLabels.Clear();
@@ -768,6 +919,11 @@ public class CurrencyExchangeWindow : GenericWindow, IMenuWindow
         {
             var fill = _holdings.TryGetValue(c, out var h) ? h.MaxFill : null;
             var fillText = fill is { } f ? (f * 100).ToString("0", CultureInfo.InvariantCulture) + "%" : "?";
+            if (fill != null && h!.Unknown.Count > 0)
+            {
+                fillText += " ?";
+            }
+
             _currencyLabels[c] = (_itemSheet.GetRowOrDefault(c)?.NameString ?? "?") + "  " + fillText + "##cur" + c;
         }
 
@@ -871,15 +1027,7 @@ public class CurrencyExchangeWindow : GenericWindow, IMenuWindow
             items.Where(i => i.Item.RowId != 0).Select(i => new ExchangePart(i.Item.RowId, Math.Max(1u, i.Count), i.IsHq == true)).ToArray();
     }
 
-    private static bool IsCurrencyItem(ItemRow item)
-    {
-        if (item.RowId == CurrencyExchangeMath.GilItemId)
-        {
-            return false;
-        }
-
-        return item.RowId is >= 20 and <= 60 && item.Base.FilterGroup == 16 || item.Base.ItemUICategory.RowId == 100;
-    }
+    private static bool IsCurrencyItem(ItemRow item) => TrackedCurrencies.IsTracked(item);
 
     private static bool IsGrandCompanySeal(uint itemId) => itemId is 20 or 21 or 22;
 
@@ -948,7 +1096,7 @@ public class CurrencyExchangeWindow : GenericWindow, IMenuWindow
     }
 
     /// <summary>
-    /// 摘要與穩健值用的「手上這批」：目前登入角色有紀錄就用它，否則取已記錄角色裡最多的那位（數量是上次登入時的）。
+    /// 摘要與穩健值用的「手上這批」：只看篩選選到的角色；目前登入角色有紀錄就用它，否則取其中最多的那位（數量是上次登入時的）。
     /// 沒有任何角色持有回 (0, null)。
     /// </summary>
     private (long Amount, string? Name) HeldFor(uint currencyId)
@@ -980,10 +1128,23 @@ public class CurrencyExchangeWindow : GenericWindow, IMenuWindow
     {
         _summaryMuted = true;
         _summaryTooltip = "";
+        _summaryText2 = "";
+        _holdings.TryGetValue(_selectedCurrency, out var holding);
+        var unknown = holding?.Unknown.Count ?? 0;
+        var unknownNote = unknown > 0 ? "?? selected characters: amount unknown (?)".Loc(unknown) : "";
         var (held, holder) = HeldFor(_selectedCurrency);
         if (holder == null)
         {
-            _summaryText = "None of your recorded characters holds this.".Loc();
+            _summaryText = unknown > 0 ? unknownNote : "None of the selected characters holds this.".Loc();
+            return;
+        }
+
+        if (!HasOffers(_selectedCurrency))
+        {
+            var sum = CurrencyExchangeMath.MultiCharacterExchange(holding!.PerCharacter.Select(p => p.Amount), 0).Held;
+            _summaryText = "Selected characters hold ?? in total. No shop exchanges this currency, so there is nothing to rank.".Loc(
+                sum.ToString("N0", CultureInfo.InvariantCulture));
+            _summaryText2 = unknownNote;
             return;
         }
 
@@ -1015,6 +1176,7 @@ public class CurrencyExchangeWindow : GenericWindow, IMenuWindow
         if (top == null)
         {
             _summaryText = "No row can be valued yet; press Check prices.".Loc();
+            _summaryText2 = unknownNote;
             return;
         }
 
@@ -1032,6 +1194,22 @@ public class CurrencyExchangeWindow : GenericWindow, IMenuWindow
             _summaryText = "Holding ?? (??): all into #1 ?? = ?? exchanges, about ?? Gil".Loc(heldText, holder, top.Offer.RewardText,
                 times.ToString("N0", CultureInfo.InvariantCulture), FormatGil(total));
             _summaryMuted = false;
+        }
+
+        if (holding!.PerCharacter.Count >= 2)
+        {
+            var (sumHeld, sumTimes) = CurrencyExchangeMath.MultiCharacterExchange(holding.PerCharacter.Select(p => p.Amount), v0.CurrencyCount);
+            _summaryText2 = "?? selected characters hold ?? in total: each exchanging all into #1 = ?? exchanges, about ?? Gil".Loc(
+                holding.PerCharacter.Count, sumHeld.ToString("N0", CultureInfo.InvariantCulture),
+                sumTimes.ToString("N0", CultureInfo.InvariantCulture), FormatGil(sumTimes * ((v0.RewardValue ?? 0) - (v0.OtherCost ?? 0))));
+            if (unknownNote.Length != 0)
+            {
+                _summaryText2 += "   " + unknownNote;
+            }
+        }
+        else
+        {
+            _summaryText2 = unknownNote;
         }
 
         var lines = new List<string>
@@ -1057,6 +1235,7 @@ public class CurrencyExchangeWindow : GenericWindow, IMenuWindow
         }
 
         lines.Add("Before market tax; other things you also pay are already subtracted. Other characters' amounts are from their last login.".Loc());
+        lines.Add("Currencies cannot be pooled between characters, so the total counts each character's exchanges separately. Only the characters checked under Characters are counted.".Loc());
         _summaryTooltip = string.Join("\n", lines);
     }
 
@@ -1077,6 +1256,7 @@ public class CurrencyExchangeWindow : GenericWindow, IMenuWindow
     private sealed class Holding
     {
         public readonly List<(string Name, long Amount, long? Cap)> PerCharacter = new();
+        public readonly List<string> Unknown = new();
         public double? MaxFill;
         public int? ActiveIndex;
     }

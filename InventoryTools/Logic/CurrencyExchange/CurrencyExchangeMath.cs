@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace InventoryTools.Logic.CurrencyExchange;
 
@@ -260,6 +261,62 @@ public static class CurrencyExchangeMath
         }
 
         return Math.Min(1.0, (double)Math.Max(0, amount) / cap.Value);
+    }
+
+    /// <summary>角色篩選用排除清單：空清單＝全部角色（缺鍵、舊設定檔都落在這裡）。</summary>
+    public static bool IsCharacterSelected(ulong characterId, IReadOnlySet<ulong> excluded) => !excluded.Contains(characterId);
+
+    /// <summary>「只看這一位」：排除其他所有角色。</summary>
+    public static HashSet<ulong> ExcludeAllBut(IEnumerable<ulong> allCharacters, ulong keep)
+    {
+        var result = new HashSet<ulong>(allCharacters);
+        result.Remove(keep);
+        return result;
+    }
+
+    /// <summary>只留還存在的角色；沒有要刪的回 null（呼叫端就不必寫回設定）。<paramref name="existing"/> 空的時候一律不刪。</summary>
+    public static HashSet<ulong>? PruneCharacters(IReadOnlySet<ulong> ids, IReadOnlySet<ulong> existing)
+    {
+        if (existing.Count == 0 || ids.All(existing.Contains))
+        {
+            return null;
+        }
+
+        return ids.Where(existing.Contains).ToHashSet();
+    }
+
+    /// <summary>同 <see cref="PruneCharacters"/>，給「角色 → 版本」的對照。</summary>
+    public static Dictionary<ulong, int>? PruneCharacters(IReadOnlyDictionary<ulong, int> map, IReadOnlySet<ulong> existing)
+    {
+        if (existing.Count == 0 || map.Keys.All(existing.Contains))
+        {
+            return null;
+        }
+
+        return map.Where(kv => existing.Contains(kv.Key)).ToDictionary(kv => kv.Key, kv => kv.Value);
+    }
+
+    /// <summary>
+    /// 這位角色的持有量知不知道：舊判定的貨幣一律知道；後來才追蹤的貨幣要這位角色用追蹤版本 ≥ <paramref name="requiredVersion"/> 登入過。
+    /// </summary>
+    public static bool IsAmountKnown(bool isLaterTracked, int? scannedVersion, int requiredVersion) =>
+        !isLaterTracked || scannedVersion >= requiredVersion;
+
+    /// <summary>
+    /// 多位角色各自全換：貨幣不能跨角色合併，所以次數是每位各自無條件捨去後再加總。
+    /// 回 (合計持有, 合計次數)；用量 0 時次數為 0。
+    /// </summary>
+    public static (long Held, long Times) MultiCharacterExchange(IEnumerable<long> heldPerCharacter, uint currencyCount)
+    {
+        long held = 0;
+        long times = 0;
+        foreach (var h in heldPerCharacter)
+        {
+            held += Math.Max(0, h);
+            times += ExchangeTimes(h, currencyCount);
+        }
+
+        return (held, times);
     }
 
     private static ExchangeValueState FromQuote(QuoteState s, bool isCost) => s switch

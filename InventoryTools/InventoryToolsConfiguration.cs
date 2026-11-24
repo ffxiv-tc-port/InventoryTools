@@ -866,6 +866,34 @@ namespace InventoryTools
             }
         }
 
+        /// <summary>
+        /// 貨幣兌換價值排行不算進去的角色。用排除清單：空＝全部角色，缺鍵的舊設定檔也就是全部角色。
+        /// 寫入一律整個換新的集合（背景存檔正在走訪舊的那份）。
+        /// </summary>
+        public HashSet<ulong> CurrencyExchangeExcludedCharacters
+        {
+            get => _currencyExchangeExcludedCharacters ??= new HashSet<ulong>();
+            set
+            {
+                _currencyExchangeExcludedCharacters = value;
+                IsDirty = true;
+            }
+        }
+
+        /// <summary>
+        /// 角色 → 登入時用的 <c>TrackedCurrencies.ExtraSetVersion</c>；不到現行版本的角色，後來才追蹤的貨幣持有量算「不知道」。
+        /// 寫入一律整個換新的對照（背景存檔正在走訪舊的那份）。
+        /// </summary>
+        public Dictionary<ulong, int> CurrencyScanVersionByCharacter
+        {
+            get => _currencyScanVersionByCharacter ??= new Dictionary<ulong, int>();
+            set
+            {
+                _currencyScanVersionByCharacter = value;
+                IsDirty = true;
+            }
+        }
+
 
         public bool SeenWizardVersion(string versionNumber)
         {
@@ -994,6 +1022,8 @@ namespace InventoryTools
         private List<uint>? _marketBoardWorldIds;
         private List<uint>? _marketBoardExcludedWorldIds;
         private bool _marketBoardExcludedWorldsSeeded;
+        private HashSet<ulong>? _currencyExchangeExcludedCharacters;
+        private Dictionary<ulong, int>? _currencyScanVersionByCharacter;
         private HighlightWhen _highlightWhenEnum;
 
         public ModifiableHotkey? GetHotkey(string hotkey)
