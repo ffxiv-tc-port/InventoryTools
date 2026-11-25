@@ -8,7 +8,7 @@ namespace InventoryTools.Services;
 
 /// <summary>
 /// 取代 AllaganLib.Shared 的 <see cref="SeTime"/>：位址都解得出時逐行等同原實作；
-/// GetServerTime 解不出時改用本機時鐘、Framework 解不出時艾歐澤亞時間改由伺服器時間推算，不讓插件載入失敗。
+/// GetServerTime 解不出時改用本機時鐘、Framework 解不出時艾奧傑亞時間改由伺服器時間推算，不讓插件載入失敗。
 /// 原實作從不觸發 <see cref="WeatherChanged"/>，這裡照舊。
 /// </summary>
 public sealed class SeTimeService : ISeTime
@@ -38,7 +38,7 @@ public sealed class SeTimeService : ISeTime
         if (!ServerTimeAvailable || !FrameworkAvailable)
         {
             logger.LogWarning(
-                "遊戲改版後 Framework 的位址對不上（GetServerTime {ServerTime}、Instance {Instance}）：伺服器與艾歐澤亞時間改用本機時鐘推算，可能差幾秒；其餘功能照常。",
+                "遊戲改版後 Framework 的位址對不上（GetServerTime {ServerTime}、Instance {Instance}）：伺服器與艾奧傑亞時間改用本機時鐘推算，可能差幾秒；其餘功能照常。",
                 ServerTimeAvailable ? "有" : "無", FrameworkAvailable ? "有" : "無");
         }
         Update(null);
