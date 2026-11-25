@@ -5,6 +5,7 @@ using Dalamud.Bindings.ImGui;
 using InventoryTools.Logic.Columns.Abstract;
 using InventoryTools.Logic.Columns.ColumnSettings;
 using InventoryTools.Services;
+using Lumina.Excel.Sheets;
 using Microsoft.Extensions.Logging;
 
 namespace InventoryTools.Logic.Columns;
@@ -30,16 +31,28 @@ public class StainColumn : TextColumn
         switch (_stainColumnSetting.CurrentValue(columnConfiguration))
         {
             case StainColumnSettingEnum.FirstStain:
-                return item.StainEntry?.Name.ExtractText() ?? "";
+                return StainName(item.StainEntry) ?? "";
             case StainColumnSettingEnum.SecondStain:
-                return item.Stain2Entry?.Name.ExtractText() ?? "";
+                return StainName(item.Stain2Entry) ?? "";
             case StainColumnSettingEnum.Both:
-                var firstStain = item.StainEntry?.Name.ExtractText() ?? "No Dye";
-                var secondStain = item.Stain2Entry?.Name.ExtractText() ?? "No Dye";
+                var firstStain = StainName(item.StainEntry) ?? "No Dye";
+                var secondStain = StainName(item.Stain2Entry) ?? "No Dye";
                 return firstStain + " / " + secondStain;
         }
 
         return "";
+    }
+
+    // Stain.Name 是句中用的名稱欄，台服 row 0 為空字串，「無染色」只在 Name2。
+    private static string? StainName(Stain? stain)
+    {
+        if (stain == null)
+        {
+            return null;
+        }
+
+        var name = stain.Value.Name.ExtractText();
+        return name.Length != 0 ? name : stain.Value.Name2.ExtractText();
     }
 
     public override List<MessageBase>? DrawEditor(ColumnConfiguration columnConfiguration,
