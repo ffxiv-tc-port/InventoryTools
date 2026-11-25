@@ -80,7 +80,7 @@ jobs:
           $ErrorActionPreference = 'Stop'
           Add-Type -AssemblyName System.IO.Compression
           $n = "$env:LEAK_GUARD_NEEDLE".Trim().ToLowerInvariant()
-          if ($n.Length -lt 4 -or $n -cnotmatch '^[a-z0-9_.-]+$') { throw "secret LEAK_GUARD_NEEDLE is empty or malformed (length $($n.Length)); refusing to upload" }
+          if ($n.Length -lt 4 -or $n -cnotmatch '^[a-z0-9_.-]+$') { throw "secret LEAK_GUARD_NEEDLE is empty or malformed; refusing to upload" }
           $L = [Text.Encoding]::Latin1
           $cases = [Collections.Generic.HashSet[string]]::new([StringComparer]::Ordinal)
           [void]$cases.Add($n); [void]$cases.Add($n.Substring(0, 1).ToUpperInvariant() + $n.Substring(1)); [void]$cases.Add($n.ToUpperInvariant())

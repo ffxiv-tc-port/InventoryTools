@@ -1,6 +1,12 @@
 name: Build Check
 
 on:
+  push:
+    branches: [tc-7.30]
+    paths-ignore:
+      - '**.md'
+      - '**/LICENSE*'
+      - 'LICENSE*'
   workflow_dispatch:
 
 env:
