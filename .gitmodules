@@ -1,6 +1,8 @@
 [submodule "CriticalCommonLib"]
 	path = CriticalCommonLib
 	url = https://github.com/ffxiv-tc-port/CriticalCommonLib.git
+	branch = tc-7.30
 [submodule "OtterGui"]
 	path = OtterGui
 	url = https://github.com/ffxiv-tc-port/OtterGui.git
+	branch = tc-7.30
