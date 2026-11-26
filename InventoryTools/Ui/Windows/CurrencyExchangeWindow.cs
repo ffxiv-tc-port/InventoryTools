@@ -11,6 +11,7 @@ using AllaganLib.GameSheets.Sheets.Rows;
 using Autofac;
 using CriticalCommonLib.Enums;
 using CriticalCommonLib.MarketBoard;
+using CriticalCommonLib.Models;
 using CriticalCommonLib.Services;
 using CriticalCommonLib.Services.Mediator;
 using DalaMock.Host.Mediator;
@@ -30,7 +31,7 @@ namespace InventoryTools.Ui;
 
 // 本檔假設與契約：
 // - 兌換資料來自 ItemInfoCache 的特殊商店／危命商店／軍票商店來源；貨幣解碼由 AllaganLib 負責。
-// - 哪些算貨幣以 TrackedCurrencies 為準（與 Currency 容器的掃描同一份）；持有量只算角色篩選選到的角色。
+// - 哪些算貨幣以 TrackedCurrencies 為準（與 Currency 容器的掃描同一份）；背包型貨幣的持有量讀角色背包、不讀 Currency 容器；持有量只算角色篩選選到的角色。
 // - 只讀市價快取；只有按「查價」才經 IMarketCache.RequestCheck 排進既有的節流佇列（只送物品 ID 與世界）。
 // - 全部在框架執行緒的 Draw 內執行；不跨幀保存任何原生指標。
 public class CurrencyExchangeWindow : GenericWindow, IMenuWindow
@@ -52,6 +53,7 @@ public class CurrencyExchangeWindow : GenericWindow, IMenuWindow
 
     private Dictionary<uint, List<Offer>>? _offersByCurrency;
     private readonly Dictionary<uint, Holding> _holdings = new();
+    private readonly Dictionary<uint, long> _bagCurrencyCounts = new();
     private readonly Dictionary<(uint ItemId, uint WorldId), DateTime> _requestedAt = new();
     private List<uint> _currencyList = new();
     private readonly Dictionary<uint, string> _currencyLabels = new();
@@ -825,23 +827,43 @@ public class CurrencyExchangeWindow : GenericWindow, IMenuWindow
                     continue;
                 }
 
-                var holding = GetOrAddHolding(item.ItemId);
-                var cap = CapFor(item.ItemId, characterId == activeId);
-                holding.PerCharacter.Add((character.Name, item.Quantity, cap));
-                holding.Unknown.Remove(character.Name);
-                if (characterId == activeId)
+                AddHolding(item.ItemId, item.Quantity, character.Name, characterId == activeId);
+            }
+
+            // 背包型貨幣只數身上的背包（商店只收背包裡的）；背包一直有掃，沒有就是 0、不算「不知道」。
+            _bagCurrencyCounts.Clear();
+            foreach (var item in _inventoryMonitor.GetSpecificInventory(characterId, InventoryCategory.CharacterBags))
+            {
+                if (item.Quantity != 0 && TrackedCurrencies.IsBagCurrency(item.ItemId))
                 {
-                    holding.ActiveIndex = holding.PerCharacter.Count - 1;
+                    _bagCurrencyCounts[item.ItemId] = _bagCurrencyCounts.GetValueOrDefault(item.ItemId) + item.Quantity;
                 }
-                var fill = CurrencyExchangeMath.FillRatio(item.Quantity, cap);
-                if (fill is { } f && (holding.MaxFill == null || f > holding.MaxFill))
-                {
-                    holding.MaxFill = f;
-                }
+            }
+
+            foreach (var (itemId, quantity) in _bagCurrencyCounts)
+            {
+                AddHolding(itemId, quantity, character.Name, characterId == activeId);
             }
         }
 
         RebuildCurrencyList();
+    }
+
+    private void AddHolding(uint itemId, long quantity, string characterName, bool isActive)
+    {
+        var holding = GetOrAddHolding(itemId);
+        var cap = CapFor(itemId, isActive);
+        holding.PerCharacter.Add((characterName, quantity, cap));
+        holding.Unknown.Remove(characterName);
+        if (isActive)
+        {
+            holding.ActiveIndex = holding.PerCharacter.Count - 1;
+        }
+        var fill = CurrencyExchangeMath.FillRatio(quantity, cap);
+        if (fill is { } f && (holding.MaxFill == null || f > holding.MaxFill))
+        {
+            holding.MaxFill = f;
+        }
     }
 
     private Holding GetOrAddHolding(uint itemId)
@@ -906,7 +928,7 @@ public class CurrencyExchangeWindow : GenericWindow, IMenuWindow
 
         // 沒有商店兌換的貨幣（抽獎、升級用）也列出來看持有量，灰字排在最後。
         IEnumerable<uint> ids = _showAllCurrencies
-            ? _offersByCurrency.Keys.Concat(_holdings.Keys).Concat(TrackedCurrencies.ExtraItemIds.Where(c => _itemSheet.GetRowOrDefault(c) != null))
+            ? _offersByCurrency.Keys.Concat(_holdings.Keys).Concat(TrackedCurrencies.ExtraItemIds.Concat(TrackedCurrencies.BagItemIds).Where(c => _itemSheet.GetRowOrDefault(c) != null))
             : _offersByCurrency.Keys.Where(c => _holdings.ContainsKey(c)).Concat(_holdings.Keys);
         _currencyList = ids
             .Distinct()
